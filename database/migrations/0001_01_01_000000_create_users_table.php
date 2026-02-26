@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            // Role determines system access level: 'admin' has full access,
+            // 'professor' is restricted to their assigned programmings.
+            $table->enum('role', ['admin', 'professor'])->default('professor');
             $table->rememberToken();
             $table->timestamps();
         });

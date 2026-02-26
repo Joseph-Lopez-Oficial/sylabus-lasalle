@@ -1,0 +1,44 @@
+name: Release
+
+# Triggers on every push to main. semantic-release will determine
+# if a new version is needed based on conventional commit messages.
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    release:
+        name: Semantic Release
+        runs-on: ubuntu-latest
+
+        # Required permissions for semantic-release to:
+        # - Push commits back to the repo (package.json, composer.json, CHANGELOG.md)
+        # - Create GitHub releases and tags
+        permissions:
+            contents: write
+            issues: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  # Fetch full history so semantic-release can read all commits
+                  fetch-depth: 0
+                  # Use a token with write access to push version bump commits
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 'lts/*'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run semantic-release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: npx semantic-release

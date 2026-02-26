@@ -1,0 +1,2 @@
+# Run PHP Pint on staged PHP files to enforce code style before committing
+vendor/bin/pint --dirty
