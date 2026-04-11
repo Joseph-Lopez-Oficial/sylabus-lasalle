@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -48,5 +50,29 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return HasOne<\App\Models\Professor, $this>
+     */
+    public function professor(): HasOne
+    {
+        return $this->hasOne(Professor::class);
+    }
+
+    /**
+     * @return HasMany<\App\Models\Grade, $this>
+     */
+    public function gradedGrades(): HasMany
+    {
+        return $this->hasMany(Grade::class, 'graded_by');
+    }
+
+    /**
+     * @return HasMany<\App\Models\ImportLog, $this>
+     */
+    public function importLogs(): HasMany
+    {
+        return $this->hasMany(ImportLog::class, 'imported_by');
     }
 }

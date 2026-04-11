@@ -26,4 +26,4 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     })->name('dashboard');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';
