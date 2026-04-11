@@ -23,7 +23,7 @@ class ProgrammingFactory extends Factory
             'academic_space_id' => AcademicSpace::factory(),
             'professor_id' => Professor::factory(),
             'modality_id' => Modality::factory(),
-            'period' => fake()->randomElement(['2024-I', '2024-II', '2025-I', '2025-II']),
+            'period' => fake()->unique()->numerify('20##-#'),
             'group' => fake()->randomElement(['A', 'B', 'C', null]),
             'is_active' => true,
         ];

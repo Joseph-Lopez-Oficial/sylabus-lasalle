@@ -3,12 +3,16 @@
 use App\Http\Controllers\Admin\AcademicSpaceController;
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\CompetencyController;
+use App\Http\Controllers\Admin\EnrollmentController;
 use App\Http\Controllers\Admin\FacultyController;
 use App\Http\Controllers\Admin\MesocurricularLearningOutcomeController;
 use App\Http\Controllers\Admin\MicrocurricularLearningOutcomeController;
 use App\Http\Controllers\Admin\ProblematicNucleusController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProfessorController;
 use App\Http\Controllers\Admin\ProgramController;
+use App\Http\Controllers\Admin\ProgrammingController;
+use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\TopicController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -109,6 +113,37 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::patch('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+
+    // Profesores
+    Route::get('professors', [ProfessorController::class, 'index'])->name('professors.index');
+    Route::get('professors/create', [ProfessorController::class, 'create'])->name('professors.create');
+    Route::post('professors', [ProfessorController::class, 'store'])->name('professors.store');
+    Route::get('professors/{professor}/edit', [ProfessorController::class, 'edit'])->name('professors.edit');
+    Route::put('professors/{professor}', [ProfessorController::class, 'update'])->name('professors.update');
+    Route::patch('professors/{professor}/toggle-status', [ProfessorController::class, 'toggleStatus'])->name('professors.toggle-status');
+    Route::post('professors/import-students', [ProfessorController::class, 'importStudents'])->name('professors.import-students');
+
+    // Estudiantes
+    Route::get('students', [StudentController::class, 'index'])->name('students.index');
+    Route::get('students/create', [StudentController::class, 'create'])->name('students.create');
+    Route::post('students', [StudentController::class, 'store'])->name('students.store');
+    Route::get('students/{student}/edit', [StudentController::class, 'edit'])->name('students.edit');
+    Route::put('students/{student}', [StudentController::class, 'update'])->name('students.update');
+    Route::patch('students/{student}/toggle-status', [StudentController::class, 'toggleStatus'])->name('students.toggle-status');
+
+    // Programaciones
+    Route::get('programmings', [ProgrammingController::class, 'index'])->name('programmings.index');
+    Route::get('programmings/create', [ProgrammingController::class, 'create'])->name('programmings.create');
+    Route::post('programmings', [ProgrammingController::class, 'store'])->name('programmings.store');
+    Route::get('programmings/{programming}', [ProgrammingController::class, 'show'])->name('programmings.show');
+    Route::get('programmings/{programming}/edit', [ProgrammingController::class, 'edit'])->name('programmings.edit');
+    Route::put('programmings/{programming}', [ProgrammingController::class, 'update'])->name('programmings.update');
+    Route::patch('programmings/{programming}/toggle-status', [ProgrammingController::class, 'toggleStatus'])->name('programmings.toggle-status');
+
+    // Inscripciones (anidadas bajo programaciones)
+    Route::post('programmings/{programming}/enrollments', [EnrollmentController::class, 'store'])->name('programmings.enrollments.store');
+    Route::patch('programmings/{programming}/enrollments/{enrollment}/toggle-status', [EnrollmentController::class, 'toggleStatus'])->name('programmings.enrollments.toggle-status');
+    Route::post('programmings/{programming}/enrollments/import', [EnrollmentController::class, 'import'])->name('programmings.enrollments.import');
 });
 
 Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.')->group(function () {
