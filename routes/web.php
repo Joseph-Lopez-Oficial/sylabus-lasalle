@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\TopicController;
 use App\Http\Controllers\Professor\DashboardController;
 use App\Http\Controllers\Professor\GradingController;
+use App\Http\Controllers\Professor\StatisticsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -155,6 +156,9 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     Route::get('programmings/{programming}/grading', [GradingController::class, 'show'])->name('programmings.grading.show');
     Route::post('programmings/{programming}/grading/grades', [GradingController::class, 'saveGrades'])->name('programmings.grading.save');
     Route::post('programmings/{programming}/grading/confirm', [GradingController::class, 'confirmConsolidation'])->name('programmings.grading.confirm');
+
+    // Estadísticas
+    Route::get('programmings/{programming}/statistics', [StatisticsController::class, 'show'])->name('programmings.statistics.show');
 });
 
 require __DIR__.'/settings.php';
