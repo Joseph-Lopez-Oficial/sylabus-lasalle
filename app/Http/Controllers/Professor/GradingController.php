@@ -2,24 +2,35 @@
 
 namespace App\Http\Controllers\Professor;
 
+use App\Exports\GradingTemplateExport;
+use App\Exports\StatisticsReportExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Professor\ImportGradesRequest;
 use App\Http\Requests\Professor\SaveGradesRequest;
+use App\Imports\GradesImport;
 use App\Models\EvaluationCriterion;
 use App\Models\Grade;
+use App\Models\ImportLog;
 use App\Models\MicrocurricularLearningOutcomeType;
 use App\Models\PerformanceLevel;
 use App\Models\Programming;
 use App\Services\GradingService;
+use App\Services\StatisticsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class GradingController extends Controller
 {
-    public function __construct(private readonly GradingService $gradingService) {}
+    public function __construct(
+        private readonly GradingService $gradingService,
+        private readonly StatisticsService $statisticsService,
+    ) {}
 
     public function show(Request $request, Programming $programming): Response
     {
@@ -92,6 +103,65 @@ class GradingController extends Controller
         }
 
         return response()->json(['message' => 'Consolidado confirmado exitosamente.']);
+    }
+
+    public function downloadTemplate(Request $request, Programming $programming): BinaryFileResponse
+    {
+        $this->authorizeOwnership($request, $programming);
+
+        $fileName = 'plantilla_calificaciones_'.$programming->id.'_'.now()->format('Ymd').'.xlsx';
+
+        return Excel::download(new GradingTemplateExport($programming), $fileName);
+    }
+
+    public function importGrades(ImportGradesRequest $request, Programming $programming): JsonResponse
+    {
+        $this->authorizeOwnership($request, $programming);
+
+        $file = $request->file('file');
+        $import = new GradesImport($programming, $request->user()->id, $this->gradingService);
+
+        Excel::import($import, $file);
+
+        $results = $import->results;
+        $successCount = count(array_filter($results, fn ($r) => $r['status'] === 'success'));
+        $errorCount = count(array_filter($results, fn ($r) => $r['status'] === 'error'));
+        $errors = array_values(array_filter($results, fn ($r) => $r['status'] === 'error'));
+
+        ImportLog::create([
+            'imported_by' => $request->user()->id,
+            'programming_id' => $programming->id,
+            'file_name' => $file->getClientOriginalName(),
+            'total_rows' => count($results),
+            'successful_rows' => $successCount,
+            'failed_rows' => $errorCount,
+            'errors' => $errors ?: null,
+            'status' => $errorCount === 0 ? 'completed' : 'completed',
+            'imported_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => "Importación completada: {$successCount} exitosas, {$errorCount} errores.",
+            'results' => $results,
+        ]);
+    }
+
+    public function downloadReport(Request $request, Programming $programming): BinaryFileResponse
+    {
+        $this->authorizeOwnership($request, $programming);
+
+        $completeness = $this->gradingService->completeness($programming);
+
+        if ($completeness['percentage'] < 100.0) {
+            abort(HttpResponse::HTTP_UNPROCESSABLE_ENTITY, 'Las calificaciones deben estar completas para exportar el reporte.');
+        }
+
+        $fileName = 'reporte_calificaciones_'.$programming->id.'_'.now()->format('Ymd').'.xlsx';
+
+        return Excel::download(
+            new StatisticsReportExport($programming, $this->statisticsService),
+            $fileName
+        );
     }
 
     private function authorizeOwnership(Request $request, Programming $programming): void
