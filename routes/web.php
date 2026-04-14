@@ -17,13 +17,14 @@ use App\Http\Controllers\Admin\TopicController;
 use App\Http\Controllers\Professor\DashboardController;
 use App\Http\Controllers\Professor\GradingController;
 use App\Http\Controllers\Professor\StatisticsController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
 Route::get('/', function () {
-    if (auth()->check()) {
-        $role = auth()->user()->role;
+    if (Auth::check()) {
+        $role = Auth::user()->role;
+
         return redirect()->route(match ($role) {
             'admin' => 'admin.dashboard',
             'professor' => 'professor.dashboard',
@@ -35,8 +36,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', function () {
-    if (auth()->check()) {
-        $role = auth()->user()->role;
+    if (Auth::check()) {
+        $role = Auth::user()->role;
+
         return redirect()->route(match ($role) {
             'admin' => 'admin.dashboard',
             'professor' => 'professor.dashboard',
@@ -180,4 +182,4 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     Route::get('programmings/{programming}/statistics', [StatisticsController::class, 'show'])->name('programmings.statistics.show');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
