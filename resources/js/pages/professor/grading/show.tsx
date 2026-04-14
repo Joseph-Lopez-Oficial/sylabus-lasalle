@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import axios from 'axios';
 import {
     AlertTriangle,
     CheckCircle2,
@@ -409,23 +410,11 @@ export default function GradingShow({
 
         setSavingOutcome(outcomeId);
 
-        fetch(GradingController.saveGrades.url(programming), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN':
-                    (
-                        document.querySelector(
-                            'meta[name="csrf-token"]',
-                        ) as HTMLMetaElement
-                    )?.content ?? '',
-                Accept: 'application/json',
-            },
-            body: JSON.stringify({ grades: gradesToSave }),
-        })
-            .then((res) => res.json())
+        axios
+            .post(GradingController.saveGrades.url(programming), {
+                grades: gradesToSave,
+            })
             .then(() => {
-                // Mark these grades as saved
                 const newSaved = { ...savedGrades };
                 gradesToSave.forEach((g) => {
                     newSaved[
@@ -438,7 +427,6 @@ export default function GradingShow({
                 });
                 setSavedGrades(newSaved);
 
-                // Recalculate completeness locally
                 const totalCells =
                     enrollments.length * allOutcomeIds.length * criteria.length;
                 const completedCells = Object.keys(newSaved).length;
@@ -461,25 +449,13 @@ export default function GradingShow({
 
     function handleConsolidate() {
         setConsolidating(true);
-        fetch(GradingController.confirmConsolidation.url(programming), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN':
-                    (
-                        document.querySelector(
-                            'meta[name="csrf-token"]',
-                        ) as HTMLMetaElement
-                    )?.content ?? '',
-                Accept: 'application/json',
-            },
-        })
-            .then((res) => {
-                if (res.ok) {
-                    router.visit(
-                        `/professor/programmings/${programming.id}/statistics`,
-                    );
-                }
-            })
+        axios
+            .post(GradingController.confirmConsolidation.url(programming))
+            .then(() =>
+                router.visit(
+                    `/professor/programmings/${programming.id}/statistics`,
+                ),
+            )
             .catch(console.error)
             .finally(() => {
                 setConsolidating(false);
@@ -530,6 +506,15 @@ export default function GradingShow({
                                 <Download className="mr-2 h-4 w-4" />
                                 Plantilla
                             </a>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link
+                                href={GradingController.importPage.url(
+                                    programming,
+                                )}
+                            >
+                                ↑ Importar Excel
+                            </Link>
                         </Button>
                     </div>
                 </PageHeader>

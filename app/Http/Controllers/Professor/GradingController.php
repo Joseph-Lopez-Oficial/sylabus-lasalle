@@ -105,6 +105,18 @@ class GradingController extends Controller
         return response()->json(['message' => 'Consolidado confirmado exitosamente.']);
     }
 
+    public function importPage(Request $request, Programming $programming): Response
+    {
+        $this->authorizeOwnership($request, $programming);
+
+        $academicSpace = $programming->academicSpace;
+
+        return Inertia::render('professor/grading/import', [
+            'programming' => $programming->only(['id', 'period', 'group']),
+            'academicSpace' => $academicSpace->only(['id', 'name', 'code']),
+        ]);
+    }
+
     public function downloadTemplate(Request $request, Programming $programming): BinaryFileResponse
     {
         $this->authorizeOwnership($request, $programming);

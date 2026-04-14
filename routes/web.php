@@ -175,6 +175,7 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     Route::post('programmings/{programming}/grading/grades', [GradingController::class, 'saveGrades'])->name('programmings.grading.save');
     Route::post('programmings/{programming}/grading/confirm', [GradingController::class, 'confirmConsolidation'])->name('programmings.grading.confirm');
     Route::get('programmings/{programming}/grading/template', [GradingController::class, 'downloadTemplate'])->name('programmings.grading.template');
+    Route::get('programmings/{programming}/grading/import', [GradingController::class, 'importPage'])->name('programmings.grading.import-page');
     Route::post('programmings/{programming}/grading/import', [GradingController::class, 'importGrades'])->name('programmings.grading.import');
     Route::get('programmings/{programming}/grading/report', [GradingController::class, 'downloadReport'])->name('programmings.grading.report');
 
