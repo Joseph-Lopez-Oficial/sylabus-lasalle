@@ -314,7 +314,11 @@ export type StudentStats = {
     student_name: string;
     final_average: number;
     totals_by_outcome: number[];
-    by_criterion: { criterion_id: number; criterion_name: string; average: number }[];
+    by_criterion: {
+        criterion_id: number;
+        criterion_name: string;
+        average: number;
+    }[];
 };
 
 export type OutcomeStats = {
@@ -323,7 +327,12 @@ export type OutcomeStats = {
     group_average: number;
     highest: number;
     lowest: number;
-    distribution: { level_id: number; level_name: string; count: number; percentage: number }[];
+    distribution: {
+        level_id: number;
+        level_name: string;
+        count: number;
+        percentage: number;
+    }[];
 };
 
 export type CriterionStats = {
@@ -338,7 +347,12 @@ export type ProgrammingStats = {
     byCriterion: CriterionStats[];
     summary: {
         overall_average: number;
-        distribution: { level_id: number; level_name: string; count: number; percentage: number }[];
+        distribution: {
+            level_id: number;
+            level_name: string;
+            count: number;
+            percentage: number;
+        }[];
         top_students: StudentStats[];
         below_basic: StudentStats[];
     };

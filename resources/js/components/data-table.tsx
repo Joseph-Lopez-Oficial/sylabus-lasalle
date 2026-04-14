@@ -24,7 +24,7 @@ import { EmptyState } from './empty-state';
 type Props<TData> = {
     data: PaginatedResponse<TData>;
     columns: ColumnDef<TData, unknown>[];
-    filters?: Record<string, string>;
+    filters?: Record<string, string | undefined>;
     searchPlaceholder?: string;
     searchKey?: string;
     className?: string;
@@ -40,36 +40,40 @@ export function DataTable<TData>({
 }: Props<TData>) {
     const [search, setSearch] = useState(filters[searchKey] ?? '');
 
-    // Debounced search navigation
+    const rows = data?.data ?? [];
+    const meta = data?.meta;
+    const links = data?.links;
+
     useEffect(() => {
         const timeout = setTimeout(() => {
             if (search !== (filters[searchKey] ?? '')) {
                 router.get(
                     window.location.pathname,
-                    { ...filters, [searchKey]: search || undefined, page: undefined },
+                    {
+                        ...filters,
+                        [searchKey]: search || undefined,
+                        page: undefined,
+                    },
                     { preserveState: true, replace: true },
                 );
             }
         }, 400);
-
         return () => clearTimeout(timeout);
     }, [search, filters, searchKey]);
 
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
-        data: data.data,
+        data: rows,
         columns,
         getCoreRowModel: getCoreRowModel(),
         manualPagination: true,
-        pageCount: data.meta.last_page,
+        pageCount: meta?.last_page ?? 1,
     });
 
-    const navigate = useCallback(
-        (url: string | null) => {
-            if (!url) return;
-            router.get(url, {}, { preserveState: true });
-        },
-        [],
-    );
+    const navigate = useCallback((url: string | null) => {
+        if (!url) return;
+        router.get(url, {}, { preserveState: true });
+    }, []);
 
     return (
         <div className={cn('space-y-4', className)}>
@@ -94,7 +98,11 @@ export function DataTable<TData>({
                                     <TableHead key={header.id}>
                                         {header.isPlaceholder
                                             ? null
-                                            : flexRender(header.column.columnDef.header, header.getContext())}
+                                            : flexRender(
+                                                  header.column.columnDef
+                                                      .header,
+                                                  header.getContext(),
+                                              )}
                                     </TableHead>
                                 ))}
                             </TableRow>
@@ -106,14 +114,20 @@ export function DataTable<TData>({
                                 <TableRow key={row.id}>
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            {flexRender(
+                                                cell.column.columnDef.cell,
+                                                cell.getContext(),
+                                            )}
                                         </TableCell>
                                     ))}
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-48 p-0">
+                                <TableCell
+                                    colSpan={columns.length}
+                                    className="h-48 p-0"
+                                >
                                     <EmptyState />
                                 </TableCell>
                             </TableRow>
@@ -123,34 +137,37 @@ export function DataTable<TData>({
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>
-                    {data.meta.from ?? 0}–{data.meta.to ?? 0} de {data.meta.total} registros
-                </span>
-                <div className="flex items-center gap-1">
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => navigate(data.links.prev)}
-                        disabled={!data.links.prev}
-                        aria-label="Página anterior"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="px-2">
-                        {data.meta.current_page} / {data.meta.last_page}
+            {meta && (
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>
+                        {meta.from ?? 0}–{meta.to ?? 0} de {meta.total}{' '}
+                        registros
                     </span>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => navigate(data.links.next)}
-                        disabled={!data.links.next}
-                        aria-label="Página siguiente"
-                    >
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => navigate(links?.prev ?? null)}
+                            disabled={!links?.prev}
+                            aria-label="Página anterior"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="px-2">
+                            {meta.current_page} / {meta.last_page}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => navigate(links?.next ?? null)}
+                            disabled={!links?.next}
+                            aria-label="Página siguiente"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

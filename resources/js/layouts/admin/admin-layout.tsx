@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import {
     BookOpen,
     Building2,
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AppContent } from '@/components/app-content';
+import AppLogo from '@/components/app-logo';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { NavUser } from '@/components/nav-user';
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { BreadcrumbItem } from '@/types';
-import AppLogo from '@/components/app-logo';
 
 type Props = {
     children: ReactNode;
@@ -36,19 +36,47 @@ const navItems = [
     {
         group: 'Principal',
         items: [
-            { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+            {
+                title: 'Dashboard',
+                href: '/admin/dashboard',
+                icon: LayoutDashboard,
+            },
         ],
     },
     {
         group: 'Estructura Académica',
         items: [
             { title: 'Facultades', href: '/admin/faculties', icon: Building2 },
-            { title: 'Programas', href: '/admin/programs', icon: GraduationCap },
-            { title: 'Núcleos Problemáticos', href: '/admin/problematic-nuclei', icon: BookOpen },
-            { title: 'Competencias', href: '/admin/competencies', icon: BookOpen },
-            { title: 'Resultados Meso.', href: '/admin/mesocurricular-outcomes', icon: BookOpen },
-            { title: 'Espacios Académicos', href: '/admin/academic-spaces', icon: BookOpen },
-            { title: 'Resultados Micro.', href: '/admin/microcurricular-outcomes', icon: BookOpen },
+            {
+                title: 'Programas',
+                href: '/admin/programs',
+                icon: GraduationCap,
+            },
+            {
+                title: 'Núcleos Problemáticos',
+                href: '/admin/problematic-nuclei',
+                icon: BookOpen,
+            },
+            {
+                title: 'Competencias',
+                href: '/admin/competencies',
+                icon: BookOpen,
+            },
+            {
+                title: 'Resultados Meso.',
+                href: '/admin/mesocurricular-outcomes',
+                icon: BookOpen,
+            },
+            {
+                title: 'Espacios Académicos',
+                href: '/admin/academic-spaces',
+                icon: BookOpen,
+            },
+            {
+                title: 'Resultados Micro.',
+                href: '/admin/microcurricular-outcomes',
+                icon: BookOpen,
+            },
             { title: 'Temas', href: '/admin/topics', icon: BookOpen },
             { title: 'Actividades', href: '/admin/activities', icon: BookOpen },
             { title: 'Productos', href: '/admin/products', icon: BookOpen },
@@ -64,7 +92,11 @@ const navItems = [
     {
         group: 'Programaciones',
         items: [
-            { title: 'Programaciones', href: '/admin/programmings', icon: Settings },
+            {
+                title: 'Programaciones',
+                href: '/admin/programmings',
+                icon: Settings,
+            },
         ],
     },
 ];

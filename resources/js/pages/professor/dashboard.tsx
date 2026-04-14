@@ -1,11 +1,11 @@
 import { Head, Link } from '@inertiajs/react';
 import { BookOpen, Users } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
-import { formatDecimal } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ProfessorLayout from '@/layouts/professor/professor-layout';
+import { formatDecimal } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 
 type ProgrammingCard = {
@@ -57,30 +57,47 @@ export default function ProfessorDashboard({ programmings }: Props) {
                                             <CardTitle className="text-base leading-tight">
                                                 {p.academic_space.name}
                                             </CardTitle>
-                                            <Badge variant="outline" className="shrink-0 text-xs">
+                                            <Badge
+                                                variant="outline"
+                                                className="shrink-0 text-xs"
+                                            >
                                                 {p.academic_space.code}
                                             </Badge>
                                         </div>
                                         <p className="text-sm text-muted-foreground">
-                                            {p.period}{p.group ? ` · Grupo ${p.group}` : ''} · {p.modality.name}
+                                            {p.period}
+                                            {p.group
+                                                ? ` · Grupo ${p.group}`
+                                                : ''}{' '}
+                                            · {p.modality.name}
                                         </p>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <Users className="h-4 w-4" />
-                                            <span>{p.enrolled_count} estudiantes inscritos</span>
+                                            <span>
+                                                {p.enrolled_count} estudiantes
+                                                inscritos
+                                            </span>
                                         </div>
                                         <div>
                                             <div className="mb-1 flex items-center justify-between text-xs">
-                                                <span className="text-muted-foreground">Calificaciones</span>
+                                                <span className="text-muted-foreground">
+                                                    Calificaciones
+                                                </span>
                                                 <span className="font-medium">
-                                                    {formatDecimal(p.grading_percentage)}%
+                                                    {formatDecimal(
+                                                        p.grading_percentage,
+                                                    )}
+                                                    %
                                                 </span>
                                             </div>
                                             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                                                 <div
                                                     className="h-full rounded-full bg-primary transition-all"
-                                                    style={{ width: `${p.grading_percentage}%` }}
+                                                    style={{
+                                                        width: `${p.grading_percentage}%`,
+                                                    }}
                                                 />
                                             </div>
                                         </div>

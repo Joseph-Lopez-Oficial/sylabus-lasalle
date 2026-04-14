@@ -30,7 +30,9 @@ export function EmptyState({
             </div>
             <div>
                 <p className="font-medium">{title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {description}
+                </p>
             </div>
             {children && <div className="mt-2">{children}</div>}
         </div>

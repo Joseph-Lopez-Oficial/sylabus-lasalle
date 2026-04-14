@@ -1,5 +1,10 @@
 import { router } from '@inertiajs/react';
-import { ChevronDown, ChevronRight, Loader2, MoreHorizontal } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronRight,
+    Loader2,
+    MoreHorizontal,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -41,12 +46,18 @@ function TreeNodeItem({ node, depth, onFetchChildren }: TreeNodeItemProps) {
     const [children, setChildren] = useState<TreeNode[]>(node.children ?? []);
     const [loading, setLoading] = useState(false);
 
-    const canExpand = node.hasChildren || (node.children && node.children.length > 0);
+    const canExpand =
+        node.hasChildren || (node.children && node.children.length > 0);
 
     const handleToggle = useCallback(async () => {
         if (!canExpand) return;
 
-        if (!isOpen && node.hasChildren && children.length === 0 && onFetchChildren) {
+        if (
+            !isOpen &&
+            node.hasChildren &&
+            children.length === 0 &&
+            onFetchChildren
+        ) {
             setLoading(true);
             try {
                 const fetched = await onFetchChildren(node);
@@ -90,10 +101,14 @@ function TreeNodeItem({ node, depth, onFetchChildren }: TreeNodeItemProps) {
                 </button>
 
                 {/* Icon */}
-                {Icon && <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                {Icon && (
+                    <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                )}
 
                 {/* Label */}
-                <span className="flex-1 truncate font-medium">{node.label}</span>
+                <span className="flex-1 truncate font-medium">
+                    {node.label}
+                </span>
 
                 {/* Badge */}
                 {node.badge && (
@@ -120,7 +135,8 @@ function TreeNodeItem({ node, depth, onFetchChildren }: TreeNodeItemProps) {
                                 <DropdownMenuItem
                                     key={action.label}
                                     className={cn(
-                                        action.variant === 'destructive' && 'text-destructive',
+                                        action.variant === 'destructive' &&
+                                            'text-destructive',
                                     )}
                                     onClick={() => {
                                         if (action.href) {

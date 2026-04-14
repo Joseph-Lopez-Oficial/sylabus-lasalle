@@ -47,7 +47,11 @@ export function ConfirmDialog({
                     >
                         {cancelLabel}
                     </Button>
-                    <Button variant={variant} onClick={onConfirm} disabled={loading}>
+                    <Button
+                        variant={variant}
+                        onClick={onConfirm}
+                        disabled={loading}
+                    >
                         {loading && <Spinner className="mr-2 h-4 w-4" />}
                         {confirmLabel}
                     </Button>

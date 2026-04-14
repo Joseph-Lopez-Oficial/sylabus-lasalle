@@ -22,14 +22,30 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
+    if (auth()->check()) {
+        $role = auth()->user()->role;
+        return redirect()->route(match ($role) {
+            'admin' => 'admin.dashboard',
+            'professor' => 'professor.dashboard',
+            default => 'admin.dashboard',
+        });
+    }
+
+    return redirect()->route('login');
 })->name('home');
 
 Route::get('dashboard', function () {
-    return Inertia::render('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    if (auth()->check()) {
+        $role = auth()->user()->role;
+        return redirect()->route(match ($role) {
+            'admin' => 'admin.dashboard',
+            'professor' => 'professor.dashboard',
+            default => 'admin.dashboard',
+        });
+    }
+
+    return redirect()->route('login');
+})->middleware(['auth'])->name('dashboard');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('dashboard', function () {

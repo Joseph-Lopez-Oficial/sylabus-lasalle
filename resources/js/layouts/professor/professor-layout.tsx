@@ -1,7 +1,8 @@
 import { Link } from '@inertiajs/react';
-import { BarChart3, LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AppContent } from '@/components/app-content';
+import AppLogo from '@/components/app-logo';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { NavUser } from '@/components/nav-user';
@@ -18,7 +19,6 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { BreadcrumbItem } from '@/types';
-import AppLogo from '@/components/app-logo';
 
 type Props = {
     children: ReactNode;
