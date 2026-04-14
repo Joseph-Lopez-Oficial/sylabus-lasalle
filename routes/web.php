@@ -182,4 +182,4 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     Route::get('programmings/{programming}/statistics', [StatisticsController::class, 'show'])->name('programmings.statistics.show');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';
