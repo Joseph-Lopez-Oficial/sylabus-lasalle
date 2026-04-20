@@ -1,3 +1,19 @@
+# [1.1.0](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v1.0.0...v1.1.0) (2026-04-20)
+
+
+### Bug Fixes
+
+* **db:** extend name column to text in competencies and problematic_nuclei tables ([35eac32](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/35eac32de4812e31417f1b5b43389d8d1430dcba))
+
+
+### Features
+
+* **admin:** implement academic structure CRUD pages for admin module ([f3d0799](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/f3d0799c5886b4f8cdd0a16fc574f595c5ad3b57)), closes [#11](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/11)
+* **admin:** implement professors, students and programmings management pages ([c518c11](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/c518c11d70f686aa5064b4106a364ba6b258c5bd)), closes [#12](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/12)
+* **frontend:** establish frontend base with types, layouts, and reusable components ([05a09d4](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/05a09d4793c511f4d3a7d85cba5284d2604d3462)), closes [#10](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/10)
+* **professor:** implement grading import page and full statistics visualization ([93d440f](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/93d440fb1f5697eab0ace87ddd46f58ff410eb93)), closes [#14](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/14)
+* **professor:** implement professor dashboard and full grading interface ([a1d37b7](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/a1d37b719d084ed49708f3ed4a9930b91db9e682)), closes [#13](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/13)
+
 # 1.0.0 (2026-04-11)
 
 
