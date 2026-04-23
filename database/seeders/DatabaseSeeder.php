@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ModalitySeeder::class,
             EvaluationCriterionSeeder::class,
             PerformanceLevelSeeder::class,
+            ActivityTypeSeeder::class,
             AdminUserSeeder::class,
         ]);
     }

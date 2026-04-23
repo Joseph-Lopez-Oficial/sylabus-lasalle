@@ -7,27 +7,20 @@ use Illuminate\Database\Seeder;
 
 class MicrocurricularLearningOutcomeTypeSeeder extends Seeder
 {
-    /**
-     * Seed the microcurricular learning outcome types catalog.
-     *
-     * The three types classify what kind of learning a microcurricular
-     * outcome targets: knowledge acquisition, skill development, or
-     * attitude/value formation.
-     */
     public function run(): void
     {
         $types = [
             [
-                'name' => 'Knowledge',
-                'description' => 'Outcomes related to the acquisition and understanding of concepts, facts, and theoretical frameworks (Saber Conocer).',
+                'name' => 'Conocimiento',
+                'description' => 'Resultados relacionados con la adquisición y comprensión de conceptos, hechos y marcos teóricos (Saber Conocer).',
             ],
             [
-                'name' => 'Skill',
-                'description' => 'Outcomes related to the development of practical abilities and procedural competencies (Saber Hacer).',
+                'name' => 'Habilidad',
+                'description' => 'Resultados relacionados con el desarrollo de habilidades prácticas y competencias procedimentales (Saber Hacer).',
             ],
             [
-                'name' => 'Attitude',
-                'description' => 'Outcomes related to the formation of values, attitudes, and personal dispositions (Saber Ser).',
+                'name' => 'Actitud',
+                'description' => 'Resultados relacionados con la formación de valores, actitudes y disposiciones personales (Saber Ser).',
             ],
         ];
 

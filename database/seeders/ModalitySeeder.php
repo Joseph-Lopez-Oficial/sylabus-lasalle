@@ -7,26 +7,20 @@ use Illuminate\Database\Seeder;
 
 class ModalitySeeder extends Seeder
 {
-    /**
-     * Seed the modalities catalog.
-     *
-     * Modalities define the delivery mode of an academic programming:
-     * in-person, fully virtual, or a combination of both.
-     */
     public function run(): void
     {
         $modalities = [
             [
-                'name' => 'In-Person',
-                'description' => 'Classes are held entirely on campus with physical attendance required.',
+                'name' => 'Presencial',
+                'description' => 'Las clases se realizan completamente en el campus con asistencia física requerida.',
             ],
             [
                 'name' => 'Virtual',
-                'description' => 'Classes are conducted entirely online through digital platforms.',
+                'description' => 'Las clases se desarrollan completamente en línea a través de plataformas digitales.',
             ],
             [
-                'name' => 'Hybrid',
-                'description' => 'Classes combine in-person and virtual sessions in a blended format.',
+                'name' => 'Híbrida',
+                'description' => 'Las clases combinan sesiones presenciales y virtuales en formato mixto.',
             ],
         ];
 

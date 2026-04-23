@@ -7,34 +7,27 @@ use Illuminate\Database\Seeder;
 
 class EvaluationCriterionSeeder extends Seeder
 {
-    /**
-     * Seed the evaluation criteria catalog.
-     *
-     * These four criteria define the dimensions used to assess each
-     * microcurricular learning outcome, following the competency-based
-     * education model adopted by Universidad de La Salle.
-     */
     public function run(): void
     {
         $criteria = [
             [
                 'name' => 'Saber Conocer',
-                'description' => 'Evaluates the student\'s ability to acquire, understand, and apply theoretical knowledge and conceptual frameworks.',
+                'description' => 'Evalúa la capacidad del estudiante para adquirir, comprender y aplicar conocimientos teóricos y marcos conceptuales.',
                 'order' => 1,
             ],
             [
                 'name' => 'Saber Hacer',
-                'description' => 'Evaluates the student\'s ability to perform tasks, apply techniques, and demonstrate practical procedural skills.',
+                'description' => 'Evalúa la capacidad del estudiante para ejecutar tareas, aplicar técnicas y demostrar habilidades prácticas y procedimentales.',
                 'order' => 2,
             ],
             [
                 'name' => 'Saber Ser',
-                'description' => 'Evaluates the student\'s attitudes, values, ethical conduct, and personal dispositions in academic and professional contexts.',
+                'description' => 'Evalúa las actitudes, valores, conducta ética y disposiciones personales del estudiante en contextos académicos y profesionales.',
                 'order' => 3,
             ],
             [
                 'name' => 'Saber Transferir',
-                'description' => 'Evaluates the student\'s ability to transfer and apply learned competencies to new, real-world, and interdisciplinary situations.',
+                'description' => 'Evalúa la capacidad del estudiante para transferir y aplicar las competencias aprendidas a situaciones nuevas, reales e interdisciplinares.',
                 'order' => 4,
             ],
         ];

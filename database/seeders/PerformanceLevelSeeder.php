@@ -7,34 +7,27 @@ use Illuminate\Database\Seeder;
 
 class PerformanceLevelSeeder extends Seeder
 {
-    /**
-     * Seed the performance levels catalog.
-     *
-     * These four levels form the qualitative scale used to assess each
-     * evaluation criterion for a given microcurricular learning outcome.
-     * They are ordered from the lowest to the highest level of achievement.
-     */
     public function run(): void
     {
         $levels = [
             [
                 'name' => 'Insuficiente',
-                'description' => 'The student does not meet the minimum expected competency. Significant gaps in knowledge, skills, or attitudes are evident.',
+                'description' => 'El estudiante no alcanza el nivel mínimo de competencia esperado. Se evidencian brechas significativas en conocimientos, habilidades o actitudes.',
                 'order' => 1,
             ],
             [
                 'name' => 'Básico',
-                'description' => 'The student meets the minimum expected competency with limited depth. Performance is acceptable but lacks consistency or breadth.',
+                'description' => 'El estudiante alcanza el nivel mínimo esperado con profundidad limitada. El desempeño es aceptable pero carece de consistencia o amplitud.',
                 'order' => 2,
             ],
             [
                 'name' => 'Competente',
-                'description' => 'The student consistently demonstrates the expected competency with solid understanding and reliable application.',
+                'description' => 'El estudiante demuestra de forma consistente la competencia esperada con comprensión sólida y aplicación confiable.',
                 'order' => 3,
             ],
             [
                 'name' => 'Destacado',
-                'description' => 'The student exceeds expectations, demonstrating outstanding mastery, critical thinking, and the ability to transfer competencies to novel situations.',
+                'description' => 'El estudiante supera las expectativas, demostrando dominio sobresaliente, pensamiento crítico y capacidad para transferir competencias a situaciones nuevas.',
                 'order' => 4,
             ],
         ];

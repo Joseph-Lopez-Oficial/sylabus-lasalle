@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Database\Seeders\ActivityTypeSeeder;
 use Database\Seeders\AdminUserSeeder;
 use Database\Seeders\EvaluationCriterionSeeder;
 use Database\Seeders\MicrocurricularLearningOutcomeTypeSeeder;
@@ -19,9 +20,9 @@ class InitialSeedersTest extends TestCase
         $this->seed(MicrocurricularLearningOutcomeTypeSeeder::class);
 
         $this->assertDatabaseCount('microcurricular_learning_outcome_types', 3);
-        $this->assertDatabaseHas('microcurricular_learning_outcome_types', ['name' => 'Knowledge']);
-        $this->assertDatabaseHas('microcurricular_learning_outcome_types', ['name' => 'Skill']);
-        $this->assertDatabaseHas('microcurricular_learning_outcome_types', ['name' => 'Attitude']);
+        $this->assertDatabaseHas('microcurricular_learning_outcome_types', ['name' => 'Conocimiento']);
+        $this->assertDatabaseHas('microcurricular_learning_outcome_types', ['name' => 'Habilidad']);
+        $this->assertDatabaseHas('microcurricular_learning_outcome_types', ['name' => 'Actitud']);
     }
 
     public function test_modalities_are_seeded(): void
@@ -29,9 +30,9 @@ class InitialSeedersTest extends TestCase
         $this->seed(ModalitySeeder::class);
 
         $this->assertDatabaseCount('modalities', 3);
-        $this->assertDatabaseHas('modalities', ['name' => 'In-Person']);
+        $this->assertDatabaseHas('modalities', ['name' => 'Presencial']);
         $this->assertDatabaseHas('modalities', ['name' => 'Virtual']);
-        $this->assertDatabaseHas('modalities', ['name' => 'Hybrid']);
+        $this->assertDatabaseHas('modalities', ['name' => 'Híbrida']);
     }
 
     public function test_evaluation_criteria_are_seeded(): void
@@ -76,6 +77,16 @@ class InitialSeedersTest extends TestCase
         $this->assertDatabaseCount('evaluation_criteria', 4);
     }
 
+    public function test_activity_types_are_seeded(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+
+        $this->assertDatabaseCount('activity_types', 3);
+        $this->assertDatabaseHas('activity_types', ['name' => 'Encuentro']);
+        $this->assertDatabaseHas('activity_types', ['name' => 'Tarea']);
+        $this->assertDatabaseHas('activity_types', ['name' => 'Cuestionario']);
+    }
+
     public function test_full_database_seeder_populates_all_catalogs(): void
     {
         $this->seed();
@@ -84,6 +95,7 @@ class InitialSeedersTest extends TestCase
         $this->assertDatabaseCount('modalities', 3);
         $this->assertDatabaseCount('evaluation_criteria', 4);
         $this->assertDatabaseCount('performance_levels', 4);
+        $this->assertDatabaseCount('activity_types', 3);
         $this->assertDatabaseCount('users', 1);
     }
 }
