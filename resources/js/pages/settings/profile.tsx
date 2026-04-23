@@ -15,7 +15,7 @@ import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
+        title: 'Configuración de perfil',
         href: edit().url,
     },
 ];
@@ -31,30 +31,27 @@ export default function Profile({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Profile settings" />
+            <Head title="Configuración de perfil" />
 
-            <h1 className="sr-only">Profile Settings</h1>
+            <h1 className="sr-only">Configuración de perfil</h1>
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <Heading
                         variant="small"
-                        title="Profile information"
-                        description="Update your name and email address"
+                        title="Información del perfil"
+                        description="Actualiza tu nombre y dirección de correo electrónico"
                     />
 
                     <Form
                         {...ProfileController.update.form()}
-                        options={{
-                            preserveScroll: true,
-                        }}
+                        options={{ preserveScroll: true }}
                         className="space-y-6"
                     >
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
-
+                                    <Label htmlFor="name">Nombre</Label>
                                     <Input
                                         id="name"
                                         className="mt-1 block w-full"
@@ -62,18 +59,13 @@ export default function Profile({
                                         name="name"
                                         required
                                         autoComplete="name"
-                                        placeholder="Full name"
+                                        placeholder="Nombre completo"
                                     />
-
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.name}
-                                    />
+                                    <InputError className="mt-2" message={errors.name} />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="email">Email address</Label>
-
+                                    <Label htmlFor="email">Correo electrónico</Label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -82,48 +74,35 @@ export default function Profile({
                                         name="email"
                                         required
                                         autoComplete="username"
-                                        placeholder="Email address"
+                                        placeholder="Correo electrónico"
                                     />
-
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.email}
-                                    />
+                                    <InputError className="mt-2" message={errors.email} />
                                 </div>
 
-                                {mustVerifyEmail &&
-                                    auth.user.email_verified_at === null && (
-                                        <div>
-                                            <p className="-mt-4 text-sm text-muted-foreground">
-                                                Your email address is
-                                                unverified.{' '}
-                                                <Link
-                                                    href={send()}
-                                                    as="button"
-                                                    className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                                >
-                                                    Click here to resend the
-                                                    verification email.
-                                                </Link>
-                                            </p>
+                                {mustVerifyEmail && auth.user.email_verified_at === null && (
+                                    <div>
+                                        <p className="-mt-4 text-sm text-muted-foreground">
+                                            Tu correo electrónico no está verificado.{' '}
+                                            <Link
+                                                href={send()}
+                                                as="button"
+                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                                            >
+                                                Haz clic aquí para reenviar el correo de verificación.
+                                            </Link>
+                                        </p>
 
-                                            {status ===
-                                                'verification-link-sent' && (
-                                                <div className="mt-2 text-sm font-medium text-green-600">
-                                                    A new verification link has
-                                                    been sent to your email
-                                                    address.
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                        {status === 'verification-link-sent' && (
+                                            <div className="mt-2 text-sm font-medium text-green-600">
+                                                Se ha enviado un nuevo enlace de verificación a tu correo.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="flex items-center gap-4">
-                                    <Button
-                                        disabled={processing}
-                                        data-test="update-profile-button"
-                                    >
-                                        Save
+                                    <Button disabled={processing} data-test="update-profile-button">
+                                        Guardar
                                     </Button>
 
                                     <Transition
@@ -133,9 +112,7 @@ export default function Profile({
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">
-                                            Saved
-                                        </p>
+                                        <p className="text-sm text-neutral-600">Guardado</p>
                                     </Transition>
                                 </div>
                             </>

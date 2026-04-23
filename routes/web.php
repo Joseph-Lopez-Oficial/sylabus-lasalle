@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AcademicSpaceController;
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\CompetencyController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EnrollmentController;
 use App\Http\Controllers\Admin\FacultyController;
 use App\Http\Controllers\Admin\MesocurricularLearningOutcomeController;
@@ -19,7 +20,6 @@ use App\Http\Controllers\Professor\GradingController;
 use App\Http\Controllers\Professor\StatisticsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -50,9 +50,7 @@ Route::get('dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('admin/dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // Facultades
     Route::get('faculties', [FacultyController::class, 'index'])->name('faculties.index');
