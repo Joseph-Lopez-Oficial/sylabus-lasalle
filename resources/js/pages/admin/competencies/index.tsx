@@ -69,6 +69,15 @@ export default function CompetenciesIndex({
     }
 
     const columns: ColumnDef<Competency, unknown>[] = [
+        {
+            accessorKey: 'code',
+            header: 'Código',
+            cell: ({ row }) => (
+                <span className="font-mono text-sm font-semibold">
+                    {row.original.code}
+                </span>
+            ),
+        },
         { accessorKey: 'name', header: 'Nombre' },
         {
             id: 'nucleus',
@@ -178,7 +187,9 @@ export default function CompetenciesIndex({
                                     {
                                         faculty_id: filters.faculty_id,
                                         program_id: filters.program_id,
-                                        ...(val ? { problematic_nucleus_id: val } : {}),
+                                        ...(val
+                                            ? { problematic_nucleus_id: val }
+                                            : {}),
                                     },
                                     { preserveState: true },
                                 )

@@ -34,6 +34,7 @@ return new class extends Migration
     {
         Schema::create('competencies', function (Blueprint $table) {
             $table->id();
+            $table->string('code', 10)->nullable();
             $table->foreignId('problematic_nucleus_id')->constrained('problematic_nuclei')->cascadeOnDelete();
             $table->string('name');
             $table->text('description')->nullable();

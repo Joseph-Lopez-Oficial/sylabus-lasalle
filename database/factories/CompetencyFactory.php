@@ -18,6 +18,7 @@ class CompetencyFactory extends Factory
     public function definition(): array
     {
         return [
+            'code' => 'C' . fake()->unique()->numberBetween(1, 999),
             'problematic_nucleus_id' => ProblematicNucleus::factory(),
             'name' => fake()->sentence(5),
             'description' => fake()->paragraph(),
@@ -27,7 +28,7 @@ class CompetencyFactory extends Factory
 
     public function inactive(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'is_active' => false,
         ]);
     }

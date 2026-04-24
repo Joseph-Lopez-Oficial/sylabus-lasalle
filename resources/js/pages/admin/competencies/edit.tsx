@@ -83,12 +83,27 @@ export default function CompetenciesEdit({ competency, nuclei }: Props) {
                                         )}
                                     </div>
                                     <div className="grid gap-1.5">
+                                        <Label htmlFor="code">Código *</Label>
+                                        <Input
+                                            id="code"
+                                            name="code"
+                                            defaultValue={competency.code}
+                                            placeholder="Ej. C1"
+                                            className="font-mono"
+                                            autoFocus
+                                        />
+                                        {errors.code && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.code}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="grid gap-1.5">
                                         <Label htmlFor="name">Nombre *</Label>
                                         <Input
                                             id="name"
                                             name="name"
                                             defaultValue={competency.name}
-                                            autoFocus
                                         />
                                         {errors.name && (
                                             <p className="text-sm text-destructive">

@@ -12,7 +12,7 @@ class Competency extends Model
     /** @use HasFactory<\Database\Factories\CompetencyFactory> */
     use HasFactory;
 
-    protected $fillable = ['problematic_nucleus_id', 'name', 'description', 'is_active'];
+    protected $fillable = ['code', 'problematic_nucleus_id', 'name', 'description', 'is_active'];
 
     protected function casts(): array
     {

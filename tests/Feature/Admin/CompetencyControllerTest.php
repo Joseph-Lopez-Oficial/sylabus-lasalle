@@ -41,6 +41,7 @@ test('admin can list competencies', function () {
 test('admin can create a competency', function () {
     $this->actingAs($this->admin)
         ->post(route('admin.competencies.store'), [
+            'code' => 'C1',
             'problematic_nucleus_id' => $this->nucleus->id,
             'name' => 'Competencia de Prueba',
             'is_active' => true,
@@ -50,9 +51,57 @@ test('admin can create a competency', function () {
     expect(Competency::where('name', 'Competencia de Prueba')->exists())->toBeTrue();
 });
 
+test('store competency fails with missing code', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.competencies.store'), [
+            'problematic_nucleus_id' => $this->nucleus->id,
+            'name' => 'Competencia de Prueba',
+        ])
+        ->assertSessionHasErrors('code');
+});
+
+test('store competency fails with invalid code format', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.competencies.store'), [
+            'code' => 'X1',
+            'problematic_nucleus_id' => $this->nucleus->id,
+            'name' => 'Competencia de Prueba',
+        ])
+        ->assertSessionHasErrors('code');
+});
+
+test('store competency fails with duplicate code in same program', function () {
+    Competency::factory()->create(['code' => 'C1', 'problematic_nucleus_id' => $this->nucleus->id]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.competencies.store'), [
+            'code' => 'C1',
+            'problematic_nucleus_id' => $this->nucleus->id,
+            'name' => 'Otra Competencia',
+        ])
+        ->assertSessionHasErrors('code');
+});
+
+test('same code can exist in different programs', function () {
+    $otherNucleus = ProblematicNucleus::factory()->create([
+        'program_id' => Program::factory()->create(['faculty_id' => Faculty::factory()->create()->id])->id,
+    ]);
+
+    Competency::factory()->create(['code' => 'C1', 'problematic_nucleus_id' => $this->nucleus->id]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.competencies.store'), [
+            'code' => 'C1',
+            'problematic_nucleus_id' => $otherNucleus->id,
+            'name' => 'Competencia en Otro Programa',
+        ])
+        ->assertRedirect(route('admin.competencies.index'));
+});
+
 test('store competency fails with missing name', function () {
     $this->actingAs($this->admin)
         ->post(route('admin.competencies.store'), [
+            'code' => 'C1',
             'problematic_nucleus_id' => $this->nucleus->id,
         ])
         ->assertSessionHasErrors('name');
@@ -61,6 +110,7 @@ test('store competency fails with missing name', function () {
 test('store competency fails with invalid nucleus', function () {
     $this->actingAs($this->admin)
         ->post(route('admin.competencies.store'), [
+            'code' => 'C1',
             'problematic_nucleus_id' => 9999,
             'name' => 'Competencia',
         ])
@@ -68,10 +118,11 @@ test('store competency fails with invalid nucleus', function () {
 });
 
 test('admin can update a competency', function () {
-    $competency = Competency::factory()->create(['problematic_nucleus_id' => $this->nucleus->id, 'name' => 'Original']);
+    $competency = Competency::factory()->create(['code' => 'C1', 'problematic_nucleus_id' => $this->nucleus->id, 'name' => 'Original']);
 
     $this->actingAs($this->admin)
         ->put(route('admin.competencies.update', $competency), [
+            'code' => 'C1',
             'problematic_nucleus_id' => $this->nucleus->id,
             'name' => 'Actualizada',
             'is_active' => true,

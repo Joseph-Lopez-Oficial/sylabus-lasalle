@@ -72,12 +72,23 @@ export default function CompetenciesCreate({ nuclei }: Props) {
                                         )}
                                     </div>
                                     <div className="grid gap-1.5">
-                                        <Label htmlFor="name">Nombre *</Label>
+                                        <Label htmlFor="code">Código *</Label>
                                         <Input
-                                            id="name"
-                                            name="name"
+                                            id="code"
+                                            name="code"
+                                            placeholder="Ej. C1"
+                                            className="font-mono"
                                             autoFocus
                                         />
+                                        {errors.code && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.code}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="name">Nombre *</Label>
+                                        <Input id="name" name="name" />
                                         {errors.name && (
                                             <p className="text-sm text-destructive">
                                                 {errors.name}
