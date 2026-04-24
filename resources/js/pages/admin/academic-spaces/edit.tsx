@@ -51,7 +51,7 @@ export default function AcademicSpacesEdit({
                     <CardContent className="pt-6">
                         <Form
                             action={SpaceController.update.url(academicSpace)}
-                            method="post"
+                            method="put"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

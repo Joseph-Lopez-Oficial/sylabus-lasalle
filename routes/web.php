@@ -146,6 +146,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('students', [StudentController::class, 'index'])->name('students.index');
     Route::get('students/create', [StudentController::class, 'create'])->name('students.create');
     Route::post('students', [StudentController::class, 'store'])->name('students.store');
+    Route::get('students/template', [StudentController::class, 'downloadTemplate'])->name('students.template');
+    Route::post('students/import', [StudentController::class, 'import'])->name('students.import');
     Route::get('students/{student}/edit', [StudentController::class, 'edit'])->name('students.edit');
     Route::put('students/{student}', [StudentController::class, 'update'])->name('students.update');
     Route::patch('students/{student}/toggle-status', [StudentController::class, 'toggleStatus'])->name('students.toggle-status');
@@ -163,6 +165,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('programmings/{programming}/enrollments', [EnrollmentController::class, 'store'])->name('programmings.enrollments.store');
     Route::patch('programmings/{programming}/enrollments/{enrollment}/toggle-status', [EnrollmentController::class, 'toggleStatus'])->name('programmings.enrollments.toggle-status');
     Route::post('programmings/{programming}/enrollments/import', [EnrollmentController::class, 'import'])->name('programmings.enrollments.import');
+    Route::get('programmings/{programming}/enrollments/template', [EnrollmentController::class, 'downloadTemplate'])->name('programmings.enrollments.template');
 });
 
 Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.')->group(function () {
@@ -176,6 +179,12 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     Route::get('programmings/{programming}/grading/import', [GradingController::class, 'importPage'])->name('programmings.grading.import-page');
     Route::post('programmings/{programming}/grading/import', [GradingController::class, 'importGrades'])->name('programmings.grading.import');
     Route::get('programmings/{programming}/grading/report', [GradingController::class, 'downloadReport'])->name('programmings.grading.report');
+
+    // Inscripciones del profesor en su programación
+    Route::get('programmings/{programming}/enrollments/search', [GradingController::class, 'searchStudents'])->name('programmings.enrollments.search');
+    Route::post('programmings/{programming}/enrollments', [GradingController::class, 'enrollByDocument'])->name('programmings.enrollments.store');
+    Route::get('programmings/{programming}/enrollments/template', [GradingController::class, 'downloadEnrollmentTemplate'])->name('programmings.enrollments.template');
+    Route::post('programmings/{programming}/enrollments/import', [GradingController::class, 'importEnrollments'])->name('programmings.enrollments.import');
 
     // Estadísticas
     Route::get('programmings/{programming}/statistics', [StatisticsController::class, 'show'])->name('programmings.statistics.show');

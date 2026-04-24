@@ -1,16 +1,25 @@
-import { router } from '@inertiajs/react';
+import { Form, router } from '@inertiajs/react';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
+import { useCallback } from 'react';
 import {
     AlertTriangle,
     CheckCircle2,
+    ChevronDown,
+    ChevronUp,
     Download,
+    FileSpreadsheet,
+    Plus,
     Save,
     Send,
+    Upload,
+    Users,
+    X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as GradingController from '@/actions/App/Http/Controllers/Professor/GradingController';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import {
     Accordion,
@@ -21,6 +30,8 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -74,6 +85,8 @@ type Completeness = {
     }[];
 };
 
+type ImportResult = { row: number; status: string; message: string };
+
 type Props = {
     programming: { id: number; period: string; group: string | null };
     academicSpace: { id: number; name: string; code: string };
@@ -83,6 +96,7 @@ type Props = {
     performanceLevels: PerformanceLevel[];
     existingGrades: ExistingGrade[];
     completeness: Completeness;
+    enrollment_import_results?: ImportResult[];
 };
 
 // ── Grade key helper ──────────────────────────────────────────────────────────
@@ -333,6 +347,7 @@ export default function GradingShow({
     performanceLevels,
     existingGrades,
     completeness: initialCompleteness,
+    enrollment_import_results,
 }: Props) {
     // Build initial grade map from server data
     const initialGrades = useMemo(() => {
@@ -357,6 +372,20 @@ export default function GradingShow({
     const [completeness, setCompleteness] = useState(initialCompleteness);
     const [showConfirmConsolidate, setShowConfirmConsolidate] = useState(false);
     const [consolidating, setConsolidating] = useState(false);
+    const [enrollSectionOpen, setEnrollSectionOpen] = useState(false);
+    const [documentNumber, setDocumentNumber] = useState('');
+    const [enrollError, setEnrollError] = useState('');
+    const [suggestions, setSuggestions] = useState<
+        { id: number; document_number: string; first_name: string; last_name: string }[]
+    >([]);
+    const [selectedSuggestion, setSelectedSuggestion] = useState<{
+        id: number; document_number: string; first_name: string; last_name: string;
+    } | null>(null);
+    const [searchingStudents, setSearchingStudents] = useState(false);
+    const [dragOver, setDragOver] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const fileRef = useRef<HTMLInputElement>(null);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const allOutcomeIds = useMemo(
         () =>
@@ -445,6 +474,42 @@ export default function GradingShow({
             })
             .catch(console.error)
             .finally(() => setSavingOutcome(null));
+    }
+
+    const searchStudents = useCallback((q: string) => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        if (q.length < 2) {
+            setSuggestions([]);
+            return;
+        }
+        debounceRef.current = setTimeout(() => {
+            setSearchingStudents(true);
+            axios
+                .get(GradingController.searchStudents.url(programming), { params: { q } })
+                .then((res) => setSuggestions(res.data))
+                .catch(() => setSuggestions([]))
+                .finally(() => setSearchingStudents(false));
+        }, 300);
+    }, [programming]);
+
+    function handleEnrollByDocument() {
+        const doc = selectedSuggestion?.document_number ?? documentNumber.trim();
+        if (!doc) return;
+        setEnrollError('');
+        router.post(
+            GradingController.enrollByDocument.url(programming),
+            { document_number: doc },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setDocumentNumber('');
+                    setSelectedSuggestion(null);
+                    setSuggestions([]);
+                },
+                onError: (errors) =>
+                    setEnrollError(errors.document_number ?? 'Error al inscribir.'),
+            },
+        );
     }
 
     function handleConsolidate() {
@@ -555,6 +620,268 @@ export default function GradingShow({
                         </AlertDescription>
                     </Alert>
                 )}
+
+                {/* Sección de inscripción de estudiantes */}
+                <Card>
+                    <CardHeader
+                        className="cursor-pointer pb-3 select-none"
+                        onClick={() => setEnrollSectionOpen((v) => !v)}
+                    >
+                        <CardTitle className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-2">
+                                <Users className="h-4 w-4" />
+                                Estudiantes inscritos ({enrollments.length})
+                            </span>
+                            {enrollSectionOpen ? (
+                                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            )}
+                        </CardTitle>
+                    </CardHeader>
+                    {enrollSectionOpen && <CardContent className="space-y-4">
+                        {/* Individual con autocomplete */}
+                        <div className="space-y-1.5">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Inscribir por documento o nombre
+                            </p>
+                            <div className="flex gap-2">
+                                <div className="relative max-w-xs flex-1">
+                                    <Input
+                                        placeholder="Busca por documento o nombre..."
+                                        value={
+                                            selectedSuggestion
+                                                ? `${selectedSuggestion.document_number} — ${selectedSuggestion.first_name} ${selectedSuggestion.last_name}`
+                                                : documentNumber
+                                        }
+                                        onChange={(e) => {
+                                            setDocumentNumber(e.target.value);
+                                            setSelectedSuggestion(null);
+                                            setEnrollError('');
+                                            searchStudents(e.target.value);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleEnrollByDocument();
+                                            if (e.key === 'Escape') {
+                                                setSuggestions([]);
+                                                setSelectedSuggestion(null);
+                                            }
+                                        }}
+                                    />
+                                    {suggestions.length > 0 && !selectedSuggestion && (
+                                        <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
+                                            {searchingStudents && (
+                                                <p className="px-3 py-2 text-xs text-muted-foreground">
+                                                    Buscando...
+                                                </p>
+                                            )}
+                                            {suggestions.map((s) => (
+                                                <button
+                                                    key={s.id}
+                                                    type="button"
+                                                    className="w-full px-3 py-2 text-left text-sm hover:bg-accent"
+                                                    onClick={() => {
+                                                        setSelectedSuggestion(s);
+                                                        setDocumentNumber('');
+                                                        setSuggestions([]);
+                                                    }}
+                                                >
+                                                    <span className="font-mono text-xs">
+                                                        {s.document_number}
+                                                    </span>{' '}
+                                                    — {s.first_name} {s.last_name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <Button
+                                    size="sm"
+                                    onClick={handleEnrollByDocument}
+                                    disabled={!documentNumber.trim() && !selectedSuggestion}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Inscribir
+                                </Button>
+                            </div>
+                            {enrollError && (
+                                <p className="text-xs text-destructive">{enrollError}</p>
+                            )}
+                        </div>
+
+                        {/* Masiva por Excel con drag & drop */}
+                        <div className="space-y-2 border-t pt-4">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Importación masiva por Excel
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                Si el estudiante no existe lo crea con los datos del Excel
+                                (requiere: documento, nombres, apellidos, correo). Si ya existe
+                                solo lo inscribe.
+                            </p>
+                            <Button variant="outline" size="sm" asChild>
+                                <a href={GradingController.downloadEnrollmentTemplate.url(programming)}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Descargar plantilla
+                                </a>
+                            </Button>
+
+                            {!enrollment_import_results?.length ? (
+                                <Form
+                                    action={GradingController.importEnrollments.url(programming)}
+                                    method="post"
+                                    encType="multipart/form-data"
+                                >
+                                    {({ processing }) => (
+                                        <div className="space-y-2">
+                                            <div
+                                                className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 transition-colors ${
+                                                    dragOver
+                                                        ? 'border-primary bg-primary/5'
+                                                        : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                                                }`}
+                                                onClick={() => fileRef.current?.click()}
+                                                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                                                onDragLeave={() => setDragOver(false)}
+                                                onDrop={(e) => {
+                                                    e.preventDefault();
+                                                    setDragOver(false);
+                                                    const file = e.dataTransfer.files[0];
+                                                    if (file && fileRef.current) {
+                                                        const dt = new DataTransfer();
+                                                        dt.items.add(file);
+                                                        fileRef.current.files = dt.files;
+                                                        setSelectedFile(file);
+                                                    }
+                                                }}
+                                            >
+                                                {selectedFile ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <FileSpreadsheet className="h-6 w-6 text-green-600" />
+                                                        <div className="text-left">
+                                                            <p className="text-xs font-medium">{selectedFile.name}</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {(selectedFile.size / 1024).toFixed(1)} KB
+                                                            </p>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            className="ml-1 rounded-full p-0.5 hover:bg-muted"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedFile(null);
+                                                                if (fileRef.current) fileRef.current.value = '';
+                                                            }}
+                                                        >
+                                                            <X className="h-3 w-3 text-muted-foreground" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <Upload className="h-6 w-6 text-muted-foreground" />
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Arrastra o haz clic (.xlsx, .xls, .csv)
+                                                        </p>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <input
+                                                ref={fileRef}
+                                                name="file"
+                                                type="file"
+                                                accept=".xlsx,.xls,.csv"
+                                                className="hidden"
+                                                onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+                                            />
+                                            {selectedFile && (
+                                                <Button
+                                                    type="submit"
+                                                    size="sm"
+                                                    className="w-full"
+                                                    disabled={processing}
+                                                >
+                                                    <Upload className="mr-2 h-4 w-4" />
+                                                    {processing ? 'Procesando...' : 'Importar archivo'}
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )}
+                                </Form>
+                            ) : (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs font-medium">
+                                            Resultado ({enrollment_import_results.length} filas)
+                                        </p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                setSelectedFile(null);
+                                                router.get(
+                                                    GradingController.show.url(programming),
+                                                    {},
+                                                    { preserveScroll: true },
+                                                );
+                                            }}
+                                        >
+                                            Nueva importación
+                                        </Button>
+                                    </div>
+                                    <div className="max-h-36 space-y-1 overflow-y-auto rounded-md border p-2">
+                                        {enrollment_import_results.map((r) => (
+                                            <div
+                                                key={r.row}
+                                                className={`flex items-start gap-2 text-xs ${
+                                                    r.status === 'error'
+                                                        ? 'text-destructive'
+                                                        : r.status === 'created'
+                                                          ? 'text-green-700 dark:text-green-400'
+                                                          : 'text-muted-foreground'
+                                                }`}
+                                            >
+                                                <span className="shrink-0 font-mono">F{r.row}</span>
+                                                <span>{r.message}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Lista */}
+                        {enrollments.length === 0 ? (
+                            <EmptyState
+                                title="Sin estudiantes inscritos"
+                                description="Inscribe estudiantes por documento o importa un Excel."
+                                icon={Users}
+                            />
+                        ) : (
+                            <div className="rounded-md border">
+                                <table className="w-full text-sm">
+                                    <thead className="border-b bg-muted/50">
+                                        <tr>
+                                            <th className="px-3 py-2 text-left font-medium">Estudiante</th>
+                                            <th className="px-3 py-2 text-left font-medium">Documento</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {enrollments.map((e) => (
+                                            <tr key={e.id} className="border-b last:border-0">
+                                                <td className="px-3 py-2">
+                                                    {e.student.first_name} {e.student.last_name}
+                                                </td>
+                                                <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                                                    {e.student.document_number}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </CardContent>}
+                </Card>
 
                 {/* Tabs por tipo de resultado */}
                 {outcomesByType.length === 0 ? (

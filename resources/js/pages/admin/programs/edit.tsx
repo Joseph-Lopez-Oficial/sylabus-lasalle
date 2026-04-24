@@ -46,7 +46,7 @@ export default function ProgramsEdit({ program, faculties }: Props) {
                     <CardContent className="pt-6">
                         <Form
                             action={ProgramController.update.url(program)}
-                            method="post"
+                            method="put"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

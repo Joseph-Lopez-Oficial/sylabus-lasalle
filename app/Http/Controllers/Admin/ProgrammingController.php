@@ -65,6 +65,7 @@ class ProgrammingController extends Controller
         return Inertia::render('admin/programmings/show', [
             'programming' => $programming,
             'students' => Student::query()->active()->orderBy('last_name')->get(['id', 'first_name', 'last_name', 'document_number']),
+            'import_results' => session('import_results'),
         ]);
     }
 

@@ -3,17 +3,22 @@
 namespace App\Http\Controllers\Professor;
 
 use App\Exports\GradingTemplateExport;
+use App\Exports\ProfessorEnrollmentTemplateExport;
 use App\Exports\StatisticsReportExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ImportEnrollmentsRequest;
 use App\Http\Requests\Professor\ImportGradesRequest;
 use App\Http\Requests\Professor\SaveGradesRequest;
 use App\Imports\GradesImport;
+use App\Imports\ProfessorEnrollmentsImport;
+use App\Models\Enrollment;
 use App\Models\EvaluationCriterion;
 use App\Models\Grade;
 use App\Models\ImportLog;
 use App\Models\MicrocurricularLearningOutcomeType;
 use App\Models\PerformanceLevel;
 use App\Models\Programming;
+use App\Models\Student;
 use App\Services\GradingService;
 use App\Services\StatisticsService;
 use Illuminate\Http\JsonResponse;
@@ -74,6 +79,7 @@ class GradingController extends Controller
             'performanceLevels' => PerformanceLevel::orderBy('order')->get(['id', 'name', 'order']),
             'existingGrades' => $existingGrades,
             'completeness' => $completeness,
+            'enrollment_import_results' => session('enrollment_import_results'),
         ]);
     }
 
@@ -174,6 +180,94 @@ class GradingController extends Controller
             new StatisticsReportExport($programming, $this->statisticsService),
             $fileName
         );
+    }
+
+    public function searchStudents(Request $request, Programming $programming): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeOwnership($request, $programming);
+
+        $q = trim($request->get('q', ''));
+
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $enrolledIds = $programming->enrollments()->pluck('student_id');
+
+        $students = Student::query()
+            ->where('is_active', true)
+            ->whereNotIn('id', $enrolledIds)
+            ->where(fn ($query) => $query
+                ->where('document_number', 'like', "%{$q}%")
+                ->orWhere('first_name', 'like', "%{$q}%")
+                ->orWhere('last_name', 'like', "%{$q}%")
+            )
+            ->select(['id', 'document_number', 'first_name', 'last_name'])
+            ->limit(8)
+            ->get();
+
+        return response()->json($students);
+    }
+
+    public function enrollByDocument(Request $request, Programming $programming): RedirectResponse
+    {
+        $this->authorizeOwnership($request, $programming);
+
+        $request->validate([
+            'document_number' => ['required', 'string'],
+        ]);
+
+        $student = Student::where('document_number', $request->document_number)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $student) {
+            return back()->withErrors(['document_number' => 'No existe ningún estudiante activo con ese número de documento.']);
+        }
+
+        $alreadyEnrolled = Enrollment::where('programming_id', $programming->id)
+            ->where('student_id', $student->id)
+            ->exists();
+
+        if ($alreadyEnrolled) {
+            return back()->withErrors(['document_number' => 'El estudiante ya está inscrito en esta programación.']);
+        }
+
+        Enrollment::create([
+            'programming_id' => $programming->id,
+            'student_id' => $student->id,
+            'enrolled_at' => now()->toDateString(),
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', "Estudiante {$request->document_number} inscrito exitosamente.");
+    }
+
+    public function downloadEnrollmentTemplate(Request $request, Programming $programming): BinaryFileResponse
+    {
+        $this->authorizeOwnership($request, $programming);
+
+        $fileName = 'plantilla_inscripciones_'.$programming->id.'.xlsx';
+
+        return Excel::download(new ProfessorEnrollmentTemplateExport, $fileName);
+    }
+
+    public function importEnrollments(ImportEnrollmentsRequest $request, Programming $programming): RedirectResponse
+    {
+        $this->authorizeOwnership($request, $programming);
+
+        $import = new ProfessorEnrollmentsImport($programming);
+        Excel::import($import, $request->file('file'));
+
+        $created = count(array_filter($import->results, fn ($r) => $r['status'] === 'created'));
+        $enrolled = count(array_filter($import->results, fn ($r) => $r['status'] === 'enrolled'));
+        $skipped = count(array_filter($import->results, fn ($r) => $r['status'] === 'skipped'));
+        $errors = count(array_filter($import->results, fn ($r) => $r['status'] === 'error'));
+
+        return back()->with([
+            'success' => "Importación completada: {$created} creados e inscritos, {$enrolled} inscritos, {$skipped} ya existían, {$errors} errores.",
+            'enrollment_import_results' => $import->results,
+        ]);
     }
 
     private function authorizeOwnership(Request $request, Programming $programming): void

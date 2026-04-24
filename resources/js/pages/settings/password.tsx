@@ -39,7 +39,7 @@ export default function Password() {
 
                     <Form
                         action={PasswordController.update.url()}
-                        method="post"
+                        method="put"
                         options={{ preserveScroll: true }}
                         resetOnError={['password', 'password_confirmation', 'current_password']}
                         resetOnSuccess

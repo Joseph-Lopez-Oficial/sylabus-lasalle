@@ -44,7 +44,7 @@ export default function ProblematicNucleiEdit({ nucleus, programs }: Props) {
                     <CardContent className="pt-6">
                         <Form
                             action={NucleusController.update.url(nucleus)}
-                            method="post"
+                            method="put"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

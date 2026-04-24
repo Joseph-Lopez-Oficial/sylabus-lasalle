@@ -49,7 +49,7 @@ export default function ActivitiesEdit({
                     <CardContent className="pt-6">
                         <Form
                             action={ActivityController.update.url(activity)}
-                            method="post"
+                            method="put"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

@@ -104,6 +104,7 @@ export type ProblematicNucleus = {
 
 export type Competency = {
     id: number;
+    code: string;
     problematic_nucleus_id: number;
     name: string;
     description: string | null;

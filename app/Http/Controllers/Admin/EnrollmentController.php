@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\EnrollmentTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ImportEnrollmentsRequest;
 use App\Http\Requests\Admin\StoreEnrollmentRequest;
@@ -10,6 +11,7 @@ use App\Models\Enrollment;
 use App\Models\Programming;
 use Illuminate\Http\RedirectResponse;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class EnrollmentController extends Controller
 {
@@ -47,5 +49,12 @@ class EnrollmentController extends Controller
             'success' => "Importación completada: {$created} inscritos, {$skipped} ya existían, {$errors} errores.",
             'import_results' => $import->results,
         ]);
+    }
+
+    public function downloadTemplate(Programming $programming): BinaryFileResponse
+    {
+        $fileName = 'plantilla_inscripciones_'.$programming->id.'.xlsx';
+
+        return Excel::download(new EnrollmentTemplateExport, $fileName);
     }
 }

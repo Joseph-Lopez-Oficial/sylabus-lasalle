@@ -20,6 +20,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
             $firstName = trim((string) ($row['nombres'] ?? $row['first_name'] ?? ''));
             $lastName = trim((string) ($row['apellidos'] ?? $row['last_name'] ?? ''));
             $email = trim((string) ($row['correo'] ?? $row['email'] ?? ''));
+            $phone = trim((string) ($row['telefono'] ?? $row['phone'] ?? '')) ?: null;
 
             if (! $documentNumber || ! $firstName || ! $lastName || ! $email) {
                 $this->results[] = [
@@ -40,6 +41,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                         'first_name' => $firstName,
                         'last_name' => $lastName,
                         'email' => $email,
+                        'phone' => $phone,
                         'is_active' => true,
                     ]);
                     $this->results[] = ['row' => $rowNumber, 'status' => 'restored', 'message' => "Estudiante {$documentNumber} restaurado."];
@@ -48,6 +50,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                         'first_name' => $firstName,
                         'last_name' => $lastName,
                         'email' => $email,
+                        'phone' => $phone,
                     ]);
                     $this->results[] = ['row' => $rowNumber, 'status' => 'updated', 'message' => "Estudiante {$documentNumber} actualizado."];
                 }
@@ -70,6 +73,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 'last_name' => $lastName,
                 'document_number' => $documentNumber,
                 'email' => $email,
+                'phone' => $phone,
                 'is_active' => true,
             ]);
 

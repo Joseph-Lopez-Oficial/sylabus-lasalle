@@ -47,7 +47,7 @@ export default function CompetenciesEdit({ competency, nuclei }: Props) {
                     <CardContent className="pt-6">
                         <Form
                             action={CompetencyController.update.url(competency)}
-                            method="post"
+                            method="put"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (
