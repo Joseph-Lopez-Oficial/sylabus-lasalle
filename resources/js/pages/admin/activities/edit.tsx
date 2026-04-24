@@ -48,7 +48,8 @@ export default function ActivitiesEdit({
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...ActivityController.update.form(activity)}
+                            action={ActivityController.update.url(activity)}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

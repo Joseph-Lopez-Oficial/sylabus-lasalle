@@ -39,7 +39,8 @@ export default function StudentsEdit({ student }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...StudentController.update.form(student)}
+                            action={StudentController.update.url(student)}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

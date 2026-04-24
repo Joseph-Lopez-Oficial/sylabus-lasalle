@@ -52,7 +52,8 @@ export default function ProgrammingsCreate({
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...ProgrammingController.store.form()}
+                            action={ProgrammingController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

@@ -65,7 +65,8 @@ export default function MicrocurricularOutcomesEdit({
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...OutcomeController.update.form(outcome)}
+                            action={OutcomeController.update.url(outcome)}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

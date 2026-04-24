@@ -20,16 +20,16 @@ import type { BreadcrumbItem, Program } from '@/types';
 type Props = { programs: Pick<Program, 'id' | 'name'>[] };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Núcleos Problemáticos', href: NucleusController.index.url() },
+    { title: 'Núcleos Problémicos', href: NucleusController.index.url() },
     { title: 'Nuevo núcleo', href: NucleusController.create.url() },
 ];
 
 export default function ProblematicNucleiCreate({ programs }: Props) {
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nuevo Núcleo Problemático" />
+            <Head title="Nuevo Núcleo Problémico" />
             <div className="flex flex-1 flex-col gap-6 p-6">
-                <PageHeader title="Nuevo Núcleo Problemático">
+                <PageHeader title="Nuevo Núcleo Problémico">
                     <Button variant="outline" asChild>
                         <Link href={NucleusController.index.url()}>
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -40,7 +40,8 @@ export default function ProblematicNucleiCreate({ programs }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...NucleusController.store.form()}
+                            action={NucleusController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

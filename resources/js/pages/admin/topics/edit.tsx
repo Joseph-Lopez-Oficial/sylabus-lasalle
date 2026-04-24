@@ -43,7 +43,8 @@ export default function TopicsEdit({ topic, academicSpaces }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...TopicController.update.form(topic)}
+                            action={TopicController.update.url(topic)}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

@@ -36,7 +36,8 @@ export default function ProfessorsCreate() {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...ProfessorController.store.form()}
+                            action={ProfessorController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

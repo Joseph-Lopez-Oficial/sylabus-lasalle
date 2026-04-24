@@ -42,7 +42,8 @@ export default function MesocurricularOutcomesCreate({ competencies }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...OutcomeController.store.form()}
+                            action={OutcomeController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

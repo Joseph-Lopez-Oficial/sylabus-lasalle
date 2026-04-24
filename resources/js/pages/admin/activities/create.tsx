@@ -43,7 +43,8 @@ export default function ActivitiesCreate({ topics, activityTypes }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...ActivityController.store.form()}
+                            action={ActivityController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

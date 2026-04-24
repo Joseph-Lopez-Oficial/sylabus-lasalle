@@ -46,14 +46,15 @@ export default function CompetenciesEdit({ competency, nuclei }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...CompetencyController.update.form(competency)}
+                            action={CompetencyController.update.url(competency)}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (
                                 <>
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="problematic_nucleus_id">
-                                            Núcleo Problemático *
+                                            Núcleo Problémico *
                                         </Label>
                                         <Select
                                             name="problematic_nucleus_id"

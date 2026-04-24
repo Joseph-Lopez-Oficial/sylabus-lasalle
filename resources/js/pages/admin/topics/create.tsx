@@ -40,7 +40,8 @@ export default function TopicsCreate({ academicSpaces }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...TopicController.store.form()}
+                            action={TopicController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

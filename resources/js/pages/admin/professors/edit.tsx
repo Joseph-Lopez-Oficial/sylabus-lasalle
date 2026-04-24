@@ -58,7 +58,8 @@ export default function ProfessorsEdit({ professor }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...ProfessorController.update.form(professor)}
+                            action={ProfessorController.update.url(professor)}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

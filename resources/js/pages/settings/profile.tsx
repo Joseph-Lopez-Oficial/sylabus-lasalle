@@ -44,7 +44,8 @@ export default function Profile({
                     />
 
                     <Form
-                        {...ProfileController.update.form()}
+                        action={ProfileController.update.url()}
+                        method="post"
                         options={{ preserveScroll: true }}
                         className="space-y-6"
                     >

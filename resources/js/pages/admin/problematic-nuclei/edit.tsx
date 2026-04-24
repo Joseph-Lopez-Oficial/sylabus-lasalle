@@ -24,7 +24,7 @@ type Props = {
 
 export default function ProblematicNucleiEdit({ nucleus, programs }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Núcleos Problemáticos', href: NucleusController.index.url() },
+        { title: 'Núcleos Problémicos', href: NucleusController.index.url() },
         { title: nucleus.name, href: NucleusController.edit.url(nucleus) },
     ];
 
@@ -43,7 +43,8 @@ export default function ProblematicNucleiEdit({ nucleus, programs }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...NucleusController.update.form(nucleus)}
+                            action={NucleusController.update.url(nucleus)}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

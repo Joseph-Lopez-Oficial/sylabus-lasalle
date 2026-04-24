@@ -40,7 +40,8 @@ export default function AcademicSpacesCreate({ competencies }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...SpaceController.store.form()}
+                            action={SpaceController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

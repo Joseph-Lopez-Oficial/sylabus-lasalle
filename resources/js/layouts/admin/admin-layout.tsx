@@ -53,7 +53,7 @@ const navItems = [
                 icon: GraduationCap,
             },
             {
-                title: 'Núcleos Problemáticos',
+                title: 'Núcleos Problémicos',
                 href: '/admin/problematic-nuclei',
                 icon: BookOpen,
             },

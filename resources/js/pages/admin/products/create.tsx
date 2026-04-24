@@ -40,7 +40,8 @@ export default function ProductsCreate({ activities }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...ProductController.store.form()}
+                            action={ProductController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

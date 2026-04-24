@@ -42,7 +42,8 @@ export default function ProgramsCreate({ faculties }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...ProgramController.store.form()}
+                            action={ProgramController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

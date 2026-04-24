@@ -8,9 +8,17 @@ import { DataTable } from '@/components/data-table';
 import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import type {
     BreadcrumbItem,
+    Faculty,
     PaginatedResponse,
     Program,
     ProblematicNucleus,
@@ -18,16 +26,18 @@ import type {
 
 type Props = {
     nuclei: PaginatedResponse<ProblematicNucleus>;
+    faculties: Pick<Faculty, 'id' | 'name'>[];
     programs: Pick<Program, 'id' | 'name'>[];
-    filters: { search?: string; program_id?: string };
+    filters: { search?: string; faculty_id?: string; program_id?: string };
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Núcleos Problemáticos', href: NucleusController.index.url() },
+    { title: 'Núcleos Problémicos', href: NucleusController.index.url() },
 ];
 
 export default function ProblematicNucleiIndex({
     nuclei,
+    faculties,
     programs,
     filters,
 }: Props) {
@@ -90,10 +100,10 @@ export default function ProblematicNucleiIndex({
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title="Núcleos Problemáticos" />
+            <Head title="Núcleos Problémicos" />
             <div className="flex flex-1 flex-col gap-6 p-6">
                 <PageHeader
-                    title="Núcleos Problemáticos"
+                    title="Núcleos Problémicos"
                     description="Gestión de núcleos problemáticos por programa"
                 >
                     <Button asChild>
@@ -104,40 +114,69 @@ export default function ProblematicNucleiIndex({
                     </Button>
                 </PageHeader>
 
-                <div className="flex flex-wrap gap-2">
-                    <Button
-                        variant={!filters.program_id ? 'secondary' : 'outline'}
-                        size="sm"
-                        onClick={() =>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Select
+                        value={filters.faculty_id ?? ''}
+                        onValueChange={(val) =>
                             router.get(
                                 NucleusController.index.url(),
-                                {},
+                                val ? { faculty_id: val } : {},
                                 { preserveState: true },
                             )
                         }
                     >
-                        Todos los programas
-                    </Button>
-                    {programs.map((p) => (
-                        <Button
-                            key={p.id}
-                            size="sm"
-                            variant={
-                                filters.program_id === String(p.id)
-                                    ? 'secondary'
-                                    : 'outline'
-                            }
-                            onClick={() =>
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Todas las facultades" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {faculties.map((f) => (
+                                <SelectItem key={f.id} value={String(f.id)}>
+                                    {f.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {filters.faculty_id && (
+                        <Select
+                            value={filters.program_id ?? ''}
+                            onValueChange={(val) =>
                                 router.get(
                                     NucleusController.index.url(),
-                                    { program_id: p.id },
+                                    {
+                                        faculty_id: filters.faculty_id,
+                                        ...(val ? { program_id: val } : {}),
+                                    },
                                     { preserveState: true },
                                 )
                             }
                         >
-                            {p.name}
+                            <SelectTrigger className="w-48">
+                                <SelectValue placeholder="Todos los programas" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {programs.map((p) => (
+                                    <SelectItem key={p.id} value={String(p.id)}>
+                                        {p.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                    {(filters.faculty_id || filters.program_id) && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                                router.get(
+                                    NucleusController.index.url(),
+                                    {},
+                                    { preserveState: true },
+                                )
+                            }
+                        >
+                            Limpiar filtros
                         </Button>
-                    ))}
+                    )}
                 </div>
 
                 <DataTable

@@ -33,7 +33,8 @@ export default function FacultiesCreate() {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...FacultyController.store.form()}
+                            action={FacultyController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

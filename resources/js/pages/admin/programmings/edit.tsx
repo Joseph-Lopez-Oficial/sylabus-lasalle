@@ -61,7 +61,8 @@ export default function ProgrammingsEdit({
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...ProgrammingController.update.form(programming)}
+                            action={ProgrammingController.update.url(programming)}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (

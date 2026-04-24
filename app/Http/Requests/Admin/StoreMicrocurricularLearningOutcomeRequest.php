@@ -45,7 +45,7 @@ class StoreMicrocurricularLearningOutcomeRequest extends FormRequest
                 'max:10',
                 'regex:/^RA\d+$/i',
                 Rule::unique('microcurricular_learning_outcomes', 'code')
-                    ->where(fn($q) => $q->whereIn('academic_space_id', $siblingsQuery->pluck('academic_space_id')->merge([$academicSpaceId])->unique())),
+                    ->where(fn ($q) => $q->whereIn('academic_space_id', $siblingsQuery->pluck('academic_space_id')->merge([$academicSpaceId])->unique())),
             ],
             'type_id' => ['required', 'integer', 'exists:microcurricular_learning_outcome_types,id'],
             'mesocurricular_learning_outcome_id' => ['nullable', 'integer', 'exists:mesocurricular_learning_outcomes,id'],

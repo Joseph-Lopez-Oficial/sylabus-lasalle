@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCompetencyRequest;
 use App\Http\Requests\Admin\UpdateCompetencyRequest;
 use App\Models\Competency;
+use App\Models\Faculty;
 use App\Models\ProblematicNucleus;
+use App\Models\Program;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,20 +17,39 @@ class CompetencyController extends Controller
 {
     public function index(): Response
     {
+        $facultyId = request('faculty_id');
+        $programId = request('program_id');
+        $nucleusId = request('problematic_nucleus_id');
+
         $competencies = Competency::query()
-            ->with('problematicNucleus.program')
+            ->with('problematicNucleus.program.faculty')
             ->when(request('search'), fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
-            ->when(request('problematic_nucleus_id'), fn ($q, $nucleusId) => $q->where('problematic_nucleus_id', $nucleusId))
+            ->when($nucleusId, fn ($q) => $q->where('problematic_nucleus_id', $nucleusId))
+            ->when($programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
+            ->when($facultyId && ! $programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
 
-        $nuclei = ProblematicNucleus::query()->active()->orderBy('name')->get(['id', 'name']);
+        $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
+
+        $programs = Program::query()->active()
+            ->when($facultyId, fn ($q) => $q->where('faculty_id', $facultyId))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $nuclei = ProblematicNucleus::query()->active()
+            ->when($programId, fn ($q) => $q->where('program_id', $programId))
+            ->when($facultyId && ! $programId, fn ($q) => $q->whereHas('program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return Inertia::render('admin/competencies/index', [
             'competencies' => $competencies,
+            'faculties' => $faculties,
+            'programs' => $programs,
             'nuclei' => $nuclei,
-            'filters' => request()->only('search', 'problematic_nucleus_id'),
+            'filters' => request()->only('search', 'faculty_id', 'program_id', 'problematic_nucleus_id'),
         ]);
     }
 

@@ -40,7 +40,8 @@ export default function ProductsEdit({ product, activities }: Props) {
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            {...ProductController.update.form(product)}
+                            action={ProductController.update.url(product)}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (
