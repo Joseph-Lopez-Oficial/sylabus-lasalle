@@ -53,6 +53,7 @@ test('admin can create a microcurricular outcome', function () {
     $this->actingAs($this->admin)
         ->post(route('admin.microcurricular-outcomes.store'), [
             'academic_space_id' => $this->academicSpace->id,
+            'code' => 'RA1',
             'type_id' => $this->type->id,
             'description' => 'El estudiante aplica conceptos fundamentales.',
             'is_active' => true,
@@ -66,9 +67,54 @@ test('store microcurricular outcome fails with missing description', function ()
     $this->actingAs($this->admin)
         ->post(route('admin.microcurricular-outcomes.store'), [
             'academic_space_id' => $this->academicSpace->id,
+            'code' => 'RA1',
             'type_id' => $this->type->id,
         ])
         ->assertSessionHasErrors('description');
+});
+
+test('store microcurricular outcome fails with missing code', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.microcurricular-outcomes.store'), [
+            'academic_space_id' => $this->academicSpace->id,
+            'type_id' => $this->type->id,
+            'description' => 'Descripción de prueba.',
+        ])
+        ->assertSessionHasErrors('code');
+});
+
+test('store microcurricular outcome fails with invalid code format', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.microcurricular-outcomes.store'), [
+            'academic_space_id' => $this->academicSpace->id,
+            'code' => 'C1',
+            'type_id' => $this->type->id,
+            'description' => 'Descripción de prueba.',
+        ])
+        ->assertSessionHasErrors('code');
+});
+
+test('same code can exist in different programs', function () {
+    // Create a second program with its own academic space
+    $otherSpace = \App\Models\AcademicSpace::factory()->create();
+
+    // Create RA1 in first program's space
+    MicrocurricularLearningOutcome::factory()->create([
+        'academic_space_id' => $this->academicSpace->id,
+        'code' => 'RA1',
+        'type_id' => $this->type->id,
+    ]);
+
+    // RA1 in a different program should succeed
+    $this->actingAs($this->admin)
+        ->post(route('admin.microcurricular-outcomes.store'), [
+            'academic_space_id' => $otherSpace->id,
+            'code' => 'RA1',
+            'type_id' => $this->type->id,
+            'description' => 'Mismo código, otro programa.',
+            'is_active' => true,
+        ])
+        ->assertRedirect(route('admin.microcurricular-outcomes.index'));
 });
 
 test('store microcurricular outcome fails with invalid type', function () {
@@ -84,12 +130,14 @@ test('store microcurricular outcome fails with invalid type', function () {
 test('admin can update a microcurricular outcome', function () {
     $outcome = MicrocurricularLearningOutcome::factory()->create([
         'academic_space_id' => $this->academicSpace->id,
+        'code' => 'RA1',
         'type_id' => $this->type->id,
     ]);
 
     $this->actingAs($this->admin)
         ->put(route('admin.microcurricular-outcomes.update', $outcome), [
             'academic_space_id' => $this->academicSpace->id,
+            'code' => 'RA1',
             'type_id' => $this->type->id,
             'description' => 'Descripción actualizada.',
             'is_active' => true,
@@ -102,6 +150,7 @@ test('admin can update a microcurricular outcome', function () {
 test('admin can toggle microcurricular outcome status', function () {
     $outcome = MicrocurricularLearningOutcome::factory()->create([
         'academic_space_id' => $this->academicSpace->id,
+        'code' => 'RA1',
         'type_id' => $this->type->id,
         'is_active' => true,
     ]);

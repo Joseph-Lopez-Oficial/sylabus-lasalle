@@ -4,6 +4,7 @@ import * as OutcomeController from '@/actions/App/Http/Controllers/Admin/Microcu
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -85,6 +86,20 @@ export default function MicrocurricularOutcomesCreate({
                                         {errors.academic_space_id && (
                                             <p className="text-sm text-destructive">
                                                 {errors.academic_space_id}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="code">Código *</Label>
+                                        <Input
+                                            id="code"
+                                            name="code"
+                                            placeholder="Ej. RA1"
+                                            className="max-w-xs font-mono"
+                                        />
+                                        {errors.code && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.code}
                                             </p>
                                         )}
                                     </div>

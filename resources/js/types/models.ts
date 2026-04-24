@@ -146,6 +146,7 @@ export type AcademicSpace = {
 export type MicrocurricularLearningOutcome = {
     id: number;
     academic_space_id: number;
+    code: string;
     type_id: number;
     mesocurricular_learning_outcome_id: number | null;
     description: string;

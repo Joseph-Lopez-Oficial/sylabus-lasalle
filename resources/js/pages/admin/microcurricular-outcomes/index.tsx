@@ -56,6 +56,15 @@ export default function MicrocurricularOutcomesIndex({
 
     const columns: ColumnDef<MicrocurricularLearningOutcome, unknown>[] = [
         {
+            accessorKey: 'code',
+            header: 'Código',
+            cell: ({ row }) => (
+                <span className="font-mono text-sm font-semibold">
+                    {row.original.code}
+                </span>
+            ),
+        },
+        {
             accessorKey: 'description',
             header: 'Descripción',
             cell: ({ row }) => (

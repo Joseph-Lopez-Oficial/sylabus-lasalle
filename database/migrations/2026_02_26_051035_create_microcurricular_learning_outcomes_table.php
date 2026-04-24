@@ -42,6 +42,7 @@ return new class extends Migration
         Schema::create('microcurricular_learning_outcomes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('academic_space_id')->constrained('academic_spaces')->cascadeOnDelete();
+            $table->string('code', 10)->nullable();
             $table->foreignId('type_id')->constrained('microcurricular_learning_outcome_types');
             $table->foreignId('mesocurricular_learning_outcome_id')
                 ->nullable()

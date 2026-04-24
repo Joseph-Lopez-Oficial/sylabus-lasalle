@@ -14,6 +14,7 @@ class MicrocurricularLearningOutcome extends Model
 
     protected $fillable = [
         'academic_space_id',
+        'code',
         'type_id',
         'mesocurricular_learning_outcome_id',
         'description',

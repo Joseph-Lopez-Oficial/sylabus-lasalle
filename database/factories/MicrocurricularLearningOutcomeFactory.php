@@ -20,6 +20,7 @@ class MicrocurricularLearningOutcomeFactory extends Factory
     {
         return [
             'academic_space_id' => AcademicSpace::factory(),
+            'code' => 'RA' . fake()->unique()->numberBetween(1, 999),
             'type_id' => MicrocurricularLearningOutcomeType::factory(),
             'mesocurricular_learning_outcome_id' => null,
             'description' => fake()->paragraph(),
@@ -29,7 +30,7 @@ class MicrocurricularLearningOutcomeFactory extends Factory
 
     public function inactive(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'is_active' => false,
         ]);
     }
