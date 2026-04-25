@@ -31,7 +31,11 @@ type ImportResponse = {
 };
 
 type Props = {
-    programming: { id: number; period: string; group: string | null };
+    programming: {
+        id: number;
+        group: string | null;
+        academic_period?: { name: string };
+    };
     academicSpace: { id: number; name: string; code: string };
 };
 
@@ -137,7 +141,7 @@ export default function GradingImport({ programming, academicSpace }: Props) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `errores_importacion_${programming.period}.txt`;
+        a.download = `errores_importacion_${programming.academic_period?.name ?? ''}.txt`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -154,7 +158,7 @@ export default function GradingImport({ programming, academicSpace }: Props) {
             <div className="flex flex-1 flex-col gap-6 p-6">
                 <PageHeader
                     title="Importar calificaciones"
-                    description={`${academicSpace.name} · ${academicSpace.code} · ${programming.period}${programming.group ? ` · Grupo ${programming.group}` : ''}`}
+                    description={`${academicSpace.name} · ${academicSpace.code} · ${programming.academic_period?.name ?? ''}${programming.group ? ` · Grupo ${programming.group}` : ''}`}
                 >
                     <Button variant="outline" asChild>
                         <Link href={GradingController.show.url(programming)}>

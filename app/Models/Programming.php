@@ -16,7 +16,7 @@ class Programming extends Model
         'academic_space_id',
         'professor_id',
         'modality_id',
-        'period',
+        'academic_period_id',
         'group',
         'is_active',
     ];
@@ -50,6 +50,14 @@ class Programming extends Model
     public function modality(): BelongsTo
     {
         return $this->belongsTo(Modality::class);
+    }
+
+    /**
+     * @return BelongsTo<\App\Models\AcademicPeriod, $this>
+     */
+    public function academicPeriod(): BelongsTo
+    {
+        return $this->belongsTo(AcademicPeriod::class);
     }
 
     /**

@@ -39,8 +39,9 @@ test('admin can list topics', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.topics.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/topics/index')
-            ->has('topics.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/topics/index')
+                ->has('topics.data', 3)
         );
 });
 

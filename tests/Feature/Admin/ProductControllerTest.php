@@ -47,8 +47,9 @@ test('admin can list products', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.products.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/products/index')
-            ->has('products.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/products/index')
+                ->has('products.data', 3)
         );
 });
 

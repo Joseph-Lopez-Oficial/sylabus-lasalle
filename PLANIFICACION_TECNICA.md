@@ -28,20 +28,20 @@ Desarrollar una plataforma web centralizada que permita a las universidad De LaS
 
 - **Permisos:** Acceso completo a todas las funcionalidades
 - **Responsabilidades:**
-    - CRUD completo de toda la estructura académica
-    - Gestión de profesores, estudiantes y configuraciones
-    - Visualización de todos los resultados y estadísticas
-    - Configuración de criterios de evaluación y niveles de desempeño
-    - Exportación de reportes globales
+  - CRUD completo de toda la estructura académica
+  - Gestión de profesores, estudiantes y configuraciones
+  - Visualización de todos los resultados y estadísticas
+  - Configuración de criterios de evaluación y niveles de desempeño
+  - Exportación de reportes globales
 
 ### 2. Profesores
 
 - **Permisos:** Acceso limitado a sus espacios académicos asignados
 - **Responsabilidades:**
-    - Calificar estudiantes en resultados de aprendizaje microcurriculares
-    - Importar calificaciones masivas mediante Excel
-    - Visualizar estadísticas de sus espacios académicos
-    - Exportar reportes de sus estudiantes
+  - Calificar estudiantes en resultados de aprendizaje microcurriculares
+  - Importar calificaciones masivas mediante Excel
+  - Visualizar estadísticas de sus espacios académicos
+  - Exportar reportes de sus estudiantes
 
 ---
 
@@ -170,36 +170,36 @@ Student (Estudiante)
 #### 1. Gestión de Estructura Académica
 
 - **CRUD de Facultades**
-    - Crear, editar, eliminar, activar/desactivar facultades
-    - Listado con búsqueda y filtros
+  - Crear, editar, eliminar, activar/desactivar facultades
+  - Listado con búsqueda y filtros
 
 - **CRUD de Programas**
-    - Asociados a facultades
-    - Vista jerárquica tipo árbol
+  - Asociados a facultades
+  - Vista jerárquica tipo árbol
 
 - **CRUD de Núcleos Problemáticos**
-    - Asociados a programas
-    - Navegación jerárquica
+  - Asociados a programas
+  - Navegación jerárquica
 
 - **CRUD de Competencias**
-    - Asociadas a núcleos problemáticos
-    - Vista de relaciones
+  - Asociadas a núcleos problemáticos
+  - Vista de relaciones
 
 - **CRUD de Resultados Mesocurriculares**
-    - Asociados a competencias
-    - Gestión de descripciones
+  - Asociados a competencias
+  - Gestión de descripciones
 
 - **CRUD de Espacios Académicos**
-    - Asociados a competencias
-    - Gestión de modalidad
+  - Asociados a competencias
+  - Gestión de modalidad
 
 - **CRUD de Resultados Microcurriculares**
-    - Asociados a espacios académicos
-    - Clasificación por tipo (Knowledge, Skill, Attitude)
-    - Vinculación con resultados mesocurriculares
+  - Asociados a espacios académicos
+  - Clasificación por tipo (Knowledge, Skill, Attitude)
+  - Vinculación con resultados mesocurriculares
 
 - **CRUD de Topics, Activities y Products**
-    - Estructura completa de contenidos
+  - Estructura completa de contenidos
 
 #### 2. Gestión de Profesores
 
@@ -224,14 +224,14 @@ Student (Estudiante)
 #### 5. Configuración del Sistema de Evaluación
 
 - **CRUD de Criterios de Evaluación**
-    - Configurar nombres (Saber Conocer, Hacer, Ser, Transferir)
-    - Definir descripciones
-    - Establecer orden de presentación
+  - Configurar nombres (Saber Conocer, Hacer, Ser, Transferir)
+  - Definir descripciones
+  - Establecer orden de presentación
 
 - **CRUD de Niveles de Desempeño**
-    - Configurar nombres (Insuficiente, Básico, Competente, Destacado)
-    - Definir valores numéricos (0.0 - 5.0)
-    - Establecer orden de presentación
+  - Configurar nombres (Insuficiente, Básico, Competente, Destacado)
+  - Definir valores numéricos (0.0 - 5.0)
+  - Establecer orden de presentación
 
 #### 6. Reportes y Estadísticas Globales
 
@@ -266,11 +266,11 @@ Student (Estudiante)
 
 - ✋ **Manual:** Interfaz de tabla con selects/dropdowns
 - 📊 **Importación Excel:**
-    - Descargar plantilla predefinida
-    - Cargar archivo con calificaciones
-    - Validación automática
-    - Reporte de errores si hay inconsistencias
-    - Log de importación
+  - Descargar plantilla predefinida
+  - Cargar archivo con calificaciones
+  - Validación automática
+  - Reporte de errores si hay inconsistencias
+  - Log de importación
 
 #### 3. Estadísticas y Consolidados
 

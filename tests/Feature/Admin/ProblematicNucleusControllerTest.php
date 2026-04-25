@@ -30,8 +30,9 @@ test('admin can list problematic nuclei', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.problematic-nuclei.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/problematic-nuclei/index')
-            ->has('nuclei.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/problematic-nuclei/index')
+                ->has('nuclei.data', 3)
         );
 });
 

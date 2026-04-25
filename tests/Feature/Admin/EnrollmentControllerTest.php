@@ -42,9 +42,10 @@ test('admin can enroll a student individually', function () {
         ])
         ->assertRedirect();
 
-    expect(Enrollment::where('programming_id', $this->programming->id)
-        ->where('student_id', $this->student->id)
-        ->exists()
+    expect(
+        Enrollment::where('programming_id', $this->programming->id)
+            ->where('student_id', $this->student->id)
+            ->exists()
     )->toBeTrue();
 });
 

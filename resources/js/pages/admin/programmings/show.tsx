@@ -1,5 +1,16 @@
 import { Form, Head, Link, router } from '@inertiajs/react';
-import { ChevronDown, ChevronUp, Download, FileSpreadsheet, Pencil, Plus, Power, Upload, Users, X } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronUp,
+    Download,
+    FileSpreadsheet,
+    Pencil,
+    Plus,
+    Power,
+    Upload,
+    Users,
+    X,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 import * as EnrollmentController from '@/actions/App/Http/Controllers/Admin/EnrollmentController';
 import * as ProgrammingController from '@/actions/App/Http/Controllers/Admin/ProgrammingController';
@@ -26,11 +37,18 @@ type ProgrammingWithRelations = Programming & {
 
 type Props = {
     programming: ProgrammingWithRelations;
-    students: Pick<Student, 'id' | 'first_name' | 'last_name' | 'document_number'>[];
+    students: Pick<
+        Student,
+        'id' | 'first_name' | 'last_name' | 'document_number'
+    >[];
     import_results?: ImportResult[];
 };
 
-export default function ProgrammingsShow({ programming, students, import_results }: Props) {
+export default function ProgrammingsShow({
+    programming,
+    students,
+    import_results,
+}: Props) {
     const [search, setSearch] = useState('');
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [enrolling, setEnrolling] = useState(false);
@@ -44,12 +62,14 @@ export default function ProgrammingsShow({ programming, students, import_results
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Programaciones', href: ProgrammingController.index.url() },
         {
-            title: `${programming.period}${programming.group ? ' · ' + programming.group : ''}`,
+            title: `${programming.academic_period?.name ?? ''}${programming.group ? ' · ' + programming.group : ''}`,
             href: ProgrammingController.show.url(programming),
         },
     ];
 
-    const enrolledIds = new Set(programming.enrollments.map((e) => e.student_id));
+    const enrolledIds = new Set(
+        programming.enrollments.map((e) => e.student_id),
+    );
     const availableStudents = students.filter((s) => !enrolledIds.has(s.id));
     const filteredStudents = search.trim()
         ? availableStudents.filter((s) => {
@@ -60,7 +80,9 @@ export default function ProgrammingsShow({ programming, students, import_results
               );
           })
         : availableStudents;
-    const selectedStudent = availableStudents.find((s) => String(s.id) === selectedStudentId);
+    const selectedStudent = availableStudents.find(
+        (s) => String(s.id) === selectedStudentId,
+    );
 
     function handleEnroll() {
         if (!selectedStudentId) return;
@@ -98,15 +120,16 @@ export default function ProgrammingsShow({ programming, students, import_results
         );
     }
 
-
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Programación: ${programming.period}`} />
+            <Head
+                title={`Programación: ${programming.academic_period?.name ?? ''}`}
+            />
 
             <div className="flex flex-1 flex-col gap-6 p-6">
                 <PageHeader
                     title={`${programming.academic_space.name}`}
-                    description={`${programming.period}${programming.group ? ' · Grupo ' + programming.group : ''} · ${programming.modality.name}`}
+                    description={`${programming.academic_period?.name ?? ''}${programming.group ? ' · Grupo ' + programming.group : ''} · ${programming.modality.name}`}
                 >
                     <StatusBadge isActive={programming.is_active} />
                     <Button variant="outline" asChild>
@@ -160,7 +183,8 @@ export default function ProgrammingsShow({ programming, students, import_results
                                             Período
                                         </p>
                                         <p className="font-medium">
-                                            {programming.period}
+                                            {programming.academic_period
+                                                ?.name ?? ''}
                                         </p>
                                     </div>
                                     <div>
@@ -209,204 +233,330 @@ export default function ProgrammingsShow({ programming, students, import_results
                                     )}
                                 </CardTitle>
                             </CardHeader>
-                            {enrollSectionOpen && <CardContent className="space-y-4">
-                                {/* Combobox individual */}
-                                <div className="space-y-1.5">
-                                    <p className="text-xs font-medium text-muted-foreground">
-                                        Inscripción individual
-                                    </p>
-                                    <div className="flex gap-2">
-                                        <div className="relative flex-1">
-                                            <Input
-                                                placeholder="Busca por nombre o documento..."
-                                                value={
-                                                    selectedStudent
-                                                        ? `${selectedStudent.first_name} ${selectedStudent.last_name} — ${selectedStudent.document_number}`
-                                                        : search
-                                                }
-                                                onChange={(e) => {
-                                                    setSearch(e.target.value);
-                                                    setSelectedStudentId('');
-                                                }}
-                                            />
-                                            {search && !selectedStudentId && (
-                                                <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-md border bg-popover shadow-md">
-                                                    {filteredStudents.length === 0 ? (
-                                                        <p className="px-3 py-2 text-sm text-muted-foreground">
-                                                            Sin resultados
-                                                        </p>
-                                                    ) : (
-                                                        filteredStudents.map((s) => (
-                                                            <button
-                                                                key={s.id}
-                                                                type="button"
-                                                                className="w-full px-3 py-2 text-left text-sm hover:bg-accent"
-                                                                onClick={() => {
-                                                                    setSelectedStudentId(String(s.id));
-                                                                    setSearch('');
-                                                                }}
-                                                            >
-                                                                {s.first_name} {s.last_name}{' '}
-                                                                <span className="text-muted-foreground">
-                                                                    — {s.document_number}
-                                                                </span>
-                                                            </button>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <Button
-                                            onClick={handleEnroll}
-                                            disabled={!selectedStudentId || enrolling}
-                                        >
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            {enrolling ? 'Inscribiendo...' : 'Inscribir'}
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                {/* Drag & drop masiva */}
-                                <div className="space-y-2 border-t pt-4">
-                                    <p className="text-xs font-medium text-muted-foreground">
-                                        Importación masiva por Excel
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        Solo inscribe estudiantes ya registrados en el sistema. La columna requerida es{' '}
-                                        <code className="rounded bg-muted px-1 py-0.5 font-mono">documento</code>.
-                                    </p>
-                                    <Button variant="outline" size="sm" asChild>
-                                        <a href={EnrollmentController.downloadTemplate.url(programming)}>
-                                            <Download className="mr-2 h-4 w-4" />
-                                            Descargar plantilla
-                                        </a>
-                                    </Button>
-
-                                    {!import_results?.length ? (
-                                        <Form
-                                            action={EnrollmentController.importMethod.url(programming)}
-                                            method="post"
-                                            encType="multipart/form-data"
-                                        >
-                                            {({ processing }) => (
-                                                <div className="space-y-2">
-                                                    <div
-                                                        className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-8 transition-colors ${
-                                                            dragOver
-                                                                ? 'border-primary bg-primary/5'
-                                                                : 'border-muted-foreground/25 hover:border-muted-foreground/50'
-                                                        }`}
-                                                        onClick={() => fileInputRef.current?.click()}
-                                                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                                                        onDragLeave={() => setDragOver(false)}
-                                                        onDrop={(e) => {
-                                                            e.preventDefault();
-                                                            setDragOver(false);
-                                                            const file = e.dataTransfer.files[0];
-                                                            if (file && fileInputRef.current) {
-                                                                const dt = new DataTransfer();
-                                                                dt.items.add(file);
-                                                                fileInputRef.current.files = dt.files;
-                                                                setSelectedFile(file);
-                                                            }
-                                                        }}
-                                                    >
-                                                        {selectedFile ? (
-                                                            <div className="flex items-center gap-3">
-                                                                <FileSpreadsheet className="h-8 w-8 text-green-600" />
-                                                                <div className="text-left">
-                                                                    <p className="text-sm font-medium">{selectedFile.name}</p>
-                                                                    <p className="text-xs text-muted-foreground">
-                                                                        {(selectedFile.size / 1024).toFixed(1)} KB
-                                                                    </p>
-                                                                </div>
-                                                                <button
-                                                                    type="button"
-                                                                    className="ml-2 rounded-full p-1 hover:bg-muted"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setSelectedFile(null);
-                                                                        if (fileInputRef.current) fileInputRef.current.value = '';
-                                                                    }}
-                                                                >
-                                                                    <X className="h-4 w-4 text-muted-foreground" />
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                <Upload className="h-8 w-8 text-muted-foreground" />
-                                                                <div className="text-center">
-                                                                    <p className="text-sm font-medium">Arrastra el archivo aquí</p>
-                                                                    <p className="text-xs text-muted-foreground">
-                                                                        o haz clic para seleccionar (.xlsx, .xls, .csv)
-                                                                    </p>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                    <input
-                                                        ref={fileInputRef}
-                                                        name="file"
-                                                        type="file"
-                                                        accept=".xlsx,.xls,.csv"
-                                                        className="hidden"
-                                                        onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-                                                    />
-                                                    {selectedFile && (
-                                                        <Button
-                                                            type="submit"
-                                                            className="w-full"
-                                                            disabled={processing}
-                                                        >
-                                                            <Upload className="mr-2 h-4 w-4" />
-                                                            {processing ? 'Procesando...' : 'Importar archivo'}
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </Form>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-sm font-medium">
-                                                    Resultado ({import_results.length} filas)
-                                                </p>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        setSelectedFile(null);
-                                                        router.get(
-                                                            ProgrammingController.show.url(programming),
-                                                            {},
-                                                            { preserveScroll: true },
+                            {enrollSectionOpen && (
+                                <CardContent className="space-y-4">
+                                    {/* Combobox individual */}
+                                    <div className="space-y-1.5">
+                                        <p className="text-xs font-medium text-muted-foreground">
+                                            Inscripción individual
+                                        </p>
+                                        <div className="flex gap-2">
+                                            <div className="relative flex-1">
+                                                <Input
+                                                    placeholder="Busca por nombre o documento..."
+                                                    value={
+                                                        selectedStudent
+                                                            ? `${selectedStudent.first_name} ${selectedStudent.last_name} — ${selectedStudent.document_number}`
+                                                            : search
+                                                    }
+                                                    onChange={(e) => {
+                                                        setSearch(
+                                                            e.target.value,
+                                                        );
+                                                        setSelectedStudentId(
+                                                            '',
                                                         );
                                                     }}
-                                                >
-                                                    Nueva importación
-                                                </Button>
+                                                />
+                                                {search &&
+                                                    !selectedStudentId && (
+                                                        <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-md border bg-popover shadow-md">
+                                                            {filteredStudents.length ===
+                                                            0 ? (
+                                                                <p className="px-3 py-2 text-sm text-muted-foreground">
+                                                                    Sin
+                                                                    resultados
+                                                                </p>
+                                                            ) : (
+                                                                filteredStudents.map(
+                                                                    (s) => (
+                                                                        <button
+                                                                            key={
+                                                                                s.id
+                                                                            }
+                                                                            type="button"
+                                                                            className="w-full px-3 py-2 text-left text-sm hover:bg-accent"
+                                                                            onClick={() => {
+                                                                                setSelectedStudentId(
+                                                                                    String(
+                                                                                        s.id,
+                                                                                    ),
+                                                                                );
+                                                                                setSearch(
+                                                                                    '',
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            {
+                                                                                s.first_name
+                                                                            }{' '}
+                                                                            {
+                                                                                s.last_name
+                                                                            }{' '}
+                                                                            <span className="text-muted-foreground">
+                                                                                —{' '}
+                                                                                {
+                                                                                    s.document_number
+                                                                                }
+                                                                            </span>
+                                                                        </button>
+                                                                    ),
+                                                                )
+                                                            )}
+                                                        </div>
+                                                    )}
                                             </div>
-                                            <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border p-3">
-                                                {import_results.map((r) => (
-                                                    <div
-                                                        key={r.row}
-                                                        className={`flex items-start gap-2 text-xs ${
-                                                            r.status === 'error'
-                                                                ? 'text-destructive'
-                                                                : r.status === 'created'
-                                                                  ? 'text-green-700 dark:text-green-400'
-                                                                  : 'text-muted-foreground'
-                                                        }`}
-                                                    >
-                                                        <span className="shrink-0 font-mono">F{r.row}</span>
-                                                        <span>{r.message}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                            <Button
+                                                onClick={handleEnroll}
+                                                disabled={
+                                                    !selectedStudentId ||
+                                                    enrolling
+                                                }
+                                            >
+                                                <Plus className="mr-2 h-4 w-4" />
+                                                {enrolling
+                                                    ? 'Inscribiendo...'
+                                                    : 'Inscribir'}
+                                            </Button>
                                         </div>
-                                    )}
-                                </div>
-                            </CardContent>}
+                                    </div>
+
+                                    {/* Drag & drop masiva */}
+                                    <div className="space-y-2 border-t pt-4">
+                                        <p className="text-xs font-medium text-muted-foreground">
+                                            Importación masiva por Excel
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Solo inscribe estudiantes ya
+                                            registrados en el sistema. La
+                                            columna requerida es{' '}
+                                            <code className="rounded bg-muted px-1 py-0.5 font-mono">
+                                                documento
+                                            </code>
+                                            .
+                                        </p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            asChild
+                                        >
+                                            <a
+                                                href={EnrollmentController.downloadTemplate.url(
+                                                    programming,
+                                                )}
+                                            >
+                                                <Download className="mr-2 h-4 w-4" />
+                                                Descargar plantilla
+                                            </a>
+                                        </Button>
+
+                                        {!import_results?.length ? (
+                                            <Form
+                                                action={EnrollmentController.importMethod.url(
+                                                    programming,
+                                                )}
+                                                method="post"
+                                                encType="multipart/form-data"
+                                            >
+                                                {({ processing }) => (
+                                                    <div className="space-y-2">
+                                                        <div
+                                                            className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-8 transition-colors ${
+                                                                dragOver
+                                                                    ? 'border-primary bg-primary/5'
+                                                                    : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                                                            }`}
+                                                            onClick={() =>
+                                                                fileInputRef.current?.click()
+                                                            }
+                                                            onDragOver={(e) => {
+                                                                e.preventDefault();
+                                                                setDragOver(
+                                                                    true,
+                                                                );
+                                                            }}
+                                                            onDragLeave={() =>
+                                                                setDragOver(
+                                                                    false,
+                                                                )
+                                                            }
+                                                            onDrop={(e) => {
+                                                                e.preventDefault();
+                                                                setDragOver(
+                                                                    false,
+                                                                );
+                                                                const file =
+                                                                    e
+                                                                        .dataTransfer
+                                                                        .files[0];
+                                                                if (
+                                                                    file &&
+                                                                    fileInputRef.current
+                                                                ) {
+                                                                    const dt =
+                                                                        new DataTransfer();
+                                                                    dt.items.add(
+                                                                        file,
+                                                                    );
+                                                                    fileInputRef.current.files =
+                                                                        dt.files;
+                                                                    setSelectedFile(
+                                                                        file,
+                                                                    );
+                                                                }
+                                                            }}
+                                                        >
+                                                            {selectedFile ? (
+                                                                <div className="flex items-center gap-3">
+                                                                    <FileSpreadsheet className="h-8 w-8 text-green-600" />
+                                                                    <div className="text-left">
+                                                                        <p className="text-sm font-medium">
+                                                                            {
+                                                                                selectedFile.name
+                                                                            }
+                                                                        </p>
+                                                                        <p className="text-xs text-muted-foreground">
+                                                                            {(
+                                                                                selectedFile.size /
+                                                                                1024
+                                                                            ).toFixed(
+                                                                                1,
+                                                                            )}{' '}
+                                                                            KB
+                                                                        </p>
+                                                                    </div>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="ml-2 rounded-full p-1 hover:bg-muted"
+                                                                        onClick={(
+                                                                            e,
+                                                                        ) => {
+                                                                            e.stopPropagation();
+                                                                            setSelectedFile(
+                                                                                null,
+                                                                            );
+                                                                            if (
+                                                                                fileInputRef.current
+                                                                            )
+                                                                                fileInputRef.current.value =
+                                                                                    '';
+                                                                        }}
+                                                                    >
+                                                                        <X className="h-4 w-4 text-muted-foreground" />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <>
+                                                                    <Upload className="h-8 w-8 text-muted-foreground" />
+                                                                    <div className="text-center">
+                                                                        <p className="text-sm font-medium">
+                                                                            Arrastra
+                                                                            el
+                                                                            archivo
+                                                                            aquí
+                                                                        </p>
+                                                                        <p className="text-xs text-muted-foreground">
+                                                                            o
+                                                                            haz
+                                                                            clic
+                                                                            para
+                                                                            seleccionar
+                                                                            (.xlsx,
+                                                                            .xls,
+                                                                            .csv)
+                                                                        </p>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                        <input
+                                                            ref={fileInputRef}
+                                                            name="file"
+                                                            type="file"
+                                                            accept=".xlsx,.xls,.csv"
+                                                            className="hidden"
+                                                            onChange={(e) =>
+                                                                setSelectedFile(
+                                                                    e.target
+                                                                        .files?.[0] ??
+                                                                        null,
+                                                                )
+                                                            }
+                                                        />
+                                                        {selectedFile && (
+                                                            <Button
+                                                                type="submit"
+                                                                className="w-full"
+                                                                disabled={
+                                                                    processing
+                                                                }
+                                                            >
+                                                                <Upload className="mr-2 h-4 w-4" />
+                                                                {processing
+                                                                    ? 'Procesando...'
+                                                                    : 'Importar archivo'}
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </Form>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-sm font-medium">
+                                                        Resultado (
+                                                        {import_results.length}{' '}
+                                                        filas)
+                                                    </p>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setSelectedFile(
+                                                                null,
+                                                            );
+                                                            router.get(
+                                                                ProgrammingController.show.url(
+                                                                    programming,
+                                                                ),
+                                                                {},
+                                                                {
+                                                                    preserveScroll: true,
+                                                                },
+                                                            );
+                                                        }}
+                                                    >
+                                                        Nueva importación
+                                                    </Button>
+                                                </div>
+                                                <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border p-3">
+                                                    {import_results.map((r) => (
+                                                        <div
+                                                            key={r.row}
+                                                            className={`flex items-start gap-2 text-xs ${
+                                                                r.status ===
+                                                                'error'
+                                                                    ? 'text-destructive'
+                                                                    : r.status ===
+                                                                        'created'
+                                                                      ? 'text-green-700 dark:text-green-400'
+                                                                      : 'text-muted-foreground'
+                                                            }`}
+                                                        >
+                                                            <span className="shrink-0 font-mono">
+                                                                F{r.row}
+                                                            </span>
+                                                            <span>
+                                                                {r.message}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            )}
                         </Card>
 
                         {/* Lista de inscritos */}

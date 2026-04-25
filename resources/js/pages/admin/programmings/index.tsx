@@ -8,8 +8,16 @@ import { DataTable } from '@/components/data-table';
 import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import type {
+    AcademicPeriod,
     AcademicSpace,
     BreadcrumbItem,
     PaginatedResponse,
@@ -21,11 +29,12 @@ type Props = {
     programmings: PaginatedResponse<Programming>;
     professors: Pick<Professor, 'id' | 'first_name' | 'last_name'>[];
     academicSpaces: Pick<AcademicSpace, 'id' | 'name'>[];
+    academicPeriods: Pick<AcademicPeriod, 'id' | 'name'>[];
     filters: {
         search?: string;
         professor_id?: string;
         academic_space_id?: string;
-        period?: string;
+        academic_period_id?: string;
     };
 };
 
@@ -36,6 +45,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function ProgrammingsIndex({
     programmings,
     professors,
+    academicPeriods,
     filters,
 }: Props) {
     const [toggleTarget, setToggleTarget] = useState<Programming | null>(null);
@@ -71,7 +81,15 @@ export default function ProgrammingsIndex({
                     ? `${row.original.professor.first_name} ${row.original.professor.last_name}`
                     : '—',
         },
-        { accessorKey: 'period', header: 'Período' },
+        {
+            id: 'period',
+            header: 'Período',
+            cell: ({ row }) => (
+                <span className="font-mono text-sm">
+                    {row.original.academic_period?.name ?? '—'}
+                </span>
+            ),
+        },
         {
             accessorKey: 'group',
             header: 'Grupo',
@@ -137,7 +155,33 @@ export default function ProgrammingsIndex({
                 </PageHeader>
 
                 {/* Filtros */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    <Select
+                        value={filters.academic_period_id ?? ''}
+                        onValueChange={(val) =>
+                            router.get(
+                                ProgrammingController.index.url(),
+                                val
+                                    ? { ...filters, academic_period_id: val }
+                                    : {
+                                          ...filters,
+                                          academic_period_id: undefined,
+                                      },
+                                { preserveState: true },
+                            )
+                        }
+                    >
+                        <SelectTrigger className="w-36">
+                            <SelectValue placeholder="Todos los períodos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {academicPeriods.map((p) => (
+                                <SelectItem key={p.id} value={String(p.id)}>
+                                    {p.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <Button
                         variant={
                             !filters.professor_id ? 'secondary' : 'outline'

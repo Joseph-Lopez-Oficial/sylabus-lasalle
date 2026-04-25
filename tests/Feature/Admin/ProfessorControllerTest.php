@@ -27,8 +27,9 @@ test('admin can list professors', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.professors.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/professors/index')
-            ->has('professors.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/professors/index')
+                ->has('professors.data', 3)
         );
 });
 

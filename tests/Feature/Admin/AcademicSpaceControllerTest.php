@@ -36,8 +36,9 @@ test('admin can list academic spaces', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.academic-spaces.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/academic-spaces/index')
-            ->has('academicSpaces.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/academic-spaces/index')
+                ->has('academicSpaces.data', 3)
         );
 });
 
@@ -85,8 +86,9 @@ test('admin can view academic space detail', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.academic-spaces.show', $space))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/academic-spaces/show')
-            ->where('academicSpace.id', $space->id)
+        ->assertInertia(
+            fn($page) => $page->component('admin/academic-spaces/show')
+                ->where('academicSpace.id', $space->id)
         );
 });
 

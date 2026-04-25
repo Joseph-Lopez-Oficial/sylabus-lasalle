@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import type {
+    AcademicPeriod,
     AcademicSpace,
     BreadcrumbItem,
     Modality,
@@ -25,6 +26,7 @@ type Props = {
     academicSpaces: Pick<AcademicSpace, 'id' | 'name'>[];
     professors: Pick<Professor, 'id' | 'first_name' | 'last_name'>[];
     modalities: Pick<Modality, 'id' | 'name'>[];
+    academicPeriods: Pick<AcademicPeriod, 'id' | 'name'>[];
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -36,6 +38,7 @@ export default function ProgrammingsCreate({
     academicSpaces,
     professors,
     modalities,
+    academicPeriods,
 }: Props) {
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
@@ -136,18 +139,31 @@ export default function ProgrammingsCreate({
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="grid gap-1.5">
-                                            <Label htmlFor="period">
+                                            <Label htmlFor="academic_period_id">
                                                 Período académico *
                                             </Label>
-                                            <Input
-                                                id="period"
-                                                name="period"
-                                                placeholder="Ej. 2024-1"
-                                                autoFocus
-                                            />
-                                            {errors.period && (
+                                            <Select name="academic_period_id">
+                                                <SelectTrigger id="academic_period_id">
+                                                    <SelectValue placeholder="Selecciona un período" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {academicPeriods.map(
+                                                        (p) => (
+                                                            <SelectItem
+                                                                key={p.id}
+                                                                value={String(
+                                                                    p.id,
+                                                                )}
+                                                            >
+                                                                {p.name}
+                                                            </SelectItem>
+                                                        ),
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.academic_period_id && (
                                                 <p className="text-sm text-destructive">
-                                                    {errors.period}
+                                                    {errors.academic_period_id}
                                                 </p>
                                             )}
                                         </div>

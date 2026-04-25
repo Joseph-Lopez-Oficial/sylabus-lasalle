@@ -27,8 +27,9 @@ test('admin can list programs', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.programs.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/programs/index')
-            ->has('programs.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/programs/index')
+                ->has('programs.data', 3)
         );
 });
 
@@ -40,7 +41,7 @@ test('admin can filter programs by faculty', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.programs.index', ['faculty_id' => $this->faculty->id]))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->has('programs.data', 1));
+        ->assertInertia(fn($page) => $page->has('programs.data', 1));
 });
 
 test('admin can create a program', function () {

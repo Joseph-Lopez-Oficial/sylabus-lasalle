@@ -25,8 +25,9 @@ test('admin can list faculties', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.faculties.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/faculties/index')
-            ->has('faculties.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/faculties/index')
+                ->has('faculties.data', 3)
         );
 });
 
@@ -37,14 +38,14 @@ test('admin can filter faculties by search', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.faculties.index', ['search' => 'Ingeniería']))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->has('faculties.data', 1));
+        ->assertInertia(fn($page) => $page->has('faculties.data', 1));
 });
 
 test('admin can see create faculty form', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.faculties.create'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/faculties/create'));
+        ->assertInertia(fn($page) => $page->component('admin/faculties/create'));
 });
 
 test('admin can create a faculty', function () {
@@ -85,8 +86,9 @@ test('admin can see edit faculty form', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.faculties.edit', $faculty))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/faculties/edit')
-            ->where('faculty.id', $faculty->id)
+        ->assertInertia(
+            fn($page) => $page->component('admin/faculties/edit')
+                ->where('faculty.id', $faculty->id)
         );
 });
 

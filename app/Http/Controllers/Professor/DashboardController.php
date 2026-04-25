@@ -21,7 +21,8 @@ class DashboardController extends Controller
             ->with([
                 'academicSpace',
                 'modality',
-                'enrollments' => fn ($q) => $q->where('is_active', true),
+                'academicPeriod',
+                'enrollments' => fn($q) => $q->where('is_active', true),
             ])
             ->get()
             ->map(function (Programming $programming) {
@@ -37,15 +38,15 @@ class DashboardController extends Controller
 
                 $completed = $total > 0
                     ? Grade::whereIn('enrollment_id', $enrollmentIds)
-                        ->whereIn('microcurricular_learning_outcome_id', $outcomeIds)
-                        ->count()
+                    ->whereIn('microcurricular_learning_outcome_id', $outcomeIds)
+                    ->count()
                     : 0;
 
                 $percentage = $total > 0 ? round(($completed / $total) * 100, 1) : 0.0;
 
                 return [
                     'id' => $programming->id,
-                    'period' => $programming->period,
+                    'period' => $programming->academicPeriod?->name,
                     'group' => $programming->group,
                     'academic_space' => $programming->academicSpace->only(['id', 'name', 'code']),
                     'modality' => $programming->modality->only(['id', 'name']),

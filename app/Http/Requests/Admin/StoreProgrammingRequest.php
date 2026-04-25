@@ -17,7 +17,7 @@ class StoreProgrammingRequest extends FormRequest
             'academic_space_id' => ['required', 'integer', 'exists:academic_spaces,id'],
             'professor_id' => ['required', 'integer', 'exists:professors,id'],
             'modality_id' => ['required', 'integer', 'exists:modalities,id'],
-            'period' => ['required', 'string', 'max:20'],
+            'academic_period_id' => ['required', 'integer', 'exists:academic_periods,id'],
             'group' => ['nullable', 'string', 'max:10'],
             'is_active' => ['boolean'],
         ];
@@ -32,7 +32,8 @@ class StoreProgrammingRequest extends FormRequest
             'professor_id.exists' => 'El profesor seleccionado no existe.',
             'modality_id.required' => 'Debe seleccionar una modalidad.',
             'modality_id.exists' => 'La modalidad seleccionada no existe.',
-            'period.required' => 'El período académico es obligatorio.',
+            'academic_period_id.required' => 'Debe seleccionar un período académico.',
+            'academic_period_id.exists' => 'El período académico seleccionado no existe.',
         ];
     }
 }

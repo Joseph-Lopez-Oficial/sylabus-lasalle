@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\AcademicPeriod;
 use App\Models\AcademicSpace;
 use App\Models\Modality;
 use App\Models\Professor;
@@ -23,7 +24,7 @@ class ProgrammingFactory extends Factory
             'academic_space_id' => AcademicSpace::factory(),
             'professor_id' => Professor::factory(),
             'modality_id' => Modality::factory(),
-            'period' => fake()->unique()->numerify('20##-#'),
+            'academic_period_id' => AcademicPeriod::factory(),
             'group' => fake()->randomElement(['A', 'B', 'C', null]),
             'is_active' => true,
         ];

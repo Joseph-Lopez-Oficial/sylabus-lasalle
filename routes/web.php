@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AcademicPeriodController;
 use App\Http\Controllers\Admin\AcademicSpaceController;
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\CompetencyController;
@@ -152,6 +153,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('students/{student}', [StudentController::class, 'update'])->name('students.update');
     Route::patch('students/{student}/toggle-status', [StudentController::class, 'toggleStatus'])->name('students.toggle-status');
 
+    // Períodos Académicos
+    Route::get('academic-periods', [AcademicPeriodController::class, 'index'])->name('academic-periods.index');
+    Route::get('academic-periods/create', [AcademicPeriodController::class, 'create'])->name('academic-periods.create');
+    Route::post('academic-periods', [AcademicPeriodController::class, 'store'])->name('academic-periods.store');
+    Route::get('academic-periods/{academicPeriod}/edit', [AcademicPeriodController::class, 'edit'])->name('academic-periods.edit');
+    Route::put('academic-periods/{academicPeriod}', [AcademicPeriodController::class, 'update'])->name('academic-periods.update');
+    Route::patch('academic-periods/{academicPeriod}/toggle-status', [AcademicPeriodController::class, 'toggleStatus'])->name('academic-periods.toggle-status');
+
     // Programaciones
     Route::get('programmings', [ProgrammingController::class, 'index'])->name('programmings.index');
     Route::get('programmings/create', [ProgrammingController::class, 'create'])->name('programmings.create');
@@ -190,4 +199,4 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     Route::get('programmings/{programming}/statistics', [StatisticsController::class, 'show'])->name('programmings.statistics.show');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

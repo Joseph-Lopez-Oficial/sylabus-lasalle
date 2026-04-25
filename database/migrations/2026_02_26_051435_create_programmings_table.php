@@ -43,12 +43,12 @@ return new class extends Migration
             $table->foreignId('academic_space_id')->constrained('academic_spaces')->cascadeOnDelete();
             $table->foreignId('professor_id')->constrained('professors');
             $table->foreignId('modality_id')->constrained('modalities');
-            $table->string('period', 20);
+            $table->foreignId('academic_period_id')->constrained('academic_periods');
             $table->string('group', 10)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->unique(['academic_space_id', 'professor_id', 'period', 'group']);
+            $table->unique(['academic_space_id', 'professor_id', 'academic_period_id', 'group']);
         });
     }
 

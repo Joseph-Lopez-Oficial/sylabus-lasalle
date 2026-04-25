@@ -36,8 +36,9 @@ test('admin can list mesocurricular outcomes', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.mesocurricular-outcomes.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/mesocurricular-outcomes/index')
-            ->has('outcomes.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/mesocurricular-outcomes/index')
+                ->has('outcomes.data', 3)
         );
 });
 

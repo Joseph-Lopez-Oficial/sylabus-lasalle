@@ -12,7 +12,7 @@ import type { BreadcrumbItem } from '@/types';
 
 type ProgrammingCard = {
     id: number;
-    period: string;
+    period?: string;
     group: string | null;
     academic_space: { id: number; name: string; code: string };
     modality: { id: number; name: string };
@@ -64,8 +64,14 @@ export default function ProfessorDashboard({ programmings }: Props) {
                             <Button
                                 key={period}
                                 size="sm"
-                                variant={selectedPeriod === period ? 'secondary' : 'outline'}
-                                onClick={() => setSelectedPeriod(period)}
+                                variant={
+                                    selectedPeriod === period
+                                        ? 'secondary'
+                                        : 'outline'
+                                }
+                                onClick={() =>
+                                    setSelectedPeriod(period ?? null)
+                                }
                             >
                                 {period}
                             </Button>
@@ -93,35 +99,55 @@ export default function ProfessorDashboard({ programmings }: Props) {
                                             <CardTitle className="text-base leading-tight">
                                                 {p.academic_space.name}
                                             </CardTitle>
-                                            <Badge variant="outline" className="shrink-0 text-xs">
+                                            <Badge
+                                                variant="outline"
+                                                className="shrink-0 text-xs"
+                                            >
                                                 {p.academic_space.code}
                                             </Badge>
                                         </div>
                                         <p className="text-sm text-muted-foreground">
-                                            {p.period}{p.group ? ` · Grupo ${p.group}` : ''} · {p.modality.name}
+                                            {p.period}
+                                            {p.group
+                                                ? ` · Grupo ${p.group}`
+                                                : ''}{' '}
+                                            · {p.modality.name}
                                         </p>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <Users className="h-4 w-4" />
-                                            <span>{p.enrolled_count} estudiantes inscritos</span>
+                                            <span>
+                                                {p.enrolled_count} estudiantes
+                                                inscritos
+                                            </span>
                                         </div>
                                         <div>
                                             <div className="mb-1 flex items-center justify-between text-xs">
                                                 <span className="flex items-center gap-1 text-muted-foreground">
-                                                    {p.grading_percentage >= 100
-                                                        ? <CheckCircle2 className="h-3 w-3 text-green-600" />
-                                                        : <Clock className="h-3 w-3" />}
+                                                    {p.grading_percentage >=
+                                                    100 ? (
+                                                        <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                                    ) : (
+                                                        <Clock className="h-3 w-3" />
+                                                    )}
                                                     Calificaciones
                                                 </span>
-                                                <span className={`font-medium ${p.grading_percentage >= 100 ? 'text-green-600' : ''}`}>
-                                                    {formatDecimal(p.grading_percentage)}%
+                                                <span
+                                                    className={`font-medium ${p.grading_percentage >= 100 ? 'text-green-600' : ''}`}
+                                                >
+                                                    {formatDecimal(
+                                                        p.grading_percentage,
+                                                    )}
+                                                    %
                                                 </span>
                                             </div>
                                             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                                                 <div
                                                     className={`h-full rounded-full transition-all ${p.grading_percentage >= 100 ? 'bg-green-500' : 'bg-primary'}`}
-                                                    style={{ width: `${p.grading_percentage}%` }}
+                                                    style={{
+                                                        width: `${p.grading_percentage}%`,
+                                                    }}
                                                 />
                                             </div>
                                         </div>

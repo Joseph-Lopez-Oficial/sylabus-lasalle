@@ -25,8 +25,9 @@ test('admin can list students', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.students.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/students/index')
-            ->has('students.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/students/index')
+                ->has('students.data', 3)
         );
 });
 
@@ -37,7 +38,7 @@ test('admin can filter students by search', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.students.index', ['search' => 'Carlos']))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->has('students.data', 1));
+        ->assertInertia(fn($page) => $page->has('students.data', 1));
 });
 
 test('admin can create a student', function () {

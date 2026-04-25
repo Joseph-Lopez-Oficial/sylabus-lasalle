@@ -38,8 +38,8 @@ import type { BreadcrumbItem, ProgrammingStats } from '@/types';
 
 type ProgrammingInfo = {
     id: number;
-    period: string;
     group: string | null;
+    academic_period?: { name: string };
     academic_space: { id: number; name: string; code: string };
     professor: { id: number; first_name: string; last_name: string };
     modality: { id: number; name: string };
@@ -650,7 +650,7 @@ export default function StatisticsShow({ programming, statistics }: Props) {
             <div className="flex flex-1 flex-col gap-6 p-6">
                 <PageHeader
                     title={`Estadísticas: ${programming.academic_space?.name ?? ''}`}
-                    description={`${programming.period}${programming.group ? ` · Grupo ${programming.group}` : ''} · ${programming.modality?.name ?? ''}`}
+                    description={`${programming.academic_period?.name ?? ''}${programming.group ? ` · Grupo ${programming.group}` : ''} · ${programming.modality?.name ?? ''}`}
                 >
                     <a
                         href={GradingController.downloadReport.url(programming)}

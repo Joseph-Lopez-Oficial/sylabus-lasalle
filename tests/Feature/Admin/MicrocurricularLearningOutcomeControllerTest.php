@@ -44,8 +44,9 @@ test('admin can list microcurricular outcomes', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.microcurricular-outcomes.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/microcurricular-outcomes/index')
-            ->has('outcomes.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/microcurricular-outcomes/index')
+                ->has('outcomes.data', 3)
         );
 });
 

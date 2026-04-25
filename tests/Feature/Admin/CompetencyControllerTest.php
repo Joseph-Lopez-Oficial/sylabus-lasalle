@@ -33,8 +33,9 @@ test('admin can list competencies', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.competencies.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('admin/competencies/index')
-            ->has('competencies.data', 3)
+        ->assertInertia(
+            fn($page) => $page->component('admin/competencies/index')
+                ->has('competencies.data', 3)
         );
 });
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProgrammingRequest;
 use App\Http\Requests\Admin\UpdateProgrammingRequest;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicSpace;
 use App\Models\Modality;
 use App\Models\Professor;
@@ -19,12 +20,11 @@ class ProgrammingController extends Controller
     public function index(): Response
     {
         $programmings = Programming::query()
-            ->with(['academicSpace', 'professor', 'modality'])
-            ->when(request('search'), fn ($q, $search) => $q->where('period', 'like', "%{$search}%")
-                ->orWhere('group', 'like', "%{$search}%"))
+            ->with(['academicSpace', 'professor', 'modality', 'academicPeriod'])
+            ->when(request('search'), fn ($q, $search) => $q->where('group', 'like', "%{$search}%"))
             ->when(request('professor_id'), fn ($q, $id) => $q->where('professor_id', $id))
             ->when(request('academic_space_id'), fn ($q, $id) => $q->where('academic_space_id', $id))
-            ->when(request('period'), fn ($q, $period) => $q->where('period', $period))
+            ->when(request('academic_period_id'), fn ($q, $id) => $q->where('academic_period_id', $id))
             ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
@@ -33,7 +33,8 @@ class ProgrammingController extends Controller
             'programmings' => $programmings,
             'professors' => Professor::query()->active()->orderBy('last_name')->get(['id', 'first_name', 'last_name']),
             'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'name']),
-            'filters' => request()->only('search', 'professor_id', 'academic_space_id', 'period'),
+            'academicPeriods' => AcademicPeriod::query()->orderByDesc('name')->get(['id', 'name']),
+            'filters' => request()->only('search', 'professor_id', 'academic_space_id', 'academic_period_id'),
         ]);
     }
 
@@ -43,6 +44,7 @@ class ProgrammingController extends Controller
             'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'name']),
             'professors' => Professor::query()->active()->orderBy('last_name')->get(['id', 'first_name', 'last_name']),
             'modalities' => Modality::query()->orderBy('name')->get(['id', 'name']),
+            'academicPeriods' => AcademicPeriod::query()->active()->orderByDesc('name')->get(['id', 'name']),
         ]);
     }
 
@@ -72,10 +74,11 @@ class ProgrammingController extends Controller
     public function edit(Programming $programming): Response
     {
         return Inertia::render('admin/programmings/edit', [
-            'programming' => $programming->load(['academicSpace', 'professor', 'modality']),
+            'programming' => $programming->load(['academicSpace', 'professor', 'modality', 'academicPeriod']),
             'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'name']),
             'professors' => Professor::query()->active()->orderBy('last_name')->get(['id', 'first_name', 'last_name']),
             'modalities' => Modality::query()->orderBy('name')->get(['id', 'name']),
+            'academicPeriods' => AcademicPeriod::query()->active()->orderByDesc('name')->get(['id', 'name']),
         ]);
     }
 

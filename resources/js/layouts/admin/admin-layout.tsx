@@ -93,6 +93,11 @@ const navItems = [
         group: 'Programaciones',
         items: [
             {
+                title: 'Períodos Académicos',
+                href: '/admin/academic-periods',
+                icon: Settings,
+            },
+            {
                 title: 'Programaciones',
                 href: '/admin/programmings',
                 icon: Settings,

@@ -344,7 +344,7 @@ export default function AcademicSpacesShow({ academicSpace }: Props) {
                                     <Card key={p.id}>
                                         <CardContent className="pt-4">
                                             <p className="font-medium">
-                                                {p.period}
+                                                {p.academic_period?.name ?? '—'}
                                                 {p.group
                                                     ? ` · Grupo ${p.group}`
                                                     : ''}

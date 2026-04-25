@@ -48,6 +48,18 @@ export type Modality = {
     updated_at: string;
 };
 
+export type AcademicPeriod = {
+    id: number;
+    name: string;
+    description: string | null;
+    start_date: string | null;
+    end_date: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    programmings?: Programming[];
+};
+
 export type ActivityType = {
     id: number;
     name: string;
@@ -252,7 +264,7 @@ export type Programming = {
     academic_space_id: number;
     professor_id: number;
     modality_id: number;
-    period: string;
+    academic_period_id: number;
     group: string | null;
     is_active: boolean;
     created_at: string;
@@ -260,6 +272,7 @@ export type Programming = {
     academic_space?: AcademicSpace;
     professor?: Professor;
     modality?: Modality;
+    academic_period?: AcademicPeriod;
     enrollments?: Enrollment[];
 };
 
