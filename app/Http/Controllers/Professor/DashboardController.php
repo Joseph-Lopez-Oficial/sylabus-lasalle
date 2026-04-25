@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Professor;
 
 use App\Http\Controllers\Controller;
+use App\Models\EvaluationCriterion;
 use App\Models\Grade;
+use App\Models\MicrocurricularLearningOutcome;
 use App\Models\Programming;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,14 +30,24 @@ class DashboardController extends Controller
             ->map(function (Programming $programming) {
                 $enrollmentIds = $programming->enrollments->pluck('id');
 
-                $outcomeIds = $programming->academicSpace
-                    ->microcurricularLearningOutcomes()
+                $outcomes = MicrocurricularLearningOutcome::query()
+                    ->where('academic_space_id', $programming->academic_space_id)
                     ->where('is_active', true)
-                    ->pluck('id');
+                    ->get(['id', 'type_id']);
 
-                $criterionCount = \App\Models\EvaluationCriterion::count();
-                $total = $enrollmentIds->count() * $outcomeIds->count() * $criterionCount;
+                // Total = sum of (criteria_count_for_type × enrollments) per outcome
+                $criteriaCountByType = EvaluationCriterion::whereIn(
+                    'microcurricular_learning_outcome_type_id',
+                    $outcomes->pluck('type_id')->unique()
+                )->get(['id', 'microcurricular_learning_outcome_type_id'])
+                    ->groupBy('microcurricular_learning_outcome_type_id')
+                    ->map->count();
 
+                $total = $enrollmentIds->count() * $outcomes->sum(
+                    fn($o) => $criteriaCountByType[$o->type_id] ?? 0
+                );
+
+                $outcomeIds = $outcomes->pluck('id');
                 $completed = $total > 0
                     ? Grade::whereIn('enrollment_id', $enrollmentIds)
                     ->whereIn('microcurricular_learning_outcome_id', $outcomeIds)

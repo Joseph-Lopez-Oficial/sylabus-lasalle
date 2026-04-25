@@ -76,12 +76,13 @@ test('professor can view statistics for their programming when grading is comple
     $this->actingAs($this->professorUser)
         ->get(route('professor.programmings.statistics.show', $this->programming))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('professor/statistics/show')
-            ->has('statistics')
-            ->has('statistics.byStudent')
-            ->has('statistics.byOutcome')
-            ->has('statistics.byCriterion')
-            ->has('statistics.summary')
+        ->assertInertia(
+            fn($page) => $page->component('professor/statistics/show')
+                ->has('statistics')
+                ->has('statistics.byStudent')
+                ->has('statistics.byOutcome')
+                ->has('statistics.byCriterion')
+                ->has('statistics.summary')
         );
 });
 
@@ -99,8 +100,10 @@ test('professor cannot view statistics for another professor programming', funct
 });
 
 test('statistics endpoint rejects incomplete grading', function () {
-    // Create a second criterion without a grade → grading is incomplete
-    EvaluationCriterion::factory()->create();
+    // Add a second criterion of the same type as the outcome → grading becomes incomplete
+    EvaluationCriterion::factory()->create([
+        'microcurricular_learning_outcome_type_id' => $this->outcomeType->id,
+    ]);
 
     $this->actingAs($this->professorUser)
         ->get(route('professor.programmings.statistics.show', $this->programming))

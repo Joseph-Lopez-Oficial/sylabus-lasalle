@@ -7,19 +7,16 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Migration: create_evaluation_criteria_table
  *
- * Creates the `evaluation_criteria` lookup table. Defines the dimensions
- * used to evaluate student performance. The four standard criteria are:
- *   - Saber Conocer  (Knowledge)
- *   - Saber Hacer    (Skills)
- *   - Saber Ser      (Attitude)
- *   - Saber Transferir (Transfer)
- *
- * Each grade record references one of these criteria to specify which
- * dimension of learning is being evaluated. This is a catalog table
- * seeded once and rarely modified.
+ * Creates the `evaluation_criteria` lookup table. Each criterion belongs to
+ * a microcurricular_learning_outcome_type (Conocimiento, Habilidad, Actitud).
+ * The criteria per type are:
+ *   Conocimiento: Comprensión Conceptual, Aplicación de Conocimientos, Análisis, Dominio del Vocabulario Específico
+ *   Habilidad:    Dominio del Procedimiento, Adaptabilidad, Eficacia en la Ejecución
+ *   Actitud:      Compromiso y Responsabilidad, Colaboración y Trabajo en Equipo, Respeto
  *
  * Relationships:
- *   - Has many: grades
+ *   - Belongs to: microcurricular_learning_outcome_types
+ *   - Has many:   grades
  */
 return new class extends Migration
 {
@@ -27,20 +24,28 @@ return new class extends Migration
      * Run the migrations.
      *
      * Columns:
-     * - id:          Auto-increment primary key.
-     * - name:        Criterion name (e.g., "Saber Conocer").
-     * - description: Optional explanation of what this criterion evaluates.
-     * - order:       Display order in the grading interface.
-     * - timestamps:  Laravel standard created_at / updated_at.
+     * - id:                                     Auto-increment primary key.
+     * - microcurricular_learning_outcome_type_id: FK to the outcome type this criterion belongs to.
+     * - name:                                   Criterion name (unique per type).
+     * - description:                            Optional explanation.
+     * - order:                                  Display order within the type.
+     * - timestamps:                             Laravel standard created_at / updated_at.
      */
     public function up(): void
     {
         Schema::create('evaluation_criteria', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->unsignedBigInteger('microcurricular_learning_outcome_type_id');
+            $table->foreign('microcurricular_learning_outcome_type_id', 'ec_outcome_type_fk')
+                ->references('id')
+                ->on('microcurricular_learning_outcome_types')
+                ->cascadeOnDelete();
+            $table->string('name');
             $table->text('description')->nullable();
             $table->unsignedTinyInteger('order')->default(1);
             $table->timestamps();
+
+            $table->unique(['microcurricular_learning_outcome_type_id', 'name'], 'ec_type_name_unique');
         });
     }
 

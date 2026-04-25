@@ -18,10 +18,10 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         User::firstOrCreate(
-            ['email' => 'admin@lasalle.edu.co'],
+            ['email' => 'admin@unisalle.edu.co'],
             [
                 'name' => 'Administrador',
-                'password' => Hash::make('Admin@LaSalle2026'),
+                'password' => Hash::make('Lasalle.123'),
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ],

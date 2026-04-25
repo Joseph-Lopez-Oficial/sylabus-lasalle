@@ -82,7 +82,7 @@ test('professor can download grading template', function () {
         ->get(route('professor.programmings.grading.template', $this->programming))
         ->assertOk();
 
-    $expectedFile = 'plantilla_calificaciones_'.$this->programming->id.'_'.now()->format('Ymd').'.xlsx';
+    $expectedFile = 'plantilla_calificaciones_' . $this->programming->id . '_' . now()->format('Ymd') . '.xlsx';
     Excel::assertDownloaded($expectedFile);
 });
 
@@ -165,12 +165,15 @@ test('professor can download statistics report when grading is complete', functi
         ->get(route('professor.programmings.grading.report', $this->programming))
         ->assertOk();
 
-    $expectedFile = 'reporte_calificaciones_'.$this->programming->id.'_'.now()->format('Ymd').'.xlsx';
+    $expectedFile = 'reporte_calificaciones_' . $this->programming->id . '_' . now()->format('Ymd') . '.xlsx';
     Excel::assertDownloaded($expectedFile);
 });
 
 test('report download is rejected when grading is incomplete', function () {
-    EvaluationCriterion::factory()->create();
+    // Add a second criterion of the same type → grading becomes incomplete
+    EvaluationCriterion::factory()->create([
+        'microcurricular_learning_outcome_type_id' => $this->outcomeType->id,
+    ]);
 
     $this->actingAs($this->professorUser)
         ->get(route('professor.programmings.grading.report', $this->programming))

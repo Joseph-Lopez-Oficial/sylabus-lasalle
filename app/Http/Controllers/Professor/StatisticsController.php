@@ -28,14 +28,14 @@ class StatisticsController extends Controller
             abort(HttpResponse::HTTP_UNPROCESSABLE_ENTITY, 'Las calificaciones de esta programación no están completas. Complete todas las calificaciones antes de consultar las estadísticas.');
         }
 
-        $programming->load(['academicSpace', 'professor', 'modality']);
+        $programming->load(['academicSpace', 'professor', 'modality', 'academicPeriod']);
         $statistics = $this->statisticsService->calculate($programming);
 
         return Inertia::render('professor/statistics/show', [
             'programming' => [
                 'id' => $programming->id,
-                'period' => $programming->period,
                 'group' => $programming->group,
+                'academic_period' => $programming->academicPeriod ? ['name' => $programming->academicPeriod->name] : null,
                 'academic_space' => $programming->academicSpace ? [
                     'id' => $programming->academicSpace->id,
                     'name' => $programming->academicSpace->name,

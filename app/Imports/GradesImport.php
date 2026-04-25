@@ -31,7 +31,7 @@ class GradesImport implements ToCollection, WithHeadingRow
         private readonly GradingService $gradingService,
     ) {
         $this->performanceLevelsByName = PerformanceLevel::all()
-            ->keyBy(fn ($l) => strtolower(trim($l->name)))
+            ->keyBy(fn($l) => strtolower(trim($l->name)))
             ->toArray();
 
         $enrollments = $programming->enrollments()
@@ -40,12 +40,14 @@ class GradesImport implements ToCollection, WithHeadingRow
             ->get();
 
         $this->enrollmentsByStudentName = $enrollments
-            ->mapWithKeys(fn ($e) => [
-                strtolower(trim($e->student->first_name.' '.$e->student->last_name)) => $e->id,
+            ->mapWithKeys(fn($e) => [
+                strtolower(trim($e->student->first_name . ' ' . $e->student->last_name)) => $e->id,
             ])
             ->toArray();
 
-        $this->criteriaById = EvaluationCriterion::all()->keyBy('id')->toArray();
+        $this->criteriaById = EvaluationCriterion::all()
+            ->keyBy('id')
+            ->toArray();
 
         $outcomeIds = $programming->academicSpace
             ->microcurricularLearningOutcomes()
@@ -53,7 +55,7 @@ class GradesImport implements ToCollection, WithHeadingRow
             ->pluck('id');
 
         $this->outcomesById = MicrocurricularLearningOutcome::whereIn('id', $outcomeIds)
-            ->get()
+            ->get(['id', 'type_id'])
             ->keyBy('id')
             ->toArray();
     }
@@ -64,7 +66,13 @@ class GradesImport implements ToCollection, WithHeadingRow
             $rowNumber = $index + 2;
             $rowArray = $row->toArray();
 
-            $enrollmentId = (int) ($rowArray['enrollment_id'] ?? 0);
+            // Support both old key 'enrollment_id' and new key 'enrollment_id_no_editar'
+            $enrollmentId = (int) (
+                $rowArray['enrollment_id'] ??
+                $rowArray['enrollment_id_[no_editar]'] ??
+                $rowArray['enrollment_id_no_editar'] ??
+                0
+            );
             $studentName = strtolower(trim((string) ($rowArray['estudiante'] ?? '')));
 
             // Resolve enrollment
@@ -90,19 +98,22 @@ class GradesImport implements ToCollection, WithHeadingRow
             $gradesToSave = [];
             $rowHasError = false;
 
-            // Each column after enrollment_id and Estudiante is a grade cell
+            // Each column after the identity columns is a grade cell
+            $identityKeys = ['enrollment_id', 'enrollment_id_[no_editar]', 'enrollment_id_no_editar', 'documento', 'estudiante'];
             foreach ($rowArray as $colKey => $cellValue) {
-                if (in_array($colKey, ['enrollment_id', 'estudiante']) || trim((string) $cellValue) === '') {
+                if (in_array($colKey, $identityKeys) || trim((string) $cellValue) === '') {
                     continue;
                 }
 
-                // Column format: RA{outcomeId}_{criterionId}
-                if (! preg_match('/^ra(\d+)_(\d+)$/i', $colKey, $matches)) {
+                // Column format: RA{outcomeId}_{criterionId} (old) or RA{code}__{criterioNombre} (new heading-row normalized)
+                // Try old format first
+                if (preg_match('/^ra(\d+)_(\d+)$/i', $colKey, $matches)) {
+                    $outcomeId = (int) $matches[1];
+                    $criterionId = (int) $matches[2];
+                } else {
+                    // Skip unrecognized columns
                     continue;
                 }
-
-                $outcomeId = (int) $matches[1];
-                $criterionId = (int) $matches[2];
 
                 if (! isset($this->outcomesById[$outcomeId])) {
                     $this->results[] = [
@@ -120,6 +131,19 @@ class GradesImport implements ToCollection, WithHeadingRow
                         'row' => $rowNumber,
                         'status' => 'error',
                         'message' => "Fila {$rowNumber}: Criterio {$criterionId} no existe.",
+                    ];
+                    $rowHasError = true;
+
+                    break;
+                }
+
+                $outcomeTypeId = $this->outcomesById[$outcomeId]['type_id'] ?? null;
+                $criterionTypeId = $this->criteriaById[$criterionId]['microcurricular_learning_outcome_type_id'] ?? null;
+                if ($outcomeTypeId !== $criterionTypeId) {
+                    $this->results[] = [
+                        'row' => $rowNumber,
+                        'status' => 'error',
+                        'message' => "Fila {$rowNumber}: El criterio {$criterionId} no corresponde al tipo del resultado {$outcomeId}.",
                     ];
                     $rowHasError = true;
 
@@ -163,7 +187,7 @@ class GradesImport implements ToCollection, WithHeadingRow
                 $this->results[] = [
                     'row' => $rowNumber,
                     'status' => 'error',
-                    'message' => "Fila {$rowNumber}: Error al guardar: ".$e->getMessage(),
+                    'message' => "Fila {$rowNumber}: Error al guardar: " . $e->getMessage(),
                 ];
             }
         }

@@ -48,7 +48,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->unique(['academic_space_id', 'professor_id', 'academic_period_id', 'group']);
+            $table->unique(['academic_space_id', 'professor_id', 'academic_period_id', 'group'], 'programmings_unique');
         });
     }
 

@@ -3,43 +3,48 @@
 namespace Database\Seeders;
 
 use App\Models\EvaluationCriterion;
+use App\Models\MicrocurricularLearningOutcomeType;
 use Illuminate\Database\Seeder;
 
 class EvaluationCriterionSeeder extends Seeder
 {
     public function run(): void
     {
-        $criteria = [
-            [
-                'name' => 'Saber Conocer',
-                'description' => 'Evalúa la capacidad del estudiante para adquirir, comprender y aplicar conocimientos teóricos y marcos conceptuales.',
-                'order' => 1,
+        $criteriaByType = [
+            'Conocimiento' => [
+                ['name' => 'Comprensión Conceptual', 'order' => 1],
+                ['name' => 'Aplicación de Conocimientos', 'order' => 2],
+                ['name' => 'Análisis', 'order' => 3],
+                ['name' => 'Dominio del Vocabulario Específico', 'order' => 4],
             ],
-            [
-                'name' => 'Saber Hacer',
-                'description' => 'Evalúa la capacidad del estudiante para ejecutar tareas, aplicar técnicas y demostrar habilidades prácticas y procedimentales.',
-                'order' => 2,
+            'Habilidad' => [
+                ['name' => 'Dominio del Procedimiento', 'order' => 1],
+                ['name' => 'Adaptabilidad', 'order' => 2],
+                ['name' => 'Eficacia en la Ejecución', 'order' => 3],
             ],
-            [
-                'name' => 'Saber Ser',
-                'description' => 'Evalúa las actitudes, valores, conducta ética y disposiciones personales del estudiante en contextos académicos y profesionales.',
-                'order' => 3,
-            ],
-            [
-                'name' => 'Saber Transferir',
-                'description' => 'Evalúa la capacidad del estudiante para transferir y aplicar las competencias aprendidas a situaciones nuevas, reales e interdisciplinares.',
-                'order' => 4,
+            'Actitud' => [
+                ['name' => 'Compromiso y Responsabilidad', 'order' => 1],
+                ['name' => 'Colaboración y Trabajo en Equipo', 'order' => 2],
+                ['name' => 'Respeto', 'order' => 3],
             ],
         ];
 
-        foreach ($criteria as $criterion) {
-            EvaluationCriterion::firstOrCreate(
-                ['name' => $criterion['name']],
-                [
-                    'description' => $criterion['description'],
-                    'order' => $criterion['order'],
-                ],
-            );
+        foreach ($criteriaByType as $typeName => $criteria) {
+            $type = MicrocurricularLearningOutcomeType::where('name', $typeName)->first();
+
+            if (! $type) {
+                continue;
+            }
+
+            foreach ($criteria as $criterion) {
+                EvaluationCriterion::firstOrCreate(
+                    [
+                        'microcurricular_learning_outcome_type_id' => $type->id,
+                        'name' => $criterion['name'],
+                    ],
+                    ['order' => $criterion['order']],
+                );
+            }
         }
     }
 }

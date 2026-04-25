@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\MicrocurricularLearningOutcomeType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,6 +18,7 @@ class EvaluationCriterionFactory extends Factory
     public function definition(): array
     {
         return [
+            'microcurricular_learning_outcome_type_id' => MicrocurricularLearningOutcomeType::factory(),
             'name' => fake()->unique()->word(),
             'description' => fake()->sentence(),
             'order' => fake()->numberBetween(1, 10),

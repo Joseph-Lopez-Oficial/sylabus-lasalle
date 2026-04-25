@@ -20,4 +20,12 @@ class MicrocurricularLearningOutcomeType extends Model
     {
         return $this->hasMany(MicrocurricularLearningOutcome::class, 'type_id');
     }
+
+    /**
+     * @return HasMany<\App\Models\EvaluationCriterion, $this>
+     */
+    public function evaluationCriteria(): HasMany
+    {
+        return $this->hasMany(EvaluationCriterion::class, 'microcurricular_learning_outcome_type_id');
+    }
 }

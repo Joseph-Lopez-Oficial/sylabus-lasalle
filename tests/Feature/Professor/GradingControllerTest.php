@@ -39,9 +39,11 @@ beforeEach(function () {
         'is_active' => true,
     ]);
 
-    $this->criterion = EvaluationCriterion::factory()->create();
     $this->performanceLevel = PerformanceLevel::factory()->create();
     $this->outcomeType = MicrocurricularLearningOutcomeType::factory()->create();
+    $this->criterion = EvaluationCriterion::factory()->create([
+        'microcurricular_learning_outcome_type_id' => $this->outcomeType->id,
+    ]);
     $this->outcome = MicrocurricularLearningOutcome::factory()->create([
         'academic_space_id' => $this->academicSpace->id,
         'type_id' => $this->outcomeType->id,
@@ -57,14 +59,15 @@ test('professor can view grading page for their programming', function () {
     $this->actingAs($this->professorUser)
         ->get(route('professor.programmings.grading.show', $this->programming))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('professor/grading/show')
-            ->has('programming')
-            ->has('enrollments')
-            ->has('criteria')
-            ->has('performanceLevels')
-            ->has('outcomesByType')
-            ->has('existingGrades')
-            ->has('completeness')
+        ->assertInertia(
+            fn($page) => $page->component('professor/grading/show')
+                ->has('programming')
+                ->has('enrollments')
+                ->has('criteriaByTypeId')
+                ->has('performanceLevels')
+                ->has('outcomesByType')
+                ->has('existingGrades')
+                ->has('completeness')
         );
 });
 
@@ -166,7 +169,7 @@ test('confirm consolidation returns error when grades are incomplete', function 
     $this->actingAs($this->professorUser)
         ->postJson(route('professor.programmings.grading.confirm', $this->programming))
         ->assertUnprocessable()
-        ->assertJsonPath('message', fn ($msg) => str_contains($msg, 'pendientes'));
+        ->assertJsonPath('message', fn($msg) => str_contains($msg, 'pendientes'));
 });
 
 test('confirm consolidation succeeds when all grades are complete', function () {

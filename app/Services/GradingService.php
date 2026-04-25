@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\EvaluationCriterion;
 use App\Models\Grade;
+use App\Models\MicrocurricularLearningOutcome;
 use App\Models\Programming;
 use Illuminate\Support\Facades\DB;
 
@@ -55,43 +57,59 @@ class GradingService
             ->where('is_active', true)
             ->pluck('id');
 
-        $outcomeIds = $programming->academicSpace
-            ->microcurricularLearningOutcomes()
+        $outcomes = MicrocurricularLearningOutcome::query()
+            ->where('academic_space_id', $programming->academic_space_id)
             ->where('is_active', true)
-            ->pluck('id');
+            ->get(['id', 'type_id']);
 
-        $criterionIds = \App\Models\EvaluationCriterion::orderBy('order')->pluck('id');
-
-        $total = $enrollmentIds->count() * $outcomeIds->count() * $criterionIds->count();
-
-        if ($total === 0) {
+        if ($enrollmentIds->isEmpty() || $outcomes->isEmpty()) {
             return ['percentage' => 100.0, 'total' => 0, 'completed' => 0, 'pending' => []];
         }
 
+        // Build map of type_id => [criterion_ids]
+        $criteriaByType = EvaluationCriterion::whereIn(
+            'microcurricular_learning_outcome_type_id',
+            $outcomes->pluck('type_id')->unique()
+        )->orderBy('order')->get(['id', 'microcurricular_learning_outcome_type_id']);
+
+        $criterionsByType = $criteriaByType->groupBy('microcurricular_learning_outcome_type_id')
+            ->map(fn($items) => $items->pluck('id'));
+
+        // Compute all required combinations
+        $allCriterionIds = $criteriaByType->pluck('id');
+        $outcomeIds = $outcomes->pluck('id');
+
         $existingGrades = Grade::whereIn('enrollment_id', $enrollmentIds)
             ->whereIn('microcurricular_learning_outcome_id', $outcomeIds)
-            ->whereIn('evaluation_criterion_id', $criterionIds)
+            ->whereIn('evaluation_criterion_id', $allCriterionIds)
             ->get(['enrollment_id', 'microcurricular_learning_outcome_id', 'evaluation_criterion_id']);
 
         $existingSet = $existingGrades->map(
-            fn ($g) => "{$g->enrollment_id}-{$g->microcurricular_learning_outcome_id}-{$g->evaluation_criterion_id}"
+            fn($g) => "{$g->enrollment_id}-{$g->microcurricular_learning_outcome_id}-{$g->evaluation_criterion_id}"
         )->flip();
 
         $pending = [];
+        $total = 0;
 
         foreach ($enrollmentIds as $enrollmentId) {
-            foreach ($outcomeIds as $outcomeId) {
-                foreach ($criterionIds as $criterionId) {
-                    $key = "{$enrollmentId}-{$outcomeId}-{$criterionId}";
+            foreach ($outcomes as $outcome) {
+                $typeCriterionIds = $criterionsByType[$outcome->type_id] ?? collect();
+                foreach ($typeCriterionIds as $criterionId) {
+                    $total++;
+                    $key = "{$enrollmentId}-{$outcome->id}-{$criterionId}";
                     if (! $existingSet->has($key)) {
                         $pending[] = [
                             'enrollment_id' => $enrollmentId,
-                            'microcurricular_learning_outcome_id' => $outcomeId,
+                            'microcurricular_learning_outcome_id' => $outcome->id,
                             'evaluation_criterion_id' => $criterionId,
                         ];
                     }
                 }
             }
+        }
+
+        if ($total === 0) {
+            return ['percentage' => 100.0, 'total' => 0, 'completed' => 0, 'pending' => []];
         }
 
         $completed = $total - count($pending);

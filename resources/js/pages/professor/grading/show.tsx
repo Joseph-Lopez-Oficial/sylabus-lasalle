@@ -96,12 +96,25 @@ type Props = {
     academicSpace: { id: number; name: string; code: string };
     outcomesByType: TypeGroup[];
     enrollments: Enrollment[];
-    criteria: EvaluationCriterion[];
+    criteriaByTypeId: Record<number, EvaluationCriterion[]>;
     performanceLevels: PerformanceLevel[];
     existingGrades: ExistingGrade[];
     completeness: Completeness;
     enrollment_import_results?: ImportResult[];
 };
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const ORDER_TO_GRADE: Record<number, number> = {
+    1: 1.3,
+    2: 2.5,
+    3: 3.8,
+    4: 5.0,
+};
+
+function orderToGrade(order: number): number {
+    return ORDER_TO_GRADE[Math.round(order)] ?? order;
+}
 
 // ── Grade key helper ──────────────────────────────────────────────────────────
 
@@ -129,6 +142,7 @@ type GradingTableProps = {
         levelId: number,
     ) => void;
     onSave: (outcomeId: number) => void;
+    onDiscard: (outcomeId: number) => void;
     saving: boolean;
 };
 
@@ -141,6 +155,7 @@ function GradingTable({
     savedGrades,
     onGradeChange,
     onSave,
+    onDiscard,
     saving,
 }: GradingTableProps) {
     const levelOrderMap = useMemo(
@@ -180,26 +195,39 @@ function GradingTable({
                                 </th>
                             ))}
                             <th className="px-3 py-2 text-center font-medium text-muted-foreground">
-                                Total
+                                Nota
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         {enrollments.map((enrollment) => {
-                            const total = criteria.reduce((sum, c) => {
+                            // Promedio real de las notas de cada criterio para este outcome
+                            const filledCriteria = criteria.filter((c) => {
                                 const key = gradeKey(
                                     enrollment.id,
                                     outcome.id,
                                     c.id,
                                 );
-                                const levelId = localGrades[key];
-                                return (
-                                    sum +
-                                    (levelId
-                                        ? (levelOrderMap[levelId] ?? 0)
-                                        : 0)
-                                );
-                            }, 0);
+                                return !!localGrades[key];
+                            });
+                            const avgGrade =
+                                filledCriteria.length > 0
+                                    ? filledCriteria.reduce((sum, c) => {
+                                          const key = gradeKey(
+                                              enrollment.id,
+                                              outcome.id,
+                                              c.id,
+                                          );
+                                          const levelId = localGrades[key];
+                                          return (
+                                              sum +
+                                              orderToGrade(
+                                                  levelOrderMap[levelId] ?? 0,
+                                              )
+                                          );
+                                      }, 0) / filledCriteria.length
+                                    : null;
+                            const total = avgGrade;
 
                             return (
                                 <tr key={enrollment.id} className="border-t">
@@ -282,9 +310,11 @@ function GradingTable({
                                     })}
                                     <td className="px-3 py-2 text-center">
                                         <span
-                                            className={`font-semibold ${total > 0 ? 'text-foreground' : 'text-muted-foreground'}`}
+                                            className={`font-semibold ${total !== null ? 'text-foreground' : 'text-muted-foreground'}`}
                                         >
-                                            {total > 0 ? total : '—'}
+                                            {total !== null
+                                                ? total.toFixed(2)
+                                                : '—'}
                                         </span>
                                     </td>
                                 </tr>
@@ -309,25 +339,46 @@ function GradingTable({
                         Sin calificar
                     </span>
                 </div>
-                <Button
-                    size="sm"
-                    onClick={() => onSave(outcome.id)}
-                    disabled={
-                        !isOutcomeComplete || saving || !hasUnsavedChanges
-                    }
-                    className="gap-2"
-                >
-                    {saving ? (
-                        <span className="animate-spin">⟳</span>
-                    ) : (
-                        <Save className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                    {hasUnsavedChanges && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onDiscard(outcome.id)}
+                            disabled={saving}
+                        >
+                            Descartar cambios
+                        </Button>
                     )}
-                    {saving
-                        ? 'Guardando...'
-                        : isOutcomeComplete && !hasUnsavedChanges
-                          ? 'Guardado ✓'
-                          : 'Guardar resultado'}
-                </Button>
+                    {!hasUnsavedChanges && isOutcomeComplete && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onDiscard(outcome.id)}
+                        >
+                            Limpiar
+                        </Button>
+                    )}
+                    <Button
+                        size="sm"
+                        onClick={() => onSave(outcome.id)}
+                        disabled={
+                            !isOutcomeComplete || saving || !hasUnsavedChanges
+                        }
+                        className="gap-2"
+                    >
+                        {saving ? (
+                            <span className="animate-spin">⟳</span>
+                        ) : (
+                            <Save className="h-4 w-4" />
+                        )}
+                        {saving
+                            ? 'Guardando...'
+                            : isOutcomeComplete && !hasUnsavedChanges
+                              ? 'Guardado ✓'
+                              : 'Guardar resultado'}
+                    </Button>
+                </div>
             </div>
 
             {!isOutcomeComplete && (
@@ -347,7 +398,7 @@ export default function GradingShow({
     academicSpace,
     outcomesByType,
     enrollments,
-    criteria,
+    criteriaByTypeId,
     performanceLevels,
     existingGrades,
     completeness: initialCompleteness,
@@ -399,14 +450,6 @@ export default function GradingShow({
     const fileRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const allOutcomeIds = useMemo(
-        () =>
-            outcomesByType.flatMap((t) =>
-                t.microcurricular_learning_outcomes.map((o) => o.id),
-            ),
-        [outcomesByType],
-    );
-
     // Check if there are unsaved changes before navigation
     const hasUnsavedChanges = useMemo(() => {
         return Object.keys(localGrades).some(
@@ -436,9 +479,41 @@ export default function GradingShow({
         setLocalGrades((prev) => ({ ...prev, [key]: levelId }));
     }
 
+    function handleDiscardOutcome(outcomeId: number) {
+        const criteriaForOutcome = outcomesByType
+            .flatMap((t) => t.microcurricular_learning_outcomes)
+            .find((o) => o.id === outcomeId);
+        const criteriaList = criteriaForOutcome
+            ? (criteriaByTypeId[criteriaForOutcome.type_id] ?? [])
+            : [];
+
+        setLocalGrades((prev) => {
+            const next = { ...prev };
+            enrollments.forEach((e) => {
+                criteriaList.forEach((c) => {
+                    const key = gradeKey(e.id, outcomeId, c.id);
+                    // Revert to saved value, or delete if no saved value
+                    if (savedGrades[key] !== undefined) {
+                        next[key] = savedGrades[key];
+                    } else {
+                        delete next[key];
+                    }
+                });
+            });
+            return next;
+        });
+    }
+
     function handleSaveOutcome(outcomeId: number) {
+        const outcome = outcomesByType
+            .flatMap((t) => t.microcurricular_learning_outcomes)
+            .find((o) => o.id === outcomeId);
+        const criteriaForOutcome = outcome
+            ? (criteriaByTypeId[outcome.type_id] ?? [])
+            : [];
+
         const gradesToSave = enrollments.flatMap((enrollment) =>
-            criteria.map((criterion) => {
+            criteriaForOutcome.map((criterion) => {
                 const key = gradeKey(enrollment.id, outcomeId, criterion.id);
                 return {
                     enrollment_id: enrollment.id,
@@ -469,7 +544,14 @@ export default function GradingShow({
                 setSavedGrades(newSaved);
 
                 const totalCells =
-                    enrollments.length * allOutcomeIds.length * criteria.length;
+                    outcomesByType
+                        .flatMap((t) => t.microcurricular_learning_outcomes)
+                        .reduce(
+                            (sum, o) =>
+                                sum +
+                                (criteriaByTypeId[o.type_id]?.length ?? 0),
+                            0,
+                        ) * enrollments.length;
                 const completedCells = Object.keys(newSaved).length;
                 const pct =
                     totalCells > 0
@@ -551,17 +633,24 @@ export default function GradingShow({
     const isFullyComplete = completeness.percentage >= 100;
 
     const savedOutcomeIds = useMemo(() => {
-        return new Set(
-            allOutcomeIds.filter((outcomeId) =>
-                enrollments.every((e) =>
-                    criteria.every((c) => {
-                        const key = gradeKey(e.id, outcomeId, c.id);
-                        return savedGrades[key] !== undefined;
-                    }),
-                ),
-            ),
+        const allOutcomes = outcomesByType.flatMap(
+            (t) => t.microcurricular_learning_outcomes,
         );
-    }, [savedGrades, allOutcomeIds, enrollments, criteria]);
+        return new Set(
+            allOutcomes
+                .filter((outcome) => {
+                    const criteriaForType =
+                        criteriaByTypeId[outcome.type_id] ?? [];
+                    return enrollments.every((e) =>
+                        criteriaForType.every((c) => {
+                            const key = gradeKey(e.id, outcome.id, c.id);
+                            return savedGrades[key] !== undefined;
+                        }),
+                    );
+                })
+                .map((o) => o.id),
+        );
+    }, [savedGrades, outcomesByType, enrollments, criteriaByTypeId]);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/professor/dashboard' },
@@ -1093,7 +1182,12 @@ export default function GradingShow({
                                                             enrollments={
                                                                 enrollments
                                                             }
-                                                            criteria={criteria}
+                                                            criteria={
+                                                                criteriaByTypeId[
+                                                                    outcome
+                                                                        .type_id
+                                                                ] ?? []
+                                                            }
                                                             performanceLevels={
                                                                 performanceLevels
                                                             }
@@ -1108,6 +1202,9 @@ export default function GradingShow({
                                                             }
                                                             onSave={
                                                                 handleSaveOutcome
+                                                            }
+                                                            onDiscard={
+                                                                handleDiscardOutcome
                                                             }
                                                             saving={
                                                                 savingOutcome ===

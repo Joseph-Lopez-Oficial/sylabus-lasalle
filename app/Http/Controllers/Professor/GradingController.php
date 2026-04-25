@@ -50,7 +50,7 @@ class GradingController extends Controller
                     ->orderBy('id');
             }])
             ->get()
-            ->filter(fn ($type) => $type->microcurricularLearningOutcomes->isNotEmpty())
+            ->filter(fn($type) => $type->microcurricularLearningOutcomes->isNotEmpty())
             ->values();
 
         $enrollments = $programming->enrollments()
@@ -59,7 +59,7 @@ class GradingController extends Controller
             ->get(['id', 'student_id']);
 
         $outcomeIds = $outcomesByType->flatMap(
-            fn ($type) => $type->microcurricularLearningOutcomes->pluck('id')
+            fn($type) => $type->microcurricularLearningOutcomes->pluck('id')
         );
 
         $enrollmentIds = $enrollments->pluck('id');
@@ -70,12 +70,17 @@ class GradingController extends Controller
 
         $completeness = $this->gradingService->completeness($programming);
 
+        $criteriaByTypeId = EvaluationCriterion::orderBy('order')
+            ->get(['id', 'microcurricular_learning_outcome_type_id', 'name', 'order'])
+            ->groupBy('microcurricular_learning_outcome_type_id')
+            ->map(fn($items) => $items->values());
+
         return Inertia::render('professor/grading/show', [
-            'programming' => $programming->only(['id', 'period', 'group']),
+            'programming' => $programming->only(['id', 'group']),
             'academicSpace' => $academicSpace->only(['id', 'name', 'code']),
             'outcomesByType' => $outcomesByType,
             'enrollments' => $enrollments,
-            'criteria' => EvaluationCriterion::orderBy('order')->get(['id', 'name', 'order']),
+            'criteriaByTypeId' => $criteriaByTypeId,
             'performanceLevels' => PerformanceLevel::orderBy('order')->get(['id', 'name', 'order']),
             'existingGrades' => $existingGrades,
             'completeness' => $completeness,
@@ -117,8 +122,10 @@ class GradingController extends Controller
 
         $academicSpace = $programming->academicSpace;
 
+        $programming->load('academicPeriod');
+
         return Inertia::render('professor/grading/import', [
-            'programming' => $programming->only(['id', 'period', 'group']),
+            'programming' => array_merge($programming->only(['id', 'group']), ['academic_period' => $programming->academicPeriod?->only(['name'])]),
             'academicSpace' => $academicSpace->only(['id', 'name', 'code']),
         ]);
     }
@@ -127,7 +134,7 @@ class GradingController extends Controller
     {
         $this->authorizeOwnership($request, $programming);
 
-        $fileName = 'plantilla_calificaciones_'.$programming->id.'_'.now()->format('Ymd').'.xlsx';
+        $fileName = 'plantilla_calificaciones_' . $programming->id . '_' . now()->format('Ymd') . '.xlsx';
 
         return Excel::download(new GradingTemplateExport($programming), $fileName);
     }
@@ -142,9 +149,9 @@ class GradingController extends Controller
         Excel::import($import, $file);
 
         $results = $import->results;
-        $successCount = count(array_filter($results, fn ($r) => $r['status'] === 'success'));
-        $errorCount = count(array_filter($results, fn ($r) => $r['status'] === 'error'));
-        $errors = array_values(array_filter($results, fn ($r) => $r['status'] === 'error'));
+        $successCount = count(array_filter($results, fn($r) => $r['status'] === 'success'));
+        $errorCount = count(array_filter($results, fn($r) => $r['status'] === 'error'));
+        $errors = array_values(array_filter($results, fn($r) => $r['status'] === 'error'));
 
         ImportLog::create([
             'imported_by' => $request->user()->id,
@@ -174,7 +181,7 @@ class GradingController extends Controller
             abort(HttpResponse::HTTP_UNPROCESSABLE_ENTITY, 'Las calificaciones deben estar completas para exportar el reporte.');
         }
 
-        $fileName = 'reporte_calificaciones_'.$programming->id.'_'.now()->format('Ymd').'.xlsx';
+        $fileName = 'reporte_calificaciones_' . $programming->id . '_' . now()->format('Ymd') . '.xlsx';
 
         return Excel::download(
             new StatisticsReportExport($programming, $this->statisticsService),
@@ -186,7 +193,7 @@ class GradingController extends Controller
     {
         $this->authorizeOwnership($request, $programming);
 
-        $q = trim($request->get('q', ''));
+        $q = trim((string) $request->query('q', ''));
 
         if (strlen($q) < 2) {
             return response()->json([]);
@@ -197,10 +204,11 @@ class GradingController extends Controller
         $students = Student::query()
             ->where('is_active', true)
             ->whereNotIn('id', $enrolledIds)
-            ->where(fn ($query) => $query
-                ->where('document_number', 'like', "%{$q}%")
-                ->orWhere('first_name', 'like', "%{$q}%")
-                ->orWhere('last_name', 'like', "%{$q}%")
+            ->where(
+                fn($query) => $query
+                    ->where('document_number', 'like', "%{$q}%")
+                    ->orWhere('first_name', 'like', "%{$q}%")
+                    ->orWhere('last_name', 'like', "%{$q}%")
             )
             ->select(['id', 'document_number', 'first_name', 'last_name'])
             ->limit(8)
@@ -247,7 +255,7 @@ class GradingController extends Controller
     {
         $this->authorizeOwnership($request, $programming);
 
-        $fileName = 'plantilla_inscripciones_'.$programming->id.'.xlsx';
+        $fileName = 'plantilla_inscripciones_' . $programming->id . '.xlsx';
 
         return Excel::download(new ProfessorEnrollmentTemplateExport, $fileName);
     }
@@ -259,10 +267,10 @@ class GradingController extends Controller
         $import = new ProfessorEnrollmentsImport($programming);
         Excel::import($import, $request->file('file'));
 
-        $created = count(array_filter($import->results, fn ($r) => $r['status'] === 'created'));
-        $enrolled = count(array_filter($import->results, fn ($r) => $r['status'] === 'enrolled'));
-        $skipped = count(array_filter($import->results, fn ($r) => $r['status'] === 'skipped'));
-        $errors = count(array_filter($import->results, fn ($r) => $r['status'] === 'error'));
+        $created = count(array_filter($import->results, fn($r) => $r['status'] === 'created'));
+        $enrolled = count(array_filter($import->results, fn($r) => $r['status'] === 'enrolled'));
+        $skipped = count(array_filter($import->results, fn($r) => $r['status'] === 'skipped'));
+        $errors = count(array_filter($import->results, fn($r) => $r['status'] === 'error'));
 
         return back()->with([
             'success' => "Importación completada: {$created} creados e inscritos, {$enrolled} inscritos, {$skipped} ya existían, {$errors} errores.",

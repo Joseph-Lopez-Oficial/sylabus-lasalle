@@ -24,6 +24,7 @@ export type PaginatedResponse<T> = {
 
 export type EvaluationCriterion = {
     id: number;
+    microcurricular_learning_outcome_type_id: number;
     name: string;
     description: string | null;
     order: number;
@@ -323,37 +324,70 @@ export type ImportLog = {
 
 // ── Statistics ────────────────────────────────────────────────────────────────
 
+export type StudentOutcomeGrade = {
+    outcome_id: number;
+    outcome_code: string | null;
+    outcome_desc: string;
+    type_id: number;
+    type_name: string | null;
+    grade: number;
+    by_criterion: {
+        criterion_id: number;
+        criterion_name: string;
+        grade: number;
+        level_name: string;
+    }[];
+};
+
 export type StudentStats = {
     enrollment_id: number;
     student_id: number;
     student_name: string;
     final_average: number;
-    totals_by_outcome: number[];
-    by_criterion: {
-        criterion_id: number;
-        criterion_name: string;
-        average: number;
-    }[];
+    by_outcome: StudentOutcomeGrade[];
+};
+
+export type LevelDistribution = {
+    level_id: number;
+    level_name: string;
+    count: number;
+    student_count: number;
+    percentage: number;
+    student_percentage: number;
 };
 
 export type OutcomeStats = {
     outcome_id: number;
     outcome_desc: string;
+    outcome_code: string | null;
+    type_id: number;
+    type_name: string | null;
     group_average: number;
     highest: number;
     lowest: number;
-    distribution: {
-        level_id: number;
+    distribution: LevelDistribution[];
+    grades_by_student: number[];
+};
+
+export type CriterionOutcome = {
+    outcome_id: number;
+    outcome_code: string | null;
+    outcome_desc: string;
+    group_average: number;
+    students: {
+        student_name: string;
+        grade: number;
         level_name: string;
-        count: number;
-        percentage: number;
     }[];
 };
 
 export type CriterionStats = {
     criterion_id: number;
     criterion_name: string;
+    type_id: number;
+    type_name: string | null;
     group_average: number;
+    by_outcome: CriterionOutcome[];
 };
 
 export type ProgrammingStats = {
@@ -362,12 +396,7 @@ export type ProgrammingStats = {
     byCriterion: CriterionStats[];
     summary: {
         overall_average: number;
-        distribution: {
-            level_id: number;
-            level_name: string;
-            count: number;
-            percentage: number;
-        }[];
+        distribution: LevelDistribution[];
         top_students: StudentStats[];
         below_basic: StudentStats[];
     };

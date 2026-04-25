@@ -1,17 +1,18 @@
 import { Head } from '@inertiajs/react';
+import {
+    AlertTriangle,
+    ChevronDown,
+    ChevronUp,
+    CheckCircle2,
+    Trophy,
+    Zap,
+} from 'lucide-react';
 import { useState } from 'react';
 import {
     Bar,
     BarChart,
     CartesianGrid,
     Cell,
-    Pie,
-    PieChart,
-    PolarAngleAxis,
-    PolarGrid,
-    PolarRadiusAxis,
-    Radar,
-    RadarChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -21,6 +22,7 @@ import * as GradingController from '@/actions/App/Http/Controllers/Professor/Gra
 import * as StatisticsController from '@/actions/App/Http/Controllers/Professor/StatisticsController';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Select,
@@ -32,7 +34,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProfessorLayout from '@/layouts/professor/professor-layout';
 import { formatDecimal } from '@/lib/utils';
-import type { BreadcrumbItem, ProgrammingStats } from '@/types';
+import type {
+    BreadcrumbItem,
+    CriterionStats,
+    LevelDistribution,
+    OutcomeStats,
+    ProgrammingStats,
+    StudentStats,
+} from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -51,505 +60,106 @@ type Props = {
     completeness: { percentage: number; total: number; completed: number };
 };
 
-// ── Color palette ─────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-const LEVEL_COLORS = ['#ef4444', '#f97316', '#22c55e', '#3b82f6'];
-const CRITERION_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#14b8a6'];
+const LEVEL_COLORS: Record<string, string> = {
+    Insuficiente: '#ef4444',
+    Básico: '#f97316',
+    Competente: '#22c55e',
+    Destacado: '#3b82f6',
+};
+const LEVEL_COLOR_LIST = ['#ef4444', '#f97316', '#22c55e', '#3b82f6'];
 
-// ── Summary tab ───────────────────────────────────────────────────────────────
+const TYPE_COLORS: Record<string, string> = {
+    Conocimiento: '#6366f1',
+    Habilidad: '#10b981',
+    Actitud: '#f59e0b',
+};
+const TYPE_FALLBACK = '#8b5cf6';
 
-function SummaryTab({ summary }: { summary: ProgrammingStats['summary'] }) {
-    const donutData = summary.distribution.map((d) => ({
+function gradeColor(grade: number): string {
+    if (grade >= 3.8) return 'text-blue-600 dark:text-blue-400';
+    if (grade >= 2.5) return 'text-green-600 dark:text-green-400';
+    if (grade >= 1.3) return 'text-orange-500 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
+}
+
+function gradeBgClass(grade: number): string {
+    if (grade >= 3.8)
+        return 'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+    if (grade >= 2.5)
+        return 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+    if (grade >= 1.3)
+        return 'bg-orange-50 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+    return 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+}
+
+function levelLabel(grade: number): string {
+    if (grade >= 3.8) return 'Destacado';
+    if (grade >= 2.5) return 'Competente';
+    if (grade >= 1.3) return 'Básico';
+    return 'Insuficiente';
+}
+
+// ── Shared: Distribution Chart ────────────────────────────────────────────────
+// Two-bar horizontal chart: calificaciones individuales + por estudiantes
+
+function DistributionCharts({
+    distribution,
+    title1 = 'Calificaciones individuales por nivel',
+    title2 = 'Estudiantes con al menos un nivel',
+}: {
+    distribution: LevelDistribution[];
+    title1?: string;
+    title2?: string;
+}) {
+    const barData = distribution.map((d) => ({
         name: d.level_name,
-        value: d.count,
-        percentage: d.percentage,
+        calificaciones: d.count,
+        estudiantes: d.student_count,
+        pct: d.percentage,
+        pctEst: d.student_percentage,
     }));
 
     return (
-        <div className="grid gap-6 lg:grid-cols-2">
-            {/* Promedio general */}
+        <div className="grid gap-4 md:grid-cols-2">
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">
-                        Promedio General del Grupo
-                    </CardTitle>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">{title1}</CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                        Total de asignaciones de nivel por criterio × RA ×
+                        estudiante
+                    </p>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-5xl font-bold text-primary">
-                        {formatDecimal(summary.overall_average)}
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        sobre 16 puntos posibles
-                    </p>
-                </CardContent>
-            </Card>
-
-            {/* Distribución de niveles — dona */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">
-                        Distribución de Niveles de Desempeño
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <PieChart>
-                            <Pie
-                                data={donutData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={55}
-                                outerRadius={80}
-                                paddingAngle={3}
-                                dataKey="value"
-                                label={({ name, payload }) =>
-                                    `${name}: ${(payload as { percentage?: number }).percentage ?? 0}%`
-                                }
-                                labelLine={false}
-                            >
-                                {donutData.map((_, i) => (
+                    <ResponsiveContainer width="100%" height={180}>
+                        <BarChart data={barData} layout="vertical">
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                horizontal={false}
+                            />
+                            <XAxis type="number" tick={{ fontSize: 10 }} />
+                            <YAxis
+                                type="category"
+                                dataKey="name"
+                                tick={{ fontSize: 11 }}
+                                width={90}
+                            />
+                            <Tooltip
+                                formatter={(v, _, p) => [
+                                    `${v} calificaciones (${(p.payload as { pct?: number }).pct ?? 0}%)`,
+                                    'Total',
+                                ]}
+                            />
+                            <Bar dataKey="calificaciones" radius={[0, 4, 4, 0]}>
+                                {barData.map((d, i) => (
                                     <Cell
                                         key={i}
                                         fill={
-                                            LEVEL_COLORS[
-                                                i % LEVEL_COLORS.length
-                                            ]
+                                            LEVEL_COLORS[d.name] ??
+                                            LEVEL_COLOR_LIST[i % 4]
                                         }
                                     />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                formatter={(value, name) => [
-                                    `${value} calificaciones`,
-                                    name,
-                                ]}
-                            />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
-
-            {/* Top 5 estudiantes */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">
-                        Top 5 Estudiantes
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-2">
-                        {summary.top_students.map((s, i) => (
-                            <div
-                                key={s.enrollment_id}
-                                className="flex items-center justify-between"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                                        {i + 1}
-                                    </span>
-                                    <span className="text-sm">
-                                        {s.student_name}
-                                    </span>
-                                </div>
-                                <Badge variant="secondary">
-                                    {formatDecimal(s.final_average)}
-                                </Badge>
-                            </div>
-                        ))}
-                        {summary.top_students.length === 0 && (
-                            <p className="text-sm text-muted-foreground">
-                                Sin datos
-                            </p>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Estudiantes por debajo del nivel básico */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">
-                        Requieren Atención
-                        {summary.below_basic.length > 0 && (
-                            <Badge variant="destructive" className="ml-2">
-                                {summary.below_basic.length}
-                            </Badge>
-                        )}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {summary.below_basic.length === 0 ? (
-                        <p className="text-sm font-medium text-green-600">
-                            ✓ Todos los estudiantes están por encima del nivel
-                            Básico
-                        </p>
-                    ) : (
-                        <div className="space-y-2">
-                            {summary.below_basic.map((s) => (
-                                <div
-                                    key={s.enrollment_id}
-                                    className="flex items-center justify-between"
-                                >
-                                    <span className="text-sm">
-                                        {s.student_name}
-                                    </span>
-                                    <Badge variant="destructive">
-                                        {formatDecimal(s.final_average)}
-                                    </Badge>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
-    );
-}
-
-// ── By Student tab ────────────────────────────────────────────────────────────
-
-function ByStudentTab({
-    byStudent,
-}: {
-    byStudent: ProgrammingStats['byStudent'];
-    byCriterion: ProgrammingStats['byCriterion'];
-}) {
-    const [selectedId, setSelectedId] = useState<string>(
-        byStudent[0] ? String(byStudent[0].enrollment_id) : '',
-    );
-
-    const student = byStudent.find(
-        (s) => String(s.enrollment_id) === selectedId,
-    );
-
-    const radarData =
-        student?.by_criterion.map((c) => ({
-            criterion: c.criterion_name,
-            promedio: c.average,
-            fullMark: 4,
-        })) ?? [];
-
-    return (
-        <div className="space-y-4">
-            <div className="max-w-sm">
-                <Select value={selectedId} onValueChange={setSelectedId}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un estudiante" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {byStudent.map((s) => (
-                            <SelectItem
-                                key={s.enrollment_id}
-                                value={String(s.enrollment_id)}
-                            >
-                                {s.student_name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            {student && (
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">
-                                {student.student_name}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="mb-4 rounded-lg bg-primary/10 p-4 text-center">
-                                <p className="text-xs text-muted-foreground">
-                                    Promedio final
-                                </p>
-                                <p className="text-4xl font-bold text-primary">
-                                    {formatDecimal(student.final_average)}
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                {student.by_criterion.map((c) => (
-                                    <div
-                                        key={c.criterion_id}
-                                        className="flex items-center justify-between text-sm"
-                                    >
-                                        <span className="text-muted-foreground">
-                                            {c.criterion_name}
-                                        </span>
-                                        <span className="font-medium">
-                                            {formatDecimal(c.average)}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">
-                                Perfil por Criterio
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={250}>
-                                <RadarChart data={radarData}>
-                                    <PolarGrid />
-                                    <PolarAngleAxis
-                                        dataKey="criterion"
-                                        tick={{ fontSize: 11 }}
-                                    />
-                                    <PolarRadiusAxis
-                                        angle={90}
-                                        domain={[0, 4]}
-                                        tick={{ fontSize: 10 }}
-                                    />
-                                    <Radar
-                                        name="Promedio"
-                                        dataKey="promedio"
-                                        stroke="#6366f1"
-                                        fill="#6366f1"
-                                        fillOpacity={0.4}
-                                    />
-                                    <Tooltip
-                                        formatter={(v) =>
-                                            formatDecimal(Number(v))
-                                        }
-                                    />
-                                </RadarChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
-        </div>
-    );
-}
-
-// ── By Outcome tab ────────────────────────────────────────────────────────────
-
-function ByOutcomeTab({
-    byOutcome,
-    byStudent,
-}: {
-    byOutcome: ProgrammingStats['byOutcome'];
-    byStudent: ProgrammingStats['byStudent'];
-}) {
-    const [selectedOutcomeId, setSelectedOutcomeId] = useState<string>(
-        byOutcome[0] ? String(byOutcome[0].outcome_id) : '',
-    );
-
-    const outcome = byOutcome.find(
-        (o) => String(o.outcome_id) === selectedOutcomeId,
-    );
-
-    const distData =
-        outcome?.distribution.map((d) => ({
-            name: d.level_name,
-            porcentaje: d.percentage,
-            count: d.count,
-        })) ?? [];
-
-    // Students ordered by total for this outcome
-    const studentsForOutcome = byStudent
-        .map((s) => ({
-            name: s.student_name,
-            total:
-                s.totals_by_outcome[
-                    byOutcome.findIndex(
-                        (o) => String(o.outcome_id) === selectedOutcomeId,
-                    )
-                ] ?? 0,
-        }))
-        .sort((a, b) => b.total - a.total);
-
-    return (
-        <div className="space-y-4">
-            <div className="max-w-xl">
-                <Select
-                    value={selectedOutcomeId}
-                    onValueChange={setSelectedOutcomeId}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un resultado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {byOutcome.map((o) => (
-                            <SelectItem
-                                key={o.outcome_id}
-                                value={String(o.outcome_id)}
-                            >
-                                <span className="line-clamp-1">
-                                    {o.outcome_desc}
-                                </span>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            {outcome && (
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-3 gap-3">
-                            {[
-                                {
-                                    label: 'Promedio grupo',
-                                    value: outcome.group_average,
-                                },
-                                { label: 'Más alto', value: outcome.highest },
-                                { label: 'Más bajo', value: outcome.lowest },
-                            ].map((m) => (
-                                <Card key={m.label}>
-                                    <CardContent className="pt-4 text-center">
-                                        <p className="text-2xl font-bold">
-                                            {formatDecimal(Number(m.value))}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {m.label}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">
-                                    Distribución de Niveles
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ResponsiveContainer width="100%" height={200}>
-                                    <BarChart data={distData} layout="vertical">
-                                        <CartesianGrid
-                                            strokeDasharray="3 3"
-                                            horizontal={false}
-                                        />
-                                        <XAxis
-                                            type="number"
-                                            domain={[0, 100]}
-                                            unit="%"
-                                            tick={{ fontSize: 11 }}
-                                        />
-                                        <YAxis
-                                            type="category"
-                                            dataKey="name"
-                                            tick={{ fontSize: 11 }}
-                                            width={90}
-                                        />
-                                        <Tooltip
-                                            formatter={(v, _, p) => [
-                                                `${v}% (${p.payload.count})`,
-                                                'Estudiantes',
-                                            ]}
-                                        />
-                                        <Bar
-                                            dataKey="porcentaje"
-                                            radius={[0, 4, 4, 0]}
-                                        >
-                                            {distData.map((_, i) => (
-                                                <Cell
-                                                    key={i}
-                                                    fill={
-                                                        LEVEL_COLORS[
-                                                            i %
-                                                                LEVEL_COLORS.length
-                                                        ]
-                                                    }
-                                                />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">
-                                Estudiantes — Mayor a menor
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-1.5">
-                                {studentsForOutcome.map((s, i) => (
-                                    <div
-                                        key={i}
-                                        className={`flex items-center justify-between rounded px-2 py-1 text-sm ${s.total < 8 ? 'bg-red-50 dark:bg-red-950/20' : ''}`}
-                                    >
-                                        <span
-                                            className={
-                                                s.total < 8
-                                                    ? 'text-red-700 dark:text-red-400'
-                                                    : ''
-                                            }
-                                        >
-                                            {s.name}
-                                        </span>
-                                        <Badge
-                                            variant={
-                                                s.total < 8
-                                                    ? 'destructive'
-                                                    : 'secondary'
-                                            }
-                                        >
-                                            {s.total}
-                                        </Badge>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
-        </div>
-    );
-}
-
-// ── By Criterion tab ──────────────────────────────────────────────────────────
-
-function ByCriterionTab({
-    byCriterion,
-}: {
-    byCriterion: ProgrammingStats['byCriterion'];
-}) {
-    const chartData = byCriterion.map((c, i) => ({
-        name: c.criterion_name,
-        promedio: c.group_average,
-        color: CRITERION_COLORS[i % CRITERION_COLORS.length],
-    }));
-
-    const minCriterion = [...byCriterion].sort(
-        (a, b) => a.group_average - b.group_average,
-    )[0];
-
-    return (
-        <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="lg:col-span-2">
-                <CardHeader>
-                    <CardTitle className="text-base">
-                        Promedio del Grupo por Criterio de Evaluación
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={chartData}>
-                            <CartesianGrid
-                                strokeDasharray="3 3"
-                                vertical={false}
-                            />
-                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                            <YAxis domain={[0, 4]} tick={{ fontSize: 11 }} />
-                            <Tooltip
-                                formatter={(v) => [
-                                    formatDecimal(Number(v)),
-                                    'Promedio',
-                                ]}
-                            />
-                            <Bar dataKey="promedio" radius={[4, 4, 0, 0]}>
-                                {chartData.map((entry, i) => (
-                                    <Cell key={i} fill={entry.color} />
                                 ))}
                             </Bar>
                         </BarChart>
@@ -558,67 +168,1448 @@ function ByCriterionTab({
             </Card>
 
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">
-                        Resumen por Criterio
-                    </CardTitle>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">{title2}</CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                        Cuántos estudiantes distintos recibieron cada nivel
+                        (puede sumar más del 100%)
+                    </p>
                 </CardHeader>
                 <CardContent>
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b">
-                                <th className="py-2 text-left font-medium text-muted-foreground">
-                                    Criterio
-                                </th>
-                                <th className="py-2 text-right font-medium text-muted-foreground">
-                                    Promedio
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {byCriterion.map((c) => (
-                                <tr
-                                    key={c.criterion_id}
-                                    className={`border-b last:border-0 ${c.criterion_id === minCriterion?.criterion_id ? 'text-amber-700 dark:text-amber-400' : ''}`}
+                    <ResponsiveContainer width="100%" height={180}>
+                        <BarChart data={barData} layout="vertical">
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                horizontal={false}
+                            />
+                            <XAxis type="number" tick={{ fontSize: 10 }} />
+                            <YAxis
+                                type="category"
+                                dataKey="name"
+                                tick={{ fontSize: 11 }}
+                                width={90}
+                            />
+                            <Tooltip
+                                formatter={(v, _, p) => [
+                                    `${v} estudiantes (${(p.payload as { pctEst?: number }).pctEst ?? 0}%)`,
+                                    'Estudiantes',
+                                ]}
+                            />
+                            <Bar dataKey="estudiantes" radius={[0, 4, 4, 0]}>
+                                {barData.map((d, i) => (
+                                    <Cell
+                                        key={i}
+                                        fill={
+                                            LEVEL_COLORS[d.name] ??
+                                            LEVEL_COLOR_LIST[i % 4]
+                                        }
+                                    />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+// ── Tab 1: Resumen general ────────────────────────────────────────────────────
+
+function SummaryTab({
+    summary,
+    byStudent,
+    onStudentClick,
+}: {
+    summary: ProgrammingStats['summary'];
+    byStudent: StudentStats[];
+    onStudentClick: (id: number) => void;
+}) {
+    const overallGrade = summary.overall_average;
+    // Competente ≥ 3.8, Destacado = 5.0 — ambos son "nivel alto"
+    const highCount = byStudent.filter((s) => s.final_average >= 3.8).length;
+    const belowBasicCount = byStudent.filter(
+        (s) => s.final_average < 2.5,
+    ).length;
+
+    return (
+        <div className="space-y-6">
+            {/* KPIs */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardContent className="pt-5 text-center">
+                        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                            Promedio del grupo
+                        </p>
+                        <p
+                            className={`mt-1 text-4xl font-bold ${gradeColor(overallGrade)}`}
+                        >
+                            {formatDecimal(overallGrade)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            {levelLabel(overallGrade)} · promedio de promedios
+                            finales
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="pt-5 text-center">
+                        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                            Estudiantes calificados
+                        </p>
+                        <p className="mt-1 text-4xl font-bold">
+                            {byStudent.length}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            con nota final calculada
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card className="border-blue-200">
+                    <CardContent className="pt-5 text-center">
+                        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                            Competente o Destacado
+                        </p>
+                        <p className="mt-1 text-4xl font-bold text-blue-600">
+                            {highCount}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            estudiantes · nota ≥ 3.8
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card
+                    className={
+                        belowBasicCount > 0
+                            ? 'border-red-200'
+                            : 'border-green-200'
+                    }
+                >
+                    <CardContent className="pt-5 text-center">
+                        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                            Bajo nivel Básico
+                        </p>
+                        <p
+                            className={`mt-1 text-4xl font-bold ${belowBasicCount > 0 ? 'text-red-600' : 'text-green-600'}`}
+                        >
+                            {belowBasicCount}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            estudiantes · nota {'<'} 2.5
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Distribuciones globales */}
+            <DistributionCharts
+                distribution={summary.distribution}
+                title1="Distribución global de calificaciones por nivel"
+                title2="Estudiantes que recibieron cada nivel (global)"
+            />
+
+            {/* Top 5 + requieren atención */}
+            <div className="grid gap-6 lg:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <Trophy className="h-4 w-4 text-yellow-500" />
+                            Top 5 estudiantes
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">
+                            Clic para ver detalle
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {summary.top_students.map((s, i) => (
+                                <button
+                                    key={s.enrollment_id}
+                                    type="button"
+                                    onClick={() =>
+                                        onStudentClick(s.enrollment_id)
+                                    }
+                                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors hover:bg-accent"
                                 >
-                                    <td className="py-2">
-                                        {c.criterion_name}
-                                        {c.criterion_id ===
-                                            minCriterion?.criterion_id && (
-                                            <Badge
-                                                variant="outline"
-                                                className="ml-2 border-amber-300 text-xs text-amber-700"
-                                            >
-                                                menor
-                                            </Badge>
-                                        )}
-                                    </td>
-                                    <td className="py-2 text-right font-medium">
-                                        {formatDecimal(c.group_average)}
-                                    </td>
-                                </tr>
+                                    <div className="flex items-center gap-3">
+                                        <span
+                                            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white ${i === 0 ? 'bg-yellow-400' : i === 1 ? 'bg-gray-400' : i === 2 ? 'bg-amber-600' : 'bg-primary'}`}
+                                        >
+                                            {i + 1}
+                                        </span>
+                                        <span className="text-sm font-medium">
+                                            {s.student_name}
+                                        </span>
+                                    </div>
+                                    <span
+                                        className={`rounded-full px-2 py-0.5 text-xs font-bold ${gradeBgClass(s.final_average)}`}
+                                    >
+                                        {formatDecimal(s.final_average)}
+                                    </span>
+                                </button>
                             ))}
-                        </tbody>
-                    </table>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {summary.below_basic.length > 0 ? (
+                    <Card className="border-red-200 bg-red-50/30 dark:border-red-900 dark:bg-red-950/10">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-base text-red-700 dark:text-red-400">
+                                <AlertTriangle className="h-4 w-4" />
+                                Requieren atención
+                                <Badge variant="destructive">
+                                    {summary.below_basic.length}
+                                </Badge>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                {summary.below_basic.map((s) => (
+                                    <button
+                                        key={s.enrollment_id}
+                                        type="button"
+                                        onClick={() =>
+                                            onStudentClick(s.enrollment_id)
+                                        }
+                                        className="flex w-full items-center justify-between rounded-lg border border-red-200 bg-white px-3 py-2 text-left transition-colors hover:bg-red-50 dark:border-red-800 dark:bg-transparent"
+                                    >
+                                        <span className="text-sm text-red-800 dark:text-red-300">
+                                            {s.student_name}
+                                        </span>
+                                        <Badge variant="destructive">
+                                            {formatDecimal(s.final_average)}
+                                        </Badge>
+                                    </button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <Card className="border-green-200 bg-green-50/30">
+                        <CardContent className="pt-6">
+                            <p className="text-center text-sm font-medium text-green-700">
+                                <CheckCircle2 className="mr-1.5 inline h-4 w-4 text-green-600" />
+                                Todos los estudiantes en nivel Básico o superior
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// ── Tab 2: Por Estudiante ─────────────────────────────────────────────────────
+
+function ByStudentTab({
+    byStudent,
+    initialEnrollmentId,
+}: {
+    byStudent: StudentStats[];
+    byOutcome: OutcomeStats[];
+    initialEnrollmentId?: number;
+}) {
+    const sorted = [...byStudent].sort(
+        (a, b) => b.final_average - a.final_average,
+    );
+
+    const [selectedId, setSelectedId] = useState<string>(
+        initialEnrollmentId
+            ? String(initialEnrollmentId)
+            : sorted[0]
+              ? String(sorted[0].enrollment_id)
+              : '',
+    );
+
+    const student = byStudent.find(
+        (s) => String(s.enrollment_id) === selectedId,
+    );
+
+    // Group outcomes by type
+    const outcomesByType = student
+        ? student.by_outcome.reduce<Record<string, typeof student.by_outcome>>(
+              (acc, o) => {
+                  const t = o.type_name ?? 'Otros';
+                  if (!acc[t]) acc[t] = [];
+                  acc[t].push(o);
+                  return acc;
+              },
+              {},
+          )
+        : {};
+
+    // Bar chart: one bar per RA, colored by type
+    const raBarData =
+        student?.by_outcome.map((o) => ({
+            name: o.outcome_code ?? `RA${o.outcome_id}`,
+            fullName: o.outcome_desc,
+            nota: o.grade,
+            type: o.type_name ?? '',
+        })) ?? [];
+
+    return (
+        <div className="space-y-4">
+            {/* Selector + mini ranking */}
+            <div className="flex flex-wrap items-center gap-3">
+                <div className="max-w-xs flex-1">
+                    <Select value={selectedId} onValueChange={setSelectedId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un estudiante" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {sorted.map((s, i) => (
+                                <SelectItem
+                                    key={s.enrollment_id}
+                                    value={String(s.enrollment_id)}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <span
+                                            className={`inline-block h-2 w-2 rounded-full`}
+                                            style={{
+                                                backgroundColor:
+                                                    LEVEL_COLORS[
+                                                        levelLabel(
+                                                            s.final_average,
+                                                        )
+                                                    ] ?? '#ccc',
+                                            }}
+                                        />
+                                        #{i + 1} {s.student_name} —{' '}
+                                        {formatDecimal(s.final_average)}
+                                    </span>
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                    {byStudent.length} estudiante
+                    {byStudent.length !== 1 ? 's' : ''}
+                </p>
+            </div>
+
+            {student && (
+                <div className="space-y-6">
+                    {/* Nota final + gráfica de RAs */}
+                    <div className="grid gap-6 lg:grid-cols-3">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">
+                                    {student.student_name}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div
+                                    className={`rounded-xl p-4 text-center ${gradeBgClass(student.final_average)}`}
+                                >
+                                    <p className="text-xs font-medium tracking-wide uppercase opacity-70">
+                                        Nota final
+                                    </p>
+                                    <p className="text-5xl font-bold">
+                                        {formatDecimal(student.final_average)}
+                                    </p>
+                                    <p className="text-xs opacity-70">
+                                        {levelLabel(student.final_average)} ·
+                                        sobre 5.0
+                                    </p>
+                                </div>
+
+                                {/* Promedio por tipo de resultado */}
+                                {Object.entries(outcomesByType).map(
+                                    ([typeName, outcomes]) => {
+                                        const typeAvg =
+                                            outcomes.reduce(
+                                                (s, o) => s + o.grade,
+                                                0,
+                                            ) / outcomes.length;
+                                        return (
+                                            <div
+                                                key={typeName}
+                                                className="rounded-lg border p-3"
+                                            >
+                                                <div className="mb-0.5 flex items-center justify-between gap-2">
+                                                    <span
+                                                        className="text-xs font-semibold tracking-wide uppercase"
+                                                        style={{
+                                                            color:
+                                                                TYPE_COLORS[
+                                                                    typeName
+                                                                ] ??
+                                                                TYPE_FALLBACK,
+                                                        }}
+                                                    >
+                                                        {typeName}
+                                                    </span>
+                                                    <span
+                                                        className={`text-sm font-bold ${gradeColor(typeAvg)}`}
+                                                    >
+                                                        {formatDecimal(typeAvg)}
+                                                    </span>
+                                                </div>
+                                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                                                    <div
+                                                        className="h-full rounded-full"
+                                                        style={{
+                                                            width: `${((typeAvg - 1.3) / 3.7) * 100}%`,
+                                                            backgroundColor:
+                                                                TYPE_COLORS[
+                                                                    typeName
+                                                                ] ??
+                                                                TYPE_FALLBACK,
+                                                        }}
+                                                    />
+                                                </div>
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                    Promedio de los{' '}
+                                                    {outcomes.length} RA
+                                                    {outcomes.length !== 1
+                                                        ? 's'
+                                                        : ''}{' '}
+                                                    de tipo {typeName} · cada RA
+                                                    es el promedio de sus{' '}
+                                                    {outcomes[0]?.by_criterion
+                                                        .length ?? '—'}{' '}
+                                                    criterios
+                                                </p>
+                                            </div>
+                                        );
+                                    },
+                                )}
+
+                                {/* Nav por el grupo */}
+                                <div>
+                                    <p className="mb-1 text-xs text-muted-foreground">
+                                        Posición en el grupo
+                                    </p>
+                                    <div className="flex flex-wrap gap-1">
+                                        {sorted.map((s, i) => (
+                                            <button
+                                                key={s.enrollment_id}
+                                                type="button"
+                                                title={`${s.student_name}: ${formatDecimal(s.final_average)}`}
+                                                onClick={() =>
+                                                    setSelectedId(
+                                                        String(s.enrollment_id),
+                                                    )
+                                                }
+                                                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-transform hover:scale-110 ${String(s.enrollment_id) === selectedId ? 'ring-2 ring-primary ring-offset-1' : ''}`}
+                                                style={{
+                                                    backgroundColor:
+                                                        (LEVEL_COLORS[
+                                                            levelLabel(
+                                                                s.final_average,
+                                                            )
+                                                        ] ?? '#ccc') + '22',
+                                                    color:
+                                                        LEVEL_COLORS[
+                                                            levelLabel(
+                                                                s.final_average,
+                                                            )
+                                                        ] ?? '#ccc',
+                                                    border: `1px solid ${LEVEL_COLORS[levelLabel(s.final_average)] ?? '#ccc'}`,
+                                                }}
+                                            >
+                                                {i + 1}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Gráfica de barras por RA */}
+                        <Card className="lg:col-span-2">
+                            <CardHeader>
+                                <CardTitle className="text-base">
+                                    Nota por resultado de aprendizaje
+                                </CardTitle>
+                                <p className="text-xs text-muted-foreground">
+                                    Promedio de criterios de cada RA · escala
+                                    1.3–5.0
+                                </p>
+                            </CardHeader>
+                            <CardContent>
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <BarChart
+                                        data={raBarData}
+                                        margin={{ bottom: 5 }}
+                                    >
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            vertical={false}
+                                        />
+                                        <XAxis
+                                            dataKey="name"
+                                            tick={{ fontSize: 11 }}
+                                        />
+                                        <YAxis
+                                            domain={[1, 5]}
+                                            tickCount={5}
+                                            tick={{ fontSize: 10 }}
+                                        />
+                                        <Tooltip
+                                            formatter={(v) => [
+                                                `${formatDecimal(Number(v))} — ${levelLabel(Number(v))}`,
+                                                'Nota',
+                                            ]}
+                                            labelFormatter={(_, payload) =>
+                                                (
+                                                    payload[0]?.payload as {
+                                                        fullName?: string;
+                                                    }
+                                                )?.fullName ?? ''
+                                            }
+                                        />
+                                        <Bar
+                                            dataKey="nota"
+                                            radius={[4, 4, 0, 0]}
+                                        >
+                                            {raBarData.map((entry, i) => (
+                                                <Cell
+                                                    key={i}
+                                                    fill={
+                                                        TYPE_COLORS[
+                                                            entry.type
+                                                        ] ?? TYPE_FALLBACK
+                                                    }
+                                                />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                                {/* Leyenda de tipos */}
+                                <div className="mt-2 flex flex-wrap gap-3">
+                                    {Object.entries(TYPE_COLORS).map(
+                                        ([t, c]) => (
+                                            <span
+                                                key={t}
+                                                className="flex items-center gap-1 text-xs"
+                                            >
+                                                <span
+                                                    className="inline-block h-2.5 w-2.5 rounded-sm"
+                                                    style={{
+                                                        backgroundColor: c,
+                                                    }}
+                                                />
+                                                {t}
+                                            </span>
+                                        ),
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Detalle por RA con criterios */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+                            Detalle por resultado de aprendizaje
+                        </h3>
+                        {Object.entries(outcomesByType).map(
+                            ([typeName, outcomes]) => (
+                                <div key={typeName}>
+                                    <p
+                                        className="mb-2 text-xs font-semibold tracking-wide uppercase"
+                                        style={{
+                                            color:
+                                                TYPE_COLORS[typeName] ??
+                                                TYPE_FALLBACK,
+                                        }}
+                                    >
+                                        {typeName}
+                                    </p>
+                                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                        {outcomes.map((outcome) => (
+                                            <Card
+                                                key={outcome.outcome_id}
+                                                className="border-l-4"
+                                                style={{
+                                                    borderLeftColor:
+                                                        TYPE_COLORS[typeName] ??
+                                                        TYPE_FALLBACK,
+                                                }}
+                                            >
+                                                <CardContent className="pt-3">
+                                                    <div className="mb-2 flex items-start justify-between gap-2">
+                                                        <p className="text-xs font-semibold">
+                                                            {outcome.outcome_code ??
+                                                                `RA${outcome.outcome_id}`}
+                                                        </p>
+                                                        <span
+                                                            className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-bold ${gradeBgClass(outcome.grade)}`}
+                                                        >
+                                                            {formatDecimal(
+                                                                outcome.grade,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <p
+                                                        className="mb-2 line-clamp-2 text-xs text-muted-foreground"
+                                                        title={
+                                                            outcome.outcome_desc
+                                                        }
+                                                    >
+                                                        {outcome.outcome_desc}
+                                                    </p>
+                                                    <div className="space-y-1">
+                                                        {outcome.by_criterion.map(
+                                                            (c) => (
+                                                                <div
+                                                                    key={
+                                                                        c.criterion_id
+                                                                    }
+                                                                    className="flex items-center justify-between text-xs"
+                                                                >
+                                                                    <span
+                                                                        className="truncate text-muted-foreground"
+                                                                        title={
+                                                                            c.criterion_name
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            c.criterion_name
+                                                                        }
+                                                                    </span>
+                                                                    <span
+                                                                        className={`ml-1 shrink-0 font-medium ${gradeColor(c.grade)}`}
+                                                                    >
+                                                                        {formatDecimal(
+                                                                            c.grade,
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </div>
+                            ),
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ── Tab 3: Por Resultado ──────────────────────────────────────────────────────
+
+function ByOutcomeTab({
+    byOutcome,
+    byStudent,
+}: {
+    byOutcome: OutcomeStats[];
+    byStudent: StudentStats[];
+}) {
+    const [selectedId, setSelectedId] = useState<string>(
+        byOutcome[0] ? String(byOutcome[0].outcome_id) : '',
+    );
+
+    const outcome = byOutcome.find((o) => String(o.outcome_id) === selectedId);
+
+    const typeGroups = byOutcome.reduce<Record<string, OutcomeStats[]>>(
+        (acc, o) => {
+            const t = o.type_name ?? 'Otros';
+            if (!acc[t]) acc[t] = [];
+            acc[t].push(o);
+            return acc;
+        },
+        {},
+    );
+
+    // Overview bar — one bar per RA, in real grade scale
+    const overviewData = byOutcome.map((o) => ({
+        name: o.outcome_code ?? `RA${o.outcome_id}`,
+        fullName: o.outcome_desc,
+        nota: o.group_average,
+        type: o.type_name ?? '',
+        id: String(o.outcome_id),
+    }));
+
+    // Students sorted for selected outcome — include per-criterion breakdown
+    const [expandedStudent, setExpandedStudent] = useState<number | null>(null);
+    const [studentPage, setStudentPage] = useState(0);
+    const STUDENTS_PER_PAGE = 5;
+
+    const studentsForOutcome = outcome
+        ? byStudent
+              .map((s) => {
+                  const oBo = s.by_outcome.find(
+                      (o) => String(o.outcome_id) === selectedId,
+                  );
+                  return {
+                      name: s.student_name,
+                      enrollment_id: s.enrollment_id,
+                      grade: oBo?.grade ?? 0,
+                      by_criterion: oBo?.by_criterion ?? [],
+                  };
+              })
+              .sort((a, b) => b.grade - a.grade)
+        : [];
+
+    const totalStudentPages = Math.ceil(
+        studentsForOutcome.length / STUDENTS_PER_PAGE,
+    );
+    const pagedStudents = studentsForOutcome.slice(
+        studentPage * STUDENTS_PER_PAGE,
+        (studentPage + 1) * STUDENTS_PER_PAGE,
+    );
+
+    return (
+        <div className="space-y-6">
+            {/* Overview bars */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">
+                        Promedio del grupo por resultado de aprendizaje
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                        Promedio de las notas individuales de cada estudiante en
+                        ese RA · escala 1.3–5.0
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                        {Object.keys(typeGroups).map((t) => (
+                            <span
+                                key={t}
+                                className="flex items-center gap-1 text-xs"
+                            >
+                                <span
+                                    className="inline-block h-2 w-2 rounded-full"
+                                    style={{
+                                        backgroundColor:
+                                            TYPE_COLORS[t] ?? TYPE_FALLBACK,
+                                    }}
+                                />
+                                {t}
+                            </span>
+                        ))}
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={overviewData}>
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                vertical={false}
+                            />
+                            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                            <YAxis
+                                domain={[1, 5]}
+                                tickCount={5}
+                                tick={{ fontSize: 10 }}
+                            />
+                            <Tooltip
+                                formatter={(v) => [
+                                    `${formatDecimal(Number(v))} — ${levelLabel(Number(v))}`,
+                                    'Promedio del grupo',
+                                ]}
+                                labelFormatter={(_, payload) =>
+                                    (
+                                        payload[0]?.payload as {
+                                            fullName?: string;
+                                        }
+                                    )?.fullName ?? ''
+                                }
+                            />
+                            <Bar dataKey="nota" radius={[4, 4, 0, 0]}>
+                                {overviewData.map((entry, i) => (
+                                    <Cell
+                                        key={i}
+                                        fill={
+                                            TYPE_COLORS[entry.type] ??
+                                            TYPE_FALLBACK
+                                        }
+                                        opacity={
+                                            entry.id === selectedId ? 1 : 0.55
+                                        }
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => {
+                                            setSelectedId(entry.id);
+                                            setStudentPage(0);
+                                            setExpandedStudent(null);
+                                        }}
+                                    />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
                 </CardContent>
             </Card>
 
+            {/* Selector por tipo */}
+            <div className="flex flex-wrap gap-4">
+                {Object.entries(typeGroups).map(([typeName, outcomes]) => (
+                    <div key={typeName} className="space-y-1">
+                        <p
+                            className="text-xs font-semibold tracking-wide uppercase"
+                            style={{
+                                color: TYPE_COLORS[typeName] ?? TYPE_FALLBACK,
+                            }}
+                        >
+                            {typeName}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                            {outcomes.map((o) => (
+                                <button
+                                    key={o.outcome_id}
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedId(String(o.outcome_id));
+                                        setStudentPage(0);
+                                        setExpandedStudent(null);
+                                    }}
+                                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${String(o.outcome_id) === selectedId ? 'text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+                                    style={
+                                        String(o.outcome_id) === selectedId
+                                            ? {
+                                                  backgroundColor:
+                                                      TYPE_COLORS[typeName] ??
+                                                      TYPE_FALLBACK,
+                                              }
+                                            : {}
+                                    }
+                                >
+                                    {o.outcome_code ?? `RA${o.outcome_id}`}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {outcome && (
+                <>
+                    {/* Descripción del RA */}
+                    <Card
+                        className="border-l-4"
+                        style={{
+                            borderLeftColor:
+                                TYPE_COLORS[outcome.type_name ?? ''] ??
+                                TYPE_FALLBACK,
+                        }}
+                    >
+                        <CardContent className="pt-4">
+                            <div className="flex items-start gap-3">
+                                <span
+                                    className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                                    style={{
+                                        backgroundColor:
+                                            TYPE_COLORS[
+                                                outcome.type_name ?? ''
+                                            ] ?? TYPE_FALLBACK,
+                                    }}
+                                >
+                                    {outcome.type_name}
+                                </span>
+                                <p className="text-sm leading-relaxed">
+                                    {outcome.outcome_desc}
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Métricas + distribuciones + ranking */}
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        {[
+                            {
+                                label: 'Promedio del grupo',
+                                value: outcome.group_average,
+                            },
+                            { label: 'Nota más alta', value: outcome.highest },
+                            { label: 'Nota más baja', value: outcome.lowest },
+                        ].map((m) => (
+                            <Card key={m.label}>
+                                <CardContent className="pt-4 text-center">
+                                    <p
+                                        className={`text-3xl font-bold ${gradeColor(Number(m.value))}`}
+                                    >
+                                        {formatDecimal(Number(m.value))}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {m.label}
+                                    </p>
+                                    <p
+                                        className="text-xs font-medium"
+                                        style={{
+                                            color: LEVEL_COLORS[
+                                                levelLabel(Number(m.value))
+                                            ],
+                                        }}
+                                    >
+                                        {levelLabel(Number(m.value))}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+
+                    <DistributionCharts
+                        distribution={outcome.distribution}
+                        title1={`Calificaciones por nivel en ${outcome.outcome_code ?? `RA${outcome.outcome_id}`}`}
+                        title2="Estudiantes que recibieron cada nivel"
+                    />
+
+                    {/* Ranking de estudiantes en este RA — paginado + desplegable */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm">
+                                Nota de cada estudiante en este RA
+                            </CardTitle>
+                            <p className="text-xs text-muted-foreground">
+                                Promedio de sus criterios · clic para ver el
+                                detalle por criterio
+                            </p>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-1">
+                                {pagedStudents.map((s, i) => {
+                                    const globalIdx =
+                                        studentPage * STUDENTS_PER_PAGE + i;
+                                    const isExpanded =
+                                        expandedStudent === s.enrollment_id;
+                                    return (
+                                        <div
+                                            key={s.enrollment_id}
+                                            className="overflow-hidden rounded-lg border"
+                                        >
+                                            <button
+                                                type="button"
+                                                className="flex w-full items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-muted/50"
+                                                onClick={() =>
+                                                    setExpandedStudent(
+                                                        isExpanded
+                                                            ? null
+                                                            : s.enrollment_id,
+                                                    )
+                                                }
+                                            >
+                                                <span className="w-5 text-center text-xs text-muted-foreground">
+                                                    {globalIdx + 1}
+                                                </span>
+                                                <span className="flex-1 truncate text-left font-medium">
+                                                    {s.name}
+                                                </span>
+                                                <div className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-muted">
+                                                    <div
+                                                        className="h-full rounded-full"
+                                                        style={{
+                                                            width: `${((s.grade - 1.3) / 3.7) * 100}%`,
+                                                            backgroundColor:
+                                                                LEVEL_COLORS[
+                                                                    levelLabel(
+                                                                        s.grade,
+                                                                    )
+                                                                ] ?? '#ccc',
+                                                        }}
+                                                    />
+                                                </div>
+                                                <span
+                                                    className={`w-10 shrink-0 text-right text-xs font-bold ${gradeColor(s.grade)}`}
+                                                >
+                                                    {formatDecimal(s.grade)}
+                                                </span>
+                                                {isExpanded ? (
+                                                    <ChevronUp className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                                ) : (
+                                                    <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                                )}
+                                            </button>
+                                            {isExpanded && (
+                                                <div className="border-t bg-muted/20 px-4 pt-2 pb-3">
+                                                    <p className="mb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                                                        Calificación por
+                                                        criterio
+                                                    </p>
+                                                    <div className="grid gap-1 sm:grid-cols-2">
+                                                        {s.by_criterion.map(
+                                                            (c) => (
+                                                                <div
+                                                                    key={
+                                                                        c.criterion_id
+                                                                    }
+                                                                    className="flex items-center justify-between rounded bg-background px-2 py-1 text-xs"
+                                                                >
+                                                                    <span
+                                                                        className="max-w-40 truncate text-muted-foreground"
+                                                                        title={
+                                                                            c.criterion_name
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            c.criterion_name
+                                                                        }
+                                                                    </span>
+                                                                    <div className="ml-2 flex shrink-0 items-center gap-1.5">
+                                                                        <span
+                                                                            className={`rounded px-1.5 py-0.5 text-xs font-semibold ${gradeBgClass(c.grade)}`}
+                                                                        >
+                                                                            {formatDecimal(
+                                                                                c.grade,
+                                                                            )}
+                                                                        </span>
+                                                                        <span className="text-muted-foreground">
+                                                                            {
+                                                                                c.level_name
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            {/* Paginación */}
+                            {totalStudentPages > 1 && (
+                                <div className="mt-3 flex items-center justify-between">
+                                    <p className="text-xs text-muted-foreground">
+                                        {studentPage * STUDENTS_PER_PAGE + 1}–
+                                        {Math.min(
+                                            (studentPage + 1) *
+                                                STUDENTS_PER_PAGE,
+                                            studentsForOutcome.length,
+                                        )}{' '}
+                                        de {studentsForOutcome.length}{' '}
+                                        estudiantes
+                                    </p>
+                                    <div className="flex gap-1">
+                                        <button
+                                            type="button"
+                                            disabled={studentPage === 0}
+                                            onClick={() => {
+                                                setStudentPage((p) => p - 1);
+                                                setExpandedStudent(null);
+                                            }}
+                                            className="rounded border px-2 py-1 text-xs transition-colors hover:bg-muted disabled:opacity-40"
+                                        >
+                                            ← Anterior
+                                        </button>
+                                        {Array.from(
+                                            { length: totalStudentPages },
+                                            (_, i) => (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setStudentPage(i);
+                                                        setExpandedStudent(
+                                                            null,
+                                                        );
+                                                    }}
+                                                    className={`rounded border px-2 py-1 text-xs transition-colors ${i === studentPage ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                                                >
+                                                    {i + 1}
+                                                </button>
+                                            ),
+                                        )}
+                                        <button
+                                            type="button"
+                                            disabled={
+                                                studentPage ===
+                                                totalStudentPages - 1
+                                            }
+                                            onClick={() => {
+                                                setStudentPage((p) => p + 1);
+                                                setExpandedStudent(null);
+                                            }}
+                                            className="rounded border px-2 py-1 text-xs transition-colors hover:bg-muted disabled:opacity-40"
+                                        >
+                                            Siguiente →
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </>
+            )}
+        </div>
+    );
+}
+
+// ── Tab 4: Por Criterio ───────────────────────────────────────────────────────
+
+function ByCriterionTab({ byCriterion }: { byCriterion: CriterionStats[] }) {
+    const [expandedCriterion, setExpandedCriterion] = useState<number | null>(
+        null,
+    );
+    const [expandedOutcome, setExpandedOutcome] = useState<number | null>(null);
+
+    const byType = byCriterion.reduce<Record<string, CriterionStats[]>>(
+        (acc, c) => {
+            const t = c.type_name ?? 'Otros';
+            if (!acc[t]) acc[t] = [];
+            acc[t].push(c);
+            return acc;
+        },
+        {},
+    );
+
+    const minCriterion = [...byCriterion].sort(
+        (a, b) => a.group_average - b.group_average,
+    )[0];
+
+    return (
+        <div className="space-y-6">
+            {/* Gráfica global */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">
+                        Promedio del grupo por criterio de evaluación
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                        Promedio de <strong>todas</strong> las calificaciones de
+                        ese criterio (todos los RAs que lo usan × todos los
+                        estudiantes) · escala 1.3–5.0
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                        {Object.keys(byType).map((t) => (
+                            <span
+                                key={t}
+                                className="flex items-center gap-1 text-xs"
+                            >
+                                <span
+                                    className="inline-block h-2 w-2 rounded-full"
+                                    style={{
+                                        backgroundColor:
+                                            TYPE_COLORS[t] ?? TYPE_FALLBACK,
+                                    }}
+                                />
+                                {t}
+                            </span>
+                        ))}
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={260}>
+                        <BarChart
+                            data={byCriterion.map((c) => ({
+                                name: c.criterion_name,
+                                nota: c.group_average,
+                                type: c.type_name ?? '',
+                            }))}
+                            margin={{ bottom: 80 }}
+                        >
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                vertical={false}
+                            />
+                            <XAxis
+                                dataKey="name"
+                                tick={{ fontSize: 10 }}
+                                angle={-40}
+                                textAnchor="end"
+                                interval={0}
+                            />
+                            <YAxis
+                                domain={[1, 5]}
+                                tickCount={5}
+                                tick={{ fontSize: 10 }}
+                            />
+                            <Tooltip
+                                formatter={(v, _, p) => [
+                                    `${formatDecimal(Number(v))} — ${levelLabel(Number(v))}`,
+                                    (p.payload as { type?: string }).type ??
+                                        'Criterio',
+                                ]}
+                            />
+                            <Bar dataKey="nota" radius={[4, 4, 0, 0]}>
+                                {byCriterion.map((c, i) => (
+                                    <Cell
+                                        key={i}
+                                        fill={
+                                            TYPE_COLORS[c.type_name ?? ''] ??
+                                            TYPE_FALLBACK
+                                        }
+                                        opacity={
+                                            c.criterion_id ===
+                                            minCriterion?.criterion_id
+                                                ? 1
+                                                : 0.75
+                                        }
+                                    />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
+
+            {/* Vista jerárquica por tipo → criterio → RAs → estudiantes */}
+            {Object.entries(byType).map(([typeName, criteria]) => {
+                const typeMin = [...criteria].sort(
+                    (a, b) => a.group_average - b.group_average,
+                )[0];
+                const typeColor = TYPE_COLORS[typeName] ?? TYPE_FALLBACK;
+
+                return (
+                    <div key={typeName}>
+                        <div className="mb-2 flex items-center gap-2">
+                            <span
+                                className="inline-block h-3 w-3 rounded-full"
+                                style={{ backgroundColor: typeColor }}
+                            />
+                            <h3
+                                className="text-sm font-semibold"
+                                style={{ color: typeColor }}
+                            >
+                                {typeName}
+                            </h3>
+                            <span className="text-xs text-muted-foreground">
+                                — {criteria.length} criterio
+                                {criteria.length !== 1 ? 's' : ''}
+                            </span>
+                        </div>
+
+                        <div className="space-y-2">
+                            {criteria.map((c) => {
+                                const isMin =
+                                    c.criterion_id === typeMin?.criterion_id;
+                                const isExpanded =
+                                    expandedCriterion === c.criterion_id;
+
+                                return (
+                                    <div
+                                        key={c.criterion_id}
+                                        className={`overflow-hidden rounded-lg border ${isMin ? 'border-amber-300 dark:border-amber-700' : ''}`}
+                                    >
+                                        {/* Fila del criterio — desplegable */}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setExpandedCriterion(
+                                                    isExpanded
+                                                        ? null
+                                                        : c.criterion_id,
+                                                );
+                                                setExpandedOutcome(null);
+                                            }}
+                                            className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 ${isMin ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-muted/20'}`}
+                                        >
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span
+                                                        className={`text-sm font-semibold ${isMin ? 'text-amber-800 dark:text-amber-300' : ''}`}
+                                                    >
+                                                        {c.criterion_name}
+                                                    </span>
+                                                    {isMin && (
+                                                        <span className="text-xs font-medium text-amber-500">
+                                                            ↓ menor del grupo
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                                    Promedio en{' '}
+                                                    {c.by_outcome.length} RA
+                                                    {c.by_outcome.length !== 1
+                                                        ? 's'
+                                                        : ''}{' '}
+                                                    ·{' '}
+                                                    {c.by_outcome.reduce(
+                                                        (s, o) =>
+                                                            s +
+                                                            o.students.length,
+                                                        0,
+                                                    )}{' '}
+                                                    calificaciones totales
+                                                </p>
+                                            </div>
+                                            <div className="flex shrink-0 items-center gap-3">
+                                                <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
+                                                    <div
+                                                        className="h-full rounded-full"
+                                                        style={{
+                                                            width: `${((c.group_average - 1.3) / 3.7) * 100}%`,
+                                                            backgroundColor:
+                                                                typeColor,
+                                                        }}
+                                                    />
+                                                </div>
+                                                <span
+                                                    className={`w-10 text-right text-sm font-bold ${gradeColor(c.group_average)}`}
+                                                >
+                                                    {formatDecimal(
+                                                        c.group_average,
+                                                    )}
+                                                </span>
+                                                {isExpanded ? (
+                                                    <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                                                ) : (
+                                                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                                                )}
+                                            </div>
+                                        </button>
+
+                                        {/* RAs que usan este criterio */}
+                                        {isExpanded && (
+                                            <div className="divide-y border-t bg-background">
+                                                {c.by_outcome.map((o) => {
+                                                    const isOutcomeExpanded =
+                                                        expandedOutcome ===
+                                                        o.outcome_id;
+                                                    return (
+                                                        <div key={o.outcome_id}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setExpandedOutcome(
+                                                                        isOutcomeExpanded
+                                                                            ? null
+                                                                            : o.outcome_id,
+                                                                    )
+                                                                }
+                                                                className="flex w-full items-center gap-3 px-6 py-2.5 text-left transition-colors hover:bg-muted/30"
+                                                            >
+                                                                <div className="min-w-0 flex-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span
+                                                                            className="rounded bg-muted px-1.5 py-0.5 text-xs font-semibold"
+                                                                            style={{
+                                                                                color: typeColor,
+                                                                            }}
+                                                                        >
+                                                                            {o.outcome_code ??
+                                                                                `RA${o.outcome_id}`}
+                                                                        </span>
+                                                                        <span
+                                                                            className="max-w-62.5 truncate text-xs text-muted-foreground"
+                                                                            title={
+                                                                                o.outcome_desc
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                o.outcome_desc
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="mt-0.5 text-xs text-muted-foreground">
+                                                                        {
+                                                                            o
+                                                                                .students
+                                                                                .length
+                                                                        }{' '}
+                                                                        estudiante
+                                                                        {o
+                                                                            .students
+                                                                            .length !==
+                                                                        1
+                                                                            ? 's'
+                                                                            : ''}
+                                                                    </p>
+                                                                </div>
+                                                                <div className="flex shrink-0 items-center gap-2">
+                                                                    <span
+                                                                        className={`text-xs font-bold ${gradeColor(o.group_average)}`}
+                                                                    >
+                                                                        {formatDecimal(
+                                                                            o.group_average,
+                                                                        )}
+                                                                    </span>
+                                                                    {isOutcomeExpanded ? (
+                                                                        <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                                                                    ) : (
+                                                                        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                                                                    )}
+                                                                </div>
+                                                            </button>
+
+                                                            {/* Estudiantes en este RA con este criterio */}
+                                                            {isOutcomeExpanded && (
+                                                                <div className="border-t bg-muted/10 px-8 py-3">
+                                                                    <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+                                                                        {o.students.map(
+                                                                            (
+                                                                                s,
+                                                                                si,
+                                                                            ) => (
+                                                                                <div
+                                                                                    key={
+                                                                                        si
+                                                                                    }
+                                                                                    className="flex items-center gap-2 rounded border bg-background px-2 py-1.5 text-xs"
+                                                                                >
+                                                                                    <span
+                                                                                        className="flex-1 truncate font-medium"
+                                                                                        title={
+                                                                                            s.student_name
+                                                                                        }
+                                                                                    >
+                                                                                        {
+                                                                                            s.student_name
+                                                                                        }
+                                                                                    </span>
+                                                                                    <span className="shrink-0 text-muted-foreground">
+                                                                                        {
+                                                                                            s.level_name
+                                                                                        }
+                                                                                    </span>
+                                                                                    <span
+                                                                                        className={`shrink-0 rounded px-1.5 py-0.5 font-semibold ${gradeBgClass(s.grade)}`}
+                                                                                    >
+                                                                                        {formatDecimal(
+                                                                                            s.grade,
+                                                                                        )}
+                                                                                    </span>
+                                                                                </div>
+                                                                            ),
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })}
+
             {minCriterion && (
-                <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/10">
-                    <CardContent className="pt-6">
-                        <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                            Criterio con menor promedio
-                        </p>
-                        <p className="mt-1 text-xl font-bold text-amber-700 dark:text-amber-300">
-                            {minCriterion.criterion_name}
-                        </p>
-                        <p className="text-3xl font-bold">
-                            {formatDecimal(minCriterion.group_average)}
-                        </p>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                            Este criterio puede necesitar mayor énfasis
-                            pedagógico en el grupo.
-                        </p>
+                <Card className="border-amber-200 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/10">
+                    <CardContent className="pt-5">
+                        <div className="flex items-start gap-4">
+                            <Zap className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                            <div>
+                                <p className="text-xs font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-400">
+                                    Criterio con menor promedio en el grupo
+                                </p>
+                                <p className="mt-0.5 text-lg font-bold text-amber-800 dark:text-amber-300">
+                                    {minCriterion.criterion_name}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Tipo: {minCriterion.type_name} · Promedio:{' '}
+                                    <strong
+                                        className={gradeColor(
+                                            minCriterion.group_average,
+                                        )}
+                                    >
+                                        {formatDecimal(
+                                            minCriterion.group_average,
+                                        )}
+                                    </strong>{' '}
+                                    ({levelLabel(minCriterion.group_average)}) ·{' '}
+                                    aparece en {minCriterion.by_outcome.length}{' '}
+                                    resultado
+                                    {minCriterion.by_outcome.length !== 1
+                                        ? 's'
+                                        : ''}
+                                </p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             )}
@@ -629,6 +1620,16 @@ function ByCriterionTab({
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function StatisticsShow({ programming, statistics }: Props) {
+    const [activeTab, setActiveTab] = useState('summary');
+    const [highlightedEnrollmentId, setHighlightedEnrollmentId] = useState<
+        number | undefined
+    >();
+
+    function handleStudentClick(id: number) {
+        setHighlightedEnrollmentId(id);
+        setActiveTab('by-student');
+    }
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/professor/dashboard' },
         {
@@ -652,19 +1653,22 @@ export default function StatisticsShow({ programming, statistics }: Props) {
                     title={`Estadísticas: ${programming.academic_space?.name ?? ''}`}
                     description={`${programming.academic_period?.name ?? ''}${programming.group ? ` · Grupo ${programming.group}` : ''} · ${programming.modality?.name ?? ''}`}
                 >
-                    <a
-                        href={GradingController.downloadReport.url(programming)}
-                        download
-                        className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent"
-                    >
-                        ↓ Exportar reporte Excel
-                    </a>
+                    <Button variant="outline" asChild>
+                        <a
+                            href={GradingController.downloadReport.url(
+                                programming,
+                            )}
+                            download
+                        >
+                            ↓ Exportar reporte Excel
+                        </a>
+                    </Button>
                 </PageHeader>
 
-                <Tabs defaultValue="summary">
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className="mb-2">
                         <TabsTrigger value="summary">
-                            Resumen global
+                            Resumen general
                         </TabsTrigger>
                         <TabsTrigger value="by-student">
                             Por estudiante
@@ -678,13 +1682,18 @@ export default function StatisticsShow({ programming, statistics }: Props) {
                     </TabsList>
 
                     <TabsContent value="summary" className="mt-4">
-                        <SummaryTab summary={statistics.summary} />
+                        <SummaryTab
+                            summary={statistics.summary}
+                            byStudent={statistics.byStudent}
+                            onStudentClick={handleStudentClick}
+                        />
                     </TabsContent>
 
                     <TabsContent value="by-student" className="mt-4">
                         <ByStudentTab
                             byStudent={statistics.byStudent}
-                            byCriterion={statistics.byCriterion}
+                            byOutcome={statistics.byOutcome}
+                            initialEnrollmentId={highlightedEnrollmentId}
                         />
                     </TabsContent>
 
