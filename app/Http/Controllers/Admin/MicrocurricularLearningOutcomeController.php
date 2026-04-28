@@ -31,12 +31,12 @@ class MicrocurricularLearningOutcomeController extends Controller
 
         $outcomes = MicrocurricularLearningOutcome::query()
             ->with(['academicSpace.competency.problematicNucleus.program.faculty', 'type', 'mesocurricularLearningOutcome'])
-            ->when(request('search'), fn($q, $search) => $q->where('description', 'like', "%{$search}%"))
-            ->when($spaceId, fn($q) => $q->where('academic_space_id', $spaceId))
-            ->when($competencyId && ! $spaceId, fn($q) => $q->whereHas('academicSpace', fn($sq) => $sq->where('competency_id', $competencyId)))
-            ->when($nucleusId && ! $competencyId && ! $spaceId, fn($q) => $q->whereHas('academicSpace.competency', fn($cq) => $cq->where('problematic_nucleus_id', $nucleusId)))
-            ->when($programId && ! $nucleusId && ! $competencyId && ! $spaceId, fn($q) => $q->whereHas('academicSpace.competency.problematicNucleus', fn($nq) => $nq->where('program_id', $programId)))
-            ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId && ! $spaceId, fn($q) => $q->whereHas('academicSpace.competency.problematicNucleus.program', fn($pq) => $pq->where('faculty_id', $facultyId)))
+            ->when(request('search'), fn ($q, $search) => $q->where('description', 'like', "%{$search}%"))
+            ->when($spaceId, fn ($q) => $q->where('academic_space_id', $spaceId))
+            ->when($competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace', fn ($sq) => $sq->where('competency_id', $competencyId)))
+            ->when($nucleusId && ! $competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace.competency', fn ($cq) => $cq->where('problematic_nucleus_id', $nucleusId)))
+            ->when($programId && ! $nucleusId && ! $competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace.competency.problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
+            ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace.competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
@@ -44,28 +44,28 @@ class MicrocurricularLearningOutcomeController extends Controller
         $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
 
         $programs = Program::query()->active()
-            ->when($facultyId, fn($q) => $q->where('faculty_id', $facultyId))
+            ->when($facultyId, fn ($q) => $q->where('faculty_id', $facultyId))
             ->orderBy('name')
             ->get(['id', 'name']);
 
         $nuclei = ProblematicNucleus::query()->active()
-            ->when($programId, fn($q) => $q->where('program_id', $programId))
-            ->when($facultyId && ! $programId, fn($q) => $q->whereHas('program', fn($pq) => $pq->where('faculty_id', $facultyId)))
+            ->when($programId, fn ($q) => $q->where('program_id', $programId))
+            ->when($facultyId && ! $programId, fn ($q) => $q->whereHas('program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
             ->get(['id', 'name']);
 
         $competencies = Competency::query()->active()
-            ->when($nucleusId, fn($q) => $q->where('problematic_nucleus_id', $nucleusId))
-            ->when($programId && ! $nucleusId, fn($q) => $q->whereHas('problematicNucleus', fn($nq) => $nq->where('program_id', $programId)))
-            ->when($facultyId && ! $programId && ! $nucleusId, fn($q) => $q->whereHas('problematicNucleus.program', fn($pq) => $pq->where('faculty_id', $facultyId)))
+            ->when($nucleusId, fn ($q) => $q->where('problematic_nucleus_id', $nucleusId))
+            ->when($programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
+            ->when($facultyId && ! $programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
             ->get(['id', 'name']);
 
         $academicSpaces = AcademicSpace::query()->active()
-            ->when($competencyId, fn($q) => $q->where('competency_id', $competencyId))
-            ->when($nucleusId && ! $competencyId, fn($q) => $q->whereHas('competency', fn($cq) => $cq->where('problematic_nucleus_id', $nucleusId)))
-            ->when($programId && ! $nucleusId && ! $competencyId, fn($q) => $q->whereHas('competency.problematicNucleus', fn($nq) => $nq->where('program_id', $programId)))
-            ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId, fn($q) => $q->whereHas('competency.problematicNucleus.program', fn($pq) => $pq->where('faculty_id', $facultyId)))
+            ->when($competencyId, fn ($q) => $q->where('competency_id', $competencyId))
+            ->when($nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency', fn ($cq) => $cq->where('problematic_nucleus_id', $nucleusId)))
+            ->when($programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
+            ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
             ->get(['id', 'name']);
 
@@ -144,15 +144,15 @@ class MicrocurricularLearningOutcomeController extends Controller
             ->get();
 
         // Group by programming
-        $byProgramming = $grades->groupBy(fn($g) => $g->enrollment->programming_id)
+        $byProgramming = $grades->groupBy(fn ($g) => $g->enrollment->programming_id)
             ->map(function ($progGrades) use ($performanceLevels, $orderToGrade) {
                 $programming = $progGrades->first()->enrollment->programming;
 
                 // Per student: avg of criteria grades for this outcome in this programming
                 $gradesByStudent = $progGrades
                     ->groupBy('enrollment_id')
-                    ->map(fn($sg) => round(
-                        $sg->avg(fn($g) => $orderToGrade[$g->performanceLevel->order] ?? $g->performanceLevel->order),
+                    ->map(fn ($sg) => round(
+                        $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? $g->performanceLevel->order),
                         2
                     ))
                     ->values();
@@ -214,8 +214,8 @@ class MicrocurricularLearningOutcomeController extends Controller
         // Trend by period: avg per period sorted chronologically
         $trendByPeriod = $byProgramming
             ->groupBy('period')
-            ->map(fn($items) => round($items->avg('group_average'), 2))
-            ->map(fn($avg, $period) => ['period' => $period, 'average' => $avg])
+            ->map(fn ($items) => round($items->avg('group_average'), 2))
+            ->map(fn ($avg, $period) => ['period' => $period, 'average' => $avg])
             ->values()
             ->sortBy('period')
             ->values();

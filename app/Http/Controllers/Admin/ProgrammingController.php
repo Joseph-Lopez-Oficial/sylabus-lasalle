@@ -23,10 +23,10 @@ class ProgrammingController extends Controller
     {
         $programmings = Programming::query()
             ->with(['academicSpace', 'professor', 'modality', 'academicPeriod'])
-            ->when(request('search'), fn($q, $search) => $q->where('group', 'like', "%{$search}%"))
-            ->when(request('professor_id'), fn($q, $id) => $q->where('professor_id', $id))
-            ->when(request('academic_space_id'), fn($q, $id) => $q->where('academic_space_id', $id))
-            ->when(request('academic_period_id'), fn($q, $id) => $q->where('academic_period_id', $id))
+            ->when(request('search'), fn ($q, $search) => $q->where('group', 'like', "%{$search}%"))
+            ->when(request('professor_id'), fn ($q, $id) => $q->where('professor_id', $id))
+            ->when(request('academic_space_id'), fn ($q, $id) => $q->where('academic_space_id', $id))
+            ->when(request('academic_period_id'), fn ($q, $id) => $q->where('academic_period_id', $id))
             ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();

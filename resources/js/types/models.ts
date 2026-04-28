@@ -131,6 +131,7 @@ export type Competency = {
 
 export type MesocurricularLearningOutcome = {
     id: number;
+    code: string;
     competency_id: number;
     description: string;
     is_active: boolean;

@@ -18,6 +18,7 @@ class MesocurricularLearningOutcomeFactory extends Factory
     public function definition(): array
     {
         return [
+            'code' => 'RM'.fake()->unique()->numberBetween(1, 999),
             'competency_id' => Competency::factory(),
             'description' => fake()->paragraph(),
             'is_active' => true,

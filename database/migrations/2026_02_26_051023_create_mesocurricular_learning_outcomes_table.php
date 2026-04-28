@@ -33,6 +33,7 @@ return new class extends Migration
     {
         Schema::create('mesocurricular_learning_outcomes', function (Blueprint $table) {
             $table->id();
+            $table->string('code', 10)->nullable();
             $table->foreignId('competency_id')->constrained('competencies')->cascadeOnDelete();
             $table->text('description');
             $table->boolean('is_active')->default(true);

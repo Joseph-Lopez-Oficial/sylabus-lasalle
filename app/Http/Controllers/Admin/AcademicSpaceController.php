@@ -27,12 +27,12 @@ class AcademicSpaceController extends Controller
 
         $academicSpaces = AcademicSpace::query()
             ->with('competency.problematicNucleus.program.faculty')
-            ->when(request('search'), fn($q, $search) => $q->where('name', 'like', "%{$search}%")
+            ->when(request('search'), fn ($q, $search) => $q->where('name', 'like', "%{$search}%")
                 ->orWhere('code', 'like', "%{$search}%"))
-            ->when($competencyId, fn($q) => $q->where('competency_id', $competencyId))
-            ->when($nucleusId && ! $competencyId, fn($q) => $q->whereHas('competency', fn($cq) => $cq->where('problematic_nucleus_id', $nucleusId)))
-            ->when($programId && ! $nucleusId && ! $competencyId, fn($q) => $q->whereHas('competency.problematicNucleus', fn($nq) => $nq->where('program_id', $programId)))
-            ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId, fn($q) => $q->whereHas('competency.problematicNucleus.program', fn($pq) => $pq->where('faculty_id', $facultyId)))
+            ->when($competencyId, fn ($q) => $q->where('competency_id', $competencyId))
+            ->when($nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency', fn ($cq) => $cq->where('problematic_nucleus_id', $nucleusId)))
+            ->when($programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
+            ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
@@ -40,20 +40,20 @@ class AcademicSpaceController extends Controller
         $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
 
         $programs = Program::query()->active()
-            ->when($facultyId, fn($q) => $q->where('faculty_id', $facultyId))
+            ->when($facultyId, fn ($q) => $q->where('faculty_id', $facultyId))
             ->orderBy('name')
             ->get(['id', 'name']);
 
         $nuclei = ProblematicNucleus::query()->active()
-            ->when($programId, fn($q) => $q->where('program_id', $programId))
-            ->when($facultyId && ! $programId, fn($q) => $q->whereHas('program', fn($pq) => $pq->where('faculty_id', $facultyId)))
+            ->when($programId, fn ($q) => $q->where('program_id', $programId))
+            ->when($facultyId && ! $programId, fn ($q) => $q->whereHas('program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
             ->get(['id', 'name']);
 
         $competencies = Competency::query()->active()
-            ->when($nucleusId, fn($q) => $q->where('problematic_nucleus_id', $nucleusId))
-            ->when($programId && ! $nucleusId, fn($q) => $q->whereHas('problematicNucleus', fn($nq) => $nq->where('program_id', $programId)))
-            ->when($facultyId && ! $programId && ! $nucleusId, fn($q) => $q->whereHas('problematicNucleus.program', fn($pq) => $pq->where('faculty_id', $facultyId)))
+            ->when($nucleusId, fn ($q) => $q->where('problematic_nucleus_id', $nucleusId))
+            ->when($programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
+            ->when($facultyId && ! $programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
             ->get(['id', 'name']);
 
@@ -86,7 +86,7 @@ class AcademicSpaceController extends Controller
         $academicSpace->load([
             'competency',
             'microcurricularLearningOutcomes.type',
-            'topics' => fn($q) => $q->orderBy('order'),
+            'topics' => fn ($q) => $q->orderBy('order'),
             'programmings.professor',
             'programmings.academicPeriod',
         ]);
@@ -101,7 +101,7 @@ class AcademicSpaceController extends Controller
 
         if ($programmingIds->isNotEmpty()) {
             $grades = Grade::query()
-                ->whereHas('enrollment', fn($q) => $q->whereIn('programming_id', $programmingIds))
+                ->whereHas('enrollment', fn ($q) => $q->whereIn('programming_id', $programmingIds))
                 ->with([
                     'enrollment.programming.academicPeriod',
                     'enrollment.programming.professor',
@@ -114,13 +114,13 @@ class AcademicSpaceController extends Controller
             if ($grades->isNotEmpty()) {
                 // ── By programming ────────────────────────────────────────────
                 $byProgramming = $grades
-                    ->groupBy(fn($g) => $g->enrollment->programming_id)
+                    ->groupBy(fn ($g) => $g->enrollment->programming_id)
                     ->map(function ($pg) use ($performanceLevels, $orderToGrade) {
                         $prog = $pg->first()->enrollment->programming;
 
                         $gradesByStudent = $pg->groupBy('enrollment_id')
-                            ->map(fn($sg) => round(
-                                $sg->avg(fn($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                            ->map(fn ($sg) => round(
+                                $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
                                 2
                             ))->values();
 
@@ -128,7 +128,7 @@ class AcademicSpaceController extends Controller
                             ? round($gradesByStudent->avg(), 2) : 0.0;
 
                         $totalGrades = $pg->count();
-                        $distribution = $performanceLevels->map(fn($l) => [
+                        $distribution = $performanceLevels->map(fn ($l) => [
                             'level_id' => $l->id,
                             'level_name' => $l->name,
                             'count' => $pg->where('performance_level_id', $l->id)->count(),
@@ -161,8 +161,8 @@ class AcademicSpaceController extends Controller
                         $outcome = $og->first()->microcurricularLearningOutcome;
 
                         $gradesByStudent = $og->groupBy('enrollment_id')
-                            ->map(fn($sg) => round(
-                                $sg->avg(fn($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                            ->map(fn ($sg) => round(
+                                $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
                                 2
                             ))->values();
 
@@ -170,7 +170,7 @@ class AcademicSpaceController extends Controller
                             ? round($gradesByStudent->avg(), 2) : 0.0;
 
                         $totalGrades = $og->count();
-                        $distribution = $performanceLevels->map(fn($l) => [
+                        $distribution = $performanceLevels->map(fn ($l) => [
                             'level_id' => $l->id,
                             'level_name' => $l->name,
                             'count' => $og->where('performance_level_id', $l->id)->count(),
@@ -189,7 +189,7 @@ class AcademicSpaceController extends Controller
                             'highest' => $gradesByStudent->max() ?? 0.0,
                             'lowest' => $gradesByStudent->min() ?? 0.0,
                             'distribution' => $distribution,
-                            'programming_count' => $og->unique(fn($g) => $g->enrollment->programming_id)->count(),
+                            'programming_count' => $og->unique(fn ($g) => $g->enrollment->programming_id)->count(),
                         ];
                     })
                     ->sortByDesc('group_average')
@@ -207,7 +207,7 @@ class AcademicSpaceController extends Controller
                             'type_id' => $criterion->microcurricular_learning_outcome_type_id,
                             'type_name' => $criterion->outcomeType?->name,
                             'group_average' => round(
-                                $cg->avg(fn($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                                $cg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
                                 2
                             ),
                         ];
@@ -234,8 +234,8 @@ class AcademicSpaceController extends Controller
 
                 $trendByPeriod = $byProgramming
                     ->groupBy('period')
-                    ->map(fn($items) => round($items->avg('group_average'), 2))
-                    ->map(fn($avg, $period) => ['period' => $period, 'average' => $avg])
+                    ->map(fn ($items) => round($items->avg('group_average'), 2))
+                    ->map(fn ($avg, $period) => ['period' => $period, 'average' => $avg])
                     ->values()
                     ->sortBy('period')
                     ->values();

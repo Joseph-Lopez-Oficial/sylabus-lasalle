@@ -4,6 +4,7 @@ import * as OutcomeController from '@/actions/App/Http/Controllers/Admin/Mesocur
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -74,6 +75,21 @@ export default function MesocurricularOutcomesCreate({ competencies }: Props) {
                                         )}
                                     </div>
                                     <div className="grid gap-1.5">
+                                        <Label htmlFor="code">Código *</Label>
+                                        <Input
+                                            id="code"
+                                            name="code"
+                                            placeholder="Ej. RM1"
+                                            className="font-mono max-w-xs"
+                                            autoFocus
+                                        />
+                                        {errors.code && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.code}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="grid gap-1.5">
                                         <Label htmlFor="description">
                                             Descripción del resultado *
                                         </Label>
@@ -81,7 +97,6 @@ export default function MesocurricularOutcomesCreate({ competencies }: Props) {
                                             id="description"
                                             name="description"
                                             rows={5}
-                                            autoFocus
                                             placeholder="Describe el resultado de aprendizaje mesocurricular..."
                                         />
                                         {errors.description && (

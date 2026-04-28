@@ -12,7 +12,7 @@ class MesocurricularLearningOutcome extends Model
     /** @use HasFactory<\Database\Factories\MesocurricularLearningOutcomeFactory> */
     use HasFactory;
 
-    protected $fillable = ['competency_id', 'description', 'is_active'];
+    protected $fillable = ['code', 'competency_id', 'description', 'is_active'];
 
     protected function casts(): array
     {
