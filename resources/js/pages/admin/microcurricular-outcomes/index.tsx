@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Plus, Power } from 'lucide-react';
+import { Eye, Pencil, Plus, Power } from 'lucide-react';
 import { useState } from 'react';
 import * as OutcomeController from '@/actions/App/Http/Controllers/Admin/MicrocurricularLearningOutcomeController';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -122,6 +122,11 @@ export default function MicrocurricularOutcomesIndex({
             cell: ({ row }) => (
                 <div className="flex items-center justify-end gap-1">
                     <Button variant="ghost" size="icon" asChild>
+                        <Link href={OutcomeController.show.url(row.original)}>
+                            <Eye className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" asChild>
                         <Link href={OutcomeController.edit.url(row.original)}>
                             <Pencil className="h-4 w-4" />
                         </Link>
@@ -181,7 +186,10 @@ export default function MicrocurricularOutcomesIndex({
                             onValueChange={(val) =>
                                 router.get(
                                     OutcomeController.index.url(),
-                                    { faculty_id: filters.faculty_id, ...(val ? { program_id: val } : {}) },
+                                    {
+                                        faculty_id: filters.faculty_id,
+                                        ...(val ? { program_id: val } : {}),
+                                    },
                                     { preserveState: true },
                                 )
                             }
@@ -191,7 +199,9 @@ export default function MicrocurricularOutcomesIndex({
                             </SelectTrigger>
                             <SelectContent>
                                 {programs.map((p) => (
-                                    <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                                    <SelectItem key={p.id} value={String(p.id)}>
+                                        {p.name}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -202,7 +212,13 @@ export default function MicrocurricularOutcomesIndex({
                             onValueChange={(val) =>
                                 router.get(
                                     OutcomeController.index.url(),
-                                    { faculty_id: filters.faculty_id, program_id: filters.program_id, ...(val ? { problematic_nucleus_id: val } : {}) },
+                                    {
+                                        faculty_id: filters.faculty_id,
+                                        program_id: filters.program_id,
+                                        ...(val
+                                            ? { problematic_nucleus_id: val }
+                                            : {}),
+                                    },
                                     { preserveState: true },
                                 )
                             }
@@ -212,7 +228,9 @@ export default function MicrocurricularOutcomesIndex({
                             </SelectTrigger>
                             <SelectContent>
                                 {nuclei.map((n) => (
-                                    <SelectItem key={n.id} value={String(n.id)}>{n.name}</SelectItem>
+                                    <SelectItem key={n.id} value={String(n.id)}>
+                                        {n.name}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -223,7 +241,13 @@ export default function MicrocurricularOutcomesIndex({
                             onValueChange={(val) =>
                                 router.get(
                                     OutcomeController.index.url(),
-                                    { faculty_id: filters.faculty_id, program_id: filters.program_id, problematic_nucleus_id: filters.problematic_nucleus_id, ...(val ? { competency_id: val } : {}) },
+                                    {
+                                        faculty_id: filters.faculty_id,
+                                        program_id: filters.program_id,
+                                        problematic_nucleus_id:
+                                            filters.problematic_nucleus_id,
+                                        ...(val ? { competency_id: val } : {}),
+                                    },
                                     { preserveState: true },
                                 )
                             }
@@ -233,7 +257,9 @@ export default function MicrocurricularOutcomesIndex({
                             </SelectTrigger>
                             <SelectContent>
                                 {competencies.map((c) => (
-                                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                                    <SelectItem key={c.id} value={String(c.id)}>
+                                        {c.name}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -244,7 +270,16 @@ export default function MicrocurricularOutcomesIndex({
                             onValueChange={(val) =>
                                 router.get(
                                     OutcomeController.index.url(),
-                                    { faculty_id: filters.faculty_id, program_id: filters.program_id, problematic_nucleus_id: filters.problematic_nucleus_id, competency_id: filters.competency_id, ...(val ? { academic_space_id: val } : {}) },
+                                    {
+                                        faculty_id: filters.faculty_id,
+                                        program_id: filters.program_id,
+                                        problematic_nucleus_id:
+                                            filters.problematic_nucleus_id,
+                                        competency_id: filters.competency_id,
+                                        ...(val
+                                            ? { academic_space_id: val }
+                                            : {}),
+                                    },
                                     { preserveState: true },
                                 )
                             }
@@ -254,7 +289,9 @@ export default function MicrocurricularOutcomesIndex({
                             </SelectTrigger>
                             <SelectContent>
                                 {academicSpaces.map((s) => (
-                                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                                    <SelectItem key={s.id} value={String(s.id)}>
+                                        {s.name}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>

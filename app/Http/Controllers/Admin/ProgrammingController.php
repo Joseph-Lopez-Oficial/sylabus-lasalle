@@ -11,6 +11,8 @@ use App\Models\Modality;
 use App\Models\Professor;
 use App\Models\Programming;
 use App\Models\Student;
+use App\Services\GradingService;
+use App\Services\StatisticsService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,10 +23,10 @@ class ProgrammingController extends Controller
     {
         $programmings = Programming::query()
             ->with(['academicSpace', 'professor', 'modality', 'academicPeriod'])
-            ->when(request('search'), fn ($q, $search) => $q->where('group', 'like', "%{$search}%"))
-            ->when(request('professor_id'), fn ($q, $id) => $q->where('professor_id', $id))
-            ->when(request('academic_space_id'), fn ($q, $id) => $q->where('academic_space_id', $id))
-            ->when(request('academic_period_id'), fn ($q, $id) => $q->where('academic_period_id', $id))
+            ->when(request('search'), fn($q, $search) => $q->where('group', 'like', "%{$search}%"))
+            ->when(request('professor_id'), fn($q, $id) => $q->where('professor_id', $id))
+            ->when(request('academic_space_id'), fn($q, $id) => $q->where('academic_space_id', $id))
+            ->when(request('academic_period_id'), fn($q, $id) => $q->where('academic_period_id', $id))
             ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
@@ -96,5 +98,31 @@ class ProgrammingController extends Controller
         $status = $programming->is_active ? 'activada' : 'desactivada';
 
         return back()->with('success', "Programación {$status} exitosamente.");
+    }
+
+    public function statistics(Programming $programming, GradingService $gradingService, StatisticsService $statisticsService): Response
+    {
+        $programming->load(['academicSpace.competency', 'professor', 'modality', 'academicPeriod']);
+
+        $completeness = $gradingService->completeness($programming);
+
+        $statistics = $statisticsService->calculate($programming);
+
+        return Inertia::render('admin/programmings/statistics', [
+            'programming' => [
+                'id' => $programming->id,
+                'group' => $programming->group,
+                'academic_period' => $programming->academicPeriod ? ['name' => $programming->academicPeriod->name] : null,
+                'academic_space' => $programming->academicSpace ? $programming->academicSpace->only(['id', 'name', 'code']) : null,
+                'professor' => $programming->professor ? [
+                    'id' => $programming->professor->id,
+                    'first_name' => $programming->professor->first_name,
+                    'last_name' => $programming->professor->last_name,
+                ] : null,
+                'modality' => $programming->modality ? $programming->modality->only(['id', 'name']) : null,
+            ],
+            'statistics' => $statistics,
+            'completeness' => $completeness,
+        ]);
     }
 }

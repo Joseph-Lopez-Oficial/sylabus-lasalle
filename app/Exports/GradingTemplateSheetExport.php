@@ -27,7 +27,7 @@ class GradingTemplateSheetExport implements FromArray, ShouldAutoSize, WithEvent
     public function title(): string
     {
         // Sheet name: "RA-Conocimiento", "RA-Habilidad", "RA-Actitud"
-        return 'RA-' . $this->typeName;
+        return 'RA-'.$this->typeName;
     }
 
     public function headings(): array
@@ -37,7 +37,7 @@ class GradingTemplateSheetExport implements FromArray, ShouldAutoSize, WithEvent
 
         foreach ($this->outcomes as $outcome) {
             foreach ($this->criteria as $criterion) {
-                $code = $outcome['code'] ?? ('RA' . $outcome['id']);
+                $code = $outcome['code'] ?? ('RA'.$outcome['id']);
                 $headers[] = "{$code} — {$criterion['name']}";
             }
         }
@@ -53,7 +53,7 @@ class GradingTemplateSheetExport implements FromArray, ShouldAutoSize, WithEvent
             $row = [
                 $enrollment['id'],
                 $enrollment['student']['document_number'] ?? '',
-                ($enrollment['student']['first_name'] ?? '') . ' ' . ($enrollment['student']['last_name'] ?? ''),
+                ($enrollment['student']['first_name'] ?? '').' '.($enrollment['student']['last_name'] ?? ''),
             ];
 
             foreach ($this->outcomes as $outcome) {
@@ -84,7 +84,7 @@ class GradingTemplateSheetExport implements FromArray, ShouldAutoSize, WithEvent
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-                $levelList = '"' . implode(',', $this->performanceLevelNames) . '"';
+                $levelList = '"'.implode(',', $this->performanceLevelNames).'"';
                 $totalRows = count($this->enrollments);
                 // Cols: A=enrollment_id, B=documento, C=estudiante, D onward = grades
                 $gradeCols = count($this->outcomes) * count($this->criteria);

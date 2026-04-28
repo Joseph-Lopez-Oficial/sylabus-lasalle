@@ -106,6 +106,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('microcurricular-outcomes', [MicrocurricularLearningOutcomeController::class, 'index'])->name('microcurricular-outcomes.index');
     Route::get('microcurricular-outcomes/create', [MicrocurricularLearningOutcomeController::class, 'create'])->name('microcurricular-outcomes.create');
     Route::post('microcurricular-outcomes', [MicrocurricularLearningOutcomeController::class, 'store'])->name('microcurricular-outcomes.store');
+    Route::get('microcurricular-outcomes/{microcurricularOutcome}', [MicrocurricularLearningOutcomeController::class, 'show'])->name('microcurricular-outcomes.show');
     Route::get('microcurricular-outcomes/{microcurricularOutcome}/edit', [MicrocurricularLearningOutcomeController::class, 'edit'])->name('microcurricular-outcomes.edit');
     Route::put('microcurricular-outcomes/{microcurricularOutcome}', [MicrocurricularLearningOutcomeController::class, 'update'])->name('microcurricular-outcomes.update');
     Route::patch('microcurricular-outcomes/{microcurricularOutcome}/toggle-status', [MicrocurricularLearningOutcomeController::class, 'toggleStatus'])->name('microcurricular-outcomes.toggle-status');
@@ -166,6 +167,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('programmings/create', [ProgrammingController::class, 'create'])->name('programmings.create');
     Route::post('programmings', [ProgrammingController::class, 'store'])->name('programmings.store');
     Route::get('programmings/{programming}', [ProgrammingController::class, 'show'])->name('programmings.show');
+    Route::get('programmings/{programming}/statistics', [ProgrammingController::class, 'statistics'])->name('programmings.statistics');
     Route::get('programmings/{programming}/edit', [ProgrammingController::class, 'edit'])->name('programmings.edit');
     Route::put('programmings/{programming}', [ProgrammingController::class, 'update'])->name('programmings.update');
     Route::patch('programmings/{programming}/toggle-status', [ProgrammingController::class, 'toggleStatus'])->name('programmings.toggle-status');

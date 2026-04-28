@@ -11,6 +11,7 @@ import {
     Users,
     X,
 } from 'lucide-react';
+import { BarChart2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import * as EnrollmentController from '@/actions/App/Http/Controllers/Admin/EnrollmentController';
 import * as ProgrammingController from '@/actions/App/Http/Controllers/Admin/ProgrammingController';
@@ -146,6 +147,17 @@ export default function ProgrammingsShow({
                     <TabsList>
                         <TabsTrigger value="info">
                             Información general
+                        </TabsTrigger>
+                        <TabsTrigger value="stats" asChild>
+                            <Link
+                                href={ProgrammingController.statistics.url(
+                                    programming,
+                                )}
+                                className="flex items-center gap-1.5"
+                            >
+                                <BarChart2 className="h-3.5 w-3.5" />
+                                Estadísticas
+                            </Link>
                         </TabsTrigger>
                         <TabsTrigger value="enrollments">
                             Inscripciones

@@ -82,7 +82,7 @@ test('professor can download grading template', function () {
         ->get(route('professor.programmings.grading.template', $this->programming))
         ->assertOk();
 
-    $expectedFile = 'plantilla_calificaciones_' . $this->programming->id . '_' . now()->format('Ymd') . '.xlsx';
+    $expectedFile = 'plantilla_calificaciones_'.$this->programming->id.'_'.now()->format('Ymd').'.xlsx';
     Excel::assertDownloaded($expectedFile);
 });
 
@@ -165,7 +165,7 @@ test('professor can download statistics report when grading is complete', functi
         ->get(route('professor.programmings.grading.report', $this->programming))
         ->assertOk();
 
-    $expectedFile = 'reporte_calificaciones_' . $this->programming->id . '_' . now()->format('Ymd') . '.xlsx';
+    $expectedFile = 'reporte_calificaciones_'.$this->programming->id.'_'.now()->format('Ymd').'.xlsx';
     Excel::assertDownloaded($expectedFile);
 });
 

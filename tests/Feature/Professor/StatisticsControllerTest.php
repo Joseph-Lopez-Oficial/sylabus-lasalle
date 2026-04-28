@@ -77,7 +77,7 @@ test('professor can view statistics for their programming when grading is comple
         ->get(route('professor.programmings.statistics.show', $this->programming))
         ->assertOk()
         ->assertInertia(
-            fn($page) => $page->component('professor/statistics/show')
+            fn ($page) => $page->component('professor/statistics/show')
                 ->has('statistics')
                 ->has('statistics.byStudent')
                 ->has('statistics.byOutcome')

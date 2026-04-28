@@ -73,7 +73,7 @@ class GradingService
         )->orderBy('order')->get(['id', 'microcurricular_learning_outcome_type_id']);
 
         $criterionsByType = $criteriaByType->groupBy('microcurricular_learning_outcome_type_id')
-            ->map(fn($items) => $items->pluck('id'));
+            ->map(fn ($items) => $items->pluck('id'));
 
         // Compute all required combinations
         $allCriterionIds = $criteriaByType->pluck('id');
@@ -85,7 +85,7 @@ class GradingService
             ->get(['enrollment_id', 'microcurricular_learning_outcome_id', 'evaluation_criterion_id']);
 
         $existingSet = $existingGrades->map(
-            fn($g) => "{$g->enrollment_id}-{$g->microcurricular_learning_outcome_id}-{$g->evaluation_criterion_id}"
+            fn ($g) => "{$g->enrollment_id}-{$g->microcurricular_learning_outcome_id}-{$g->evaluation_criterion_id}"
         )->flip();
 
         $pending = [];

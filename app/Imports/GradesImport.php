@@ -31,7 +31,7 @@ class GradesImport implements ToCollection, WithHeadingRow
         private readonly GradingService $gradingService,
     ) {
         $this->performanceLevelsByName = PerformanceLevel::all()
-            ->keyBy(fn($l) => strtolower(trim($l->name)))
+            ->keyBy(fn ($l) => strtolower(trim($l->name)))
             ->toArray();
 
         $enrollments = $programming->enrollments()
@@ -40,8 +40,8 @@ class GradesImport implements ToCollection, WithHeadingRow
             ->get();
 
         $this->enrollmentsByStudentName = $enrollments
-            ->mapWithKeys(fn($e) => [
-                strtolower(trim($e->student->first_name . ' ' . $e->student->last_name)) => $e->id,
+            ->mapWithKeys(fn ($e) => [
+                strtolower(trim($e->student->first_name.' '.$e->student->last_name)) => $e->id,
             ])
             ->toArray();
 
@@ -187,7 +187,7 @@ class GradesImport implements ToCollection, WithHeadingRow
                 $this->results[] = [
                     'row' => $rowNumber,
                     'status' => 'error',
-                    'message' => "Fila {$rowNumber}: Error al guardar: " . $e->getMessage(),
+                    'message' => "Fila {$rowNumber}: Error al guardar: ".$e->getMessage(),
                 ];
             }
         }

@@ -79,12 +79,12 @@ class StatisticsService
                     ->map(function ($outcomeGrades) {
                         $outcome = $outcomeGrades->first()->microcurricularLearningOutcome;
                         $avgGrade = round(
-                            $outcomeGrades->avg(fn($g) => $this->orderToGrade($g->performanceLevel->order)),
+                            $outcomeGrades->avg(fn ($g) => $this->orderToGrade($g->performanceLevel->order)),
                             2
                         );
 
                         // Per-criterion breakdown within this outcome for this student
-                        $byCriterion = $outcomeGrades->map(fn($g) => [
+                        $byCriterion = $outcomeGrades->map(fn ($g) => [
                             'criterion_id' => $g->evaluation_criterion_id,
                             'criterion_name' => $g->evaluationCriterion->name,
                             'grade' => $this->orderToGrade($g->performanceLevel->order),
@@ -110,7 +110,7 @@ class StatisticsService
                 return [
                     'enrollment_id' => $enrollment->id,
                     'student_id' => $student->id,
-                    'student_name' => $student->first_name . ' ' . $student->last_name,
+                    'student_name' => $student->first_name.' '.$student->last_name,
                     'final_average' => $finalAverage,
                     'by_outcome' => $gradesByOutcome->toArray(),
                 ];
@@ -134,8 +134,8 @@ class StatisticsService
                 // Per-student: avg grade across criteria for this outcome
                 $gradesByStudent = $outcomeGrades
                     ->groupBy('enrollment_id')
-                    ->map(fn($g) => round(
-                        $g->avg(fn($grade) => $this->orderToGrade($grade->performanceLevel->order)),
+                    ->map(fn ($g) => round(
+                        $g->avg(fn ($grade) => $this->orderToGrade($grade->performanceLevel->order)),
                         2
                     ))
                     ->values();
@@ -196,7 +196,7 @@ class StatisticsService
             ->map(function (Collection $criterionGrades) {
                 $criterion = $criterionGrades->first()->evaluationCriterion;
                 $average = round(
-                    $criterionGrades->avg(fn($g) => $this->orderToGrade($g->performanceLevel->order)),
+                    $criterionGrades->avg(fn ($g) => $this->orderToGrade($g->performanceLevel->order)),
                     2
                 );
 
@@ -206,12 +206,12 @@ class StatisticsService
                     ->map(function (Collection $outcomeGrades) {
                         $outcome = $outcomeGrades->first()->microcurricularLearningOutcome;
                         $outcomeAvg = round(
-                            $outcomeGrades->avg(fn($g) => $this->orderToGrade($g->performanceLevel->order)),
+                            $outcomeGrades->avg(fn ($g) => $this->orderToGrade($g->performanceLevel->order)),
                             2
                         );
 
-                        $students = $outcomeGrades->map(fn($g) => [
-                            'student_name' => $g->enrollment->student->first_name . ' ' . $g->enrollment->student->last_name,
+                        $students = $outcomeGrades->map(fn ($g) => [
+                            'student_name' => $g->enrollment->student->first_name.' '.$g->enrollment->student->last_name,
                             'grade' => $this->orderToGrade($g->performanceLevel->order),
                             'level_name' => $g->performanceLevel->name,
                         ])->sortByDesc('grade')->values()->toArray();
@@ -283,7 +283,7 @@ class StatisticsService
 
         // below_basic = final_average < 2.5 (the real grade for Básico)
         $belowBasic = collect($byStudent)
-            ->filter(fn($s) => $s['final_average'] < 2.5)
+            ->filter(fn ($s) => $s['final_average'] < 2.5)
             ->values()
             ->toArray();
 

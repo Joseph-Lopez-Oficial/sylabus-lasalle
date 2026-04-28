@@ -43,7 +43,7 @@ test('professor can access their dashboard', function () {
         ->get(route('professor.dashboard'))
         ->assertOk()
         ->assertInertia(
-            fn($page) => $page->component('professor/dashboard')
+            fn ($page) => $page->component('professor/dashboard')
                 ->has('programmings')
         );
 });
@@ -76,7 +76,7 @@ test('dashboard shows only active programmings assigned to the professor', funct
     $this->actingAs($this->professorUser)
         ->get(route('professor.dashboard'))
         ->assertOk()
-        ->assertInertia(fn($page) => $page->has('programmings', 1));
+        ->assertInertia(fn ($page) => $page->has('programmings', 1));
 });
 
 test('dashboard includes enrolled count for each programming', function () {
@@ -95,5 +95,5 @@ test('dashboard includes enrolled count for each programming', function () {
     $this->actingAs($this->professorUser)
         ->get(route('professor.dashboard'))
         ->assertOk()
-        ->assertInertia(fn($page) => $page->where('programmings.0.enrolled_count', 3));
+        ->assertInertia(fn ($page) => $page->where('programmings.0.enrolled_count', 3));
 });

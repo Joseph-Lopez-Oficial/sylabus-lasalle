@@ -45,7 +45,7 @@ class GradingTemplateExport implements WithMultipleSheets
 
         $this->outcomesByType = $outcomes
             ->groupBy('type_id')
-            ->map(fn($items) => $items->values()->toArray())
+            ->map(fn ($items) => $items->values()->toArray())
             ->toArray();
 
         $typeIds = $outcomes->pluck('type_id')->unique()->values();
@@ -54,7 +54,7 @@ class GradingTemplateExport implements WithMultipleSheets
             $typeIds
         )->orderBy('order')->get()
             ->groupBy('microcurricular_learning_outcome_type_id')
-            ->map(fn($items) => $items->values()->toArray())
+            ->map(fn ($items) => $items->values()->toArray())
             ->toArray();
 
         $this->performanceLevelNames = PerformanceLevel::orderBy('order')
