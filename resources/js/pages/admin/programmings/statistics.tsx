@@ -4,6 +4,7 @@ import {
     ChevronDown,
     ChevronUp,
     CheckCircle2,
+    Download,
     Trophy,
     Zap,
 } from 'lucide-react';
@@ -1455,6 +1456,15 @@ export default function ProgrammingStatistics({
                     title={`Estadísticas: ${programming.academic_space?.name ?? ''}`}
                     description={`${programming.academic_period?.name ?? ''}${programming.group ? ` · Grupo ${programming.group}` : ''} · ${programming.modality?.name ?? ''} · Prof. ${programming.professor?.first_name ?? ''} ${programming.professor?.last_name ?? ''}`}
                 >
+                    <Button variant="outline" asChild>
+                        <a
+                            href={`/admin/programmings/${programming.id}/statistics/export`}
+                            download
+                        >
+                            <Download className="mr-2 h-4 w-4" />
+                            Exportar Excel
+                        </a>
+                    </Button>
                     <Button variant="outline" asChild>
                         <Link
                             href={ProgrammingController.show.url(programming)}

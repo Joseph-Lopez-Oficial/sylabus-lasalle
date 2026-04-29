@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Sheets;
+namespace App\Exports\Sheets\AdminMicrocurricularOutcome;
 
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -11,30 +11,27 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ByOutcomeSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
+class TrendByPeriodSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
 {
-    /** @param list<array<string,mixed>> $byOutcome */
-    public function __construct(private readonly array $byOutcome) {}
+    /** @param list<array<string,mixed>> $trendByPeriod */
+    public function __construct(private readonly array $trendByPeriod) {}
 
     public function title(): string
     {
-        return 'Por Resultado';
+        return 'Tendencia por Período';
     }
 
     public function headings(): array
     {
-        return ['Tipo de RA', 'Resultado Microcurricular', 'Promedio Grupo', 'Más Alto', 'Más Bajo'];
+        return ['Período Académico', 'Promedio del Resultado'];
     }
 
     public function array(): array
     {
-        return array_map(fn ($o) => [
-            $o['type_name'] ?? '—',
-            $o['outcome_desc'],
-            $o['group_average'],
-            $o['highest'],
-            $o['lowest'],
-        ], $this->byOutcome);
+        return array_map(fn ($t) => [
+            $t['period'],
+            $t['average'],
+        ], $this->trendByPeriod);
     }
 
     public function styles(Worksheet $sheet): array

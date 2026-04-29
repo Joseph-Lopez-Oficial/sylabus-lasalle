@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Sheets;
+namespace App\Exports\Sheets\AdminAcademicSpace;
 
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -23,7 +23,7 @@ class ByOutcomeSheet implements FromArray, ShouldAutoSize, WithHeadings, WithSty
 
     public function headings(): array
     {
-        return ['Tipo de RA', 'Resultado Microcurricular', 'Promedio Grupo', 'Más Alto', 'Más Bajo'];
+        return ['Tipo de RA', 'Resultado Microcurricular', 'Promedio', 'Más Alto', 'Más Bajo', '# Programaciones'];
     }
 
     public function array(): array
@@ -34,6 +34,7 @@ class ByOutcomeSheet implements FromArray, ShouldAutoSize, WithHeadings, WithSty
             $o['group_average'],
             $o['highest'],
             $o['lowest'],
+            $o['programming_count'] ?? 1,
         ], $this->byOutcome);
     }
 

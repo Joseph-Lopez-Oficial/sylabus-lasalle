@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Sheets;
+namespace App\Exports\Sheets\AdminAcademicSpace;
 
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -11,30 +11,28 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ByOutcomeSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
+class ByCriterionSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
 {
-    /** @param list<array<string,mixed>> $byOutcome */
-    public function __construct(private readonly array $byOutcome) {}
+    /** @param list<array<string,mixed>> $byCriterion */
+    public function __construct(private readonly array $byCriterion) {}
 
     public function title(): string
     {
-        return 'Por Resultado';
+        return 'Por Criterio';
     }
 
     public function headings(): array
     {
-        return ['Tipo de RA', 'Resultado Microcurricular', 'Promedio Grupo', 'Más Alto', 'Más Bajo'];
+        return ['Tipo de RA', 'Criterio de Evaluación', 'Promedio Grupo'];
     }
 
     public function array(): array
     {
-        return array_map(fn ($o) => [
-            $o['type_name'] ?? '—',
-            $o['outcome_desc'],
-            $o['group_average'],
-            $o['highest'],
-            $o['lowest'],
-        ], $this->byOutcome);
+        return array_map(fn ($c) => [
+            $c['type_name'] ?? '—',
+            $c['criterion_name'],
+            $c['group_average'],
+        ], $this->byCriterion);
     }
 
     public function styles(Worksheet $sheet): array

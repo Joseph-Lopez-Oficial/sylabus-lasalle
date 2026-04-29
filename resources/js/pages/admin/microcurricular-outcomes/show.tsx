@@ -4,6 +4,7 @@ import {
     BarChart2,
     ChevronDown,
     ChevronRight,
+    Download,
     TrendingDown,
     TrendingUp,
 } from 'lucide-react';
@@ -189,6 +190,17 @@ export default function MicrocurricularOutcomeShow({
                     title={outcome.code ?? `RA${outcome.id}`}
                     description={outcome.academic_space?.name ?? ''}
                 >
+                    {summary.total_grade_records > 0 && (
+                        <Button variant="outline" asChild>
+                            <a
+                                href={`/admin/microcurricular-outcomes/${outcome.id}/export`}
+                                download
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Exportar Excel
+                            </a>
+                        </Button>
+                    )}
                     <Button variant="outline" asChild>
                         <Link href={OutcomeController.index.url()}>
                             ← Volver

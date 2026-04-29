@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Sheets;
+namespace App\Exports\Sheets\AdminProgramming;
 
 use App\Models\Programming;
 use Maatwebsite\Excel\Concerns\FromArray;
@@ -27,24 +27,34 @@ class SummarySheet implements FromArray, ShouldAutoSize, WithStyles, WithTitle
     public function array(): array
     {
         $rows = [
-            ['Reporte de Calificaciones — Resumen Global'],
+            ['Reporte de Estadísticas de Programación'],
             [],
             ['Espacio Académico', $this->programming->academicSpace->name ?? ''],
+            ['Código', $this->programming->academicSpace->code ?? ''],
             ['Período', $this->programming->academicPeriod?->name ?? '—'],
             ['Grupo', $this->programming->group ?? 'N/A'],
+            ['Profesor', $this->programming->professor
+                ? $this->programming->professor->first_name.' '.$this->programming->professor->last_name
+                : '—'],
             ['Promedio General', $this->summary['overall_average']],
             [],
             ['Distribución de Niveles de Desempeño'],
-            ['Nivel', 'Cantidad', 'Porcentaje (%)'],
+            ['Nivel', 'Calificaciones', '% del Total', 'Estudiantes con ese nivel', '% Estudiantes'],
         ];
 
         foreach ($this->summary['distribution'] as $dist) {
-            $rows[] = [$dist['level_name'], $dist['count'], $dist['percentage']];
+            $rows[] = [
+                $dist['level_name'],
+                $dist['count'],
+                $dist['percentage'],
+                $dist['student_count'],
+                $dist['student_percentage'],
+            ];
         }
 
         $rows[] = [];
         $rows[] = ['Top 5 Estudiantes'];
-        $rows[] = ['Estudiante', 'Promedio'];
+        $rows[] = ['Estudiante', 'Promedio Final'];
 
         foreach ($this->summary['top_students'] as $student) {
             $rows[] = [$student['student_name'], $student['final_average']];
@@ -52,8 +62,8 @@ class SummarySheet implements FromArray, ShouldAutoSize, WithStyles, WithTitle
 
         if (! empty($this->summary['below_basic'])) {
             $rows[] = [];
-            $rows[] = ['Estudiantes por debajo del nivel Básico'];
-            $rows[] = ['Estudiante', 'Promedio'];
+            $rows[] = ['Estudiantes por debajo de Básico (< 2.5)'];
+            $rows[] = ['Estudiante', 'Promedio Final'];
 
             foreach ($this->summary['below_basic'] as $student) {
                 $rows[] = [$student['student_name'], $student['final_average']];

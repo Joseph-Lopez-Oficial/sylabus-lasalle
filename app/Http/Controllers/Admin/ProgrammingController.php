@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\AdminProgrammingStatisticsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProgrammingRequest;
 use App\Http\Requests\Admin\UpdateProgrammingRequest;
@@ -16,6 +17,8 @@ use App\Services\StatisticsService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProgrammingController extends Controller
 {
@@ -124,5 +127,17 @@ class ProgrammingController extends Controller
             'statistics' => $statistics,
             'completeness' => $completeness,
         ]);
+    }
+
+    public function downloadStatistics(Programming $programming, StatisticsService $statisticsService): BinaryFileResponse
+    {
+        $programming->load(['academicSpace', 'professor', 'academicPeriod']);
+
+        $fileName = 'estadisticas_programacion_'.$programming->id.'_'.now()->format('Ymd').'.xlsx';
+
+        return Excel::download(
+            new AdminProgrammingStatisticsExport($programming, $statisticsService),
+            $fileName
+        );
     }
 }

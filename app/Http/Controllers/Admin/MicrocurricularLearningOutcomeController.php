@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\AdminMicrocurricularOutcomeExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreMicrocurricularLearningOutcomeRequest;
 use App\Http\Requests\Admin\UpdateMicrocurricularLearningOutcomeRequest;
@@ -18,6 +19,8 @@ use App\Models\Program;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MicrocurricularLearningOutcomeController extends Controller
 {
@@ -122,17 +125,11 @@ class MicrocurricularLearningOutcomeController extends Controller
         return back()->with('success', "Resultado microcurricular {$status} exitosamente.");
     }
 
-    public function show(MicrocurricularLearningOutcome $microcurricularOutcome): Response
+    private function buildOutcomeStats(MicrocurricularLearningOutcome $microcurricularOutcome): array
     {
-        $microcurricularOutcome->load([
-            'type',
-            'academicSpace.competency.problematicNucleus.program.faculty',
-        ]);
-
         $performanceLevels = PerformanceLevel::orderBy('order')->get(['id', 'name', 'order']);
         $orderToGrade = [1 => 1.3, 2 => 2.5, 3 => 3.8, 4 => 5.0];
 
-        // All grades for this outcome, grouped by programming
         $grades = Grade::query()
             ->where('microcurricular_learning_outcome_id', $microcurricularOutcome->id)
             ->with([
@@ -143,12 +140,10 @@ class MicrocurricularLearningOutcomeController extends Controller
             ])
             ->get();
 
-        // Group by programming
         $byProgramming = $grades->groupBy(fn ($g) => $g->enrollment->programming_id)
             ->map(function ($progGrades) use ($performanceLevels, $orderToGrade) {
                 $programming = $progGrades->first()->enrollment->programming;
 
-                // Per student: avg of criteria grades for this outcome in this programming
                 $gradesByStudent = $progGrades
                     ->groupBy('enrollment_id')
                     ->map(fn ($sg) => round(
@@ -158,8 +153,7 @@ class MicrocurricularLearningOutcomeController extends Controller
                     ->values();
 
                 $groupAverage = $gradesByStudent->isNotEmpty()
-                    ? round($gradesByStudent->avg(), 2)
-                    : 0.0;
+                    ? round($gradesByStudent->avg(), 2) : 0.0;
 
                 $totalGrades = $progGrades->count();
                 $distribution = $performanceLevels->map(function ($level) use ($progGrades, $totalGrades) {
@@ -193,11 +187,9 @@ class MicrocurricularLearningOutcomeController extends Controller
             ->sortByDesc('group_average')
             ->values();
 
-        // Global summary across all programmings
         $allStudentAverages = $byProgramming->pluck('group_average');
         $globalAverage = $allStudentAverages->isNotEmpty()
-            ? round($allStudentAverages->avg(), 2)
-            : 0.0;
+            ? round($allStudentAverages->avg(), 2) : 0.0;
 
         $totalGrades = $grades->count();
         $globalDistribution = $performanceLevels->map(function ($level) use ($grades, $totalGrades) {
@@ -211,7 +203,6 @@ class MicrocurricularLearningOutcomeController extends Controller
             ];
         })->values();
 
-        // Trend by period: avg per period sorted chronologically
         $trendByPeriod = $byProgramming
             ->groupBy('period')
             ->map(fn ($items) => round($items->avg('group_average'), 2))
@@ -219,6 +210,27 @@ class MicrocurricularLearningOutcomeController extends Controller
             ->values()
             ->sortBy('period')
             ->values();
+
+        return [
+            'summary' => [
+                'global_average' => $globalAverage,
+                'total_programmings' => $byProgramming->count(),
+                'total_grade_records' => $totalGrades,
+                'distribution' => $globalDistribution->toArray(),
+                'trend_by_period' => $trendByPeriod->toArray(),
+            ],
+            'by_programming' => $byProgramming->toArray(),
+        ];
+    }
+
+    public function show(MicrocurricularLearningOutcome $microcurricularOutcome): Response
+    {
+        $microcurricularOutcome->load([
+            'type',
+            'academicSpace.competency.problematicNucleus.program.faculty',
+        ]);
+
+        $stats = $this->buildOutcomeStats($microcurricularOutcome);
 
         return Inertia::render('admin/microcurricular-outcomes/show', [
             'outcome' => [
@@ -243,14 +255,29 @@ class MicrocurricularLearningOutcomeController extends Controller
                     ] : null,
                 ] : null,
             ],
-            'summary' => [
-                'global_average' => $globalAverage,
-                'total_programmings' => $byProgramming->count(),
-                'total_grade_records' => $totalGrades,
-                'distribution' => $globalDistribution,
-                'trend_by_period' => $trendByPeriod,
-            ],
-            'by_programming' => $byProgramming,
+            'summary' => $stats['summary'],
+            'by_programming' => $stats['by_programming'],
         ]);
+    }
+
+    public function downloadReport(MicrocurricularLearningOutcome $microcurricularOutcome): BinaryFileResponse
+    {
+        $microcurricularOutcome->load([
+            'type',
+            'academicSpace.competency.problematicNucleus.program.faculty',
+        ]);
+
+        $stats = $this->buildOutcomeStats($microcurricularOutcome);
+
+        $fileName = 'reporte_ra_'.$microcurricularOutcome->id.'_'.now()->format('Ymd').'.xlsx';
+
+        return Excel::download(
+            new AdminMicrocurricularOutcomeExport(
+                $microcurricularOutcome,
+                $stats['summary'],
+                $stats['by_programming'],
+            ),
+            $fileName
+        );
     }
 }

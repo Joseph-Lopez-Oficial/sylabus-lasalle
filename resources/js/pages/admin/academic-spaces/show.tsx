@@ -6,6 +6,7 @@ import {
     ChevronDown,
     ChevronRight,
     ChevronUp,
+    Download,
     Pencil,
     Plus,
     TrendingDown,
@@ -215,6 +216,17 @@ export default function AcademicSpacesShow({
                     description={`${academicSpace.code} · ${academicSpace.credits} créditos${academicSpace.semester ? ` · Semestre ${academicSpace.semester}` : ''}`}
                 >
                     <StatusBadge isActive={academicSpace.is_active} />
+                    {statistics && (
+                        <Button variant="outline" asChild>
+                            <a
+                                href={`/admin/academic-spaces/${academicSpace.id}/statistics/export`}
+                                download
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Exportar Estadísticas
+                            </a>
+                        </Button>
+                    )}
                     <Button variant="outline" asChild>
                         <Link href={SpaceController.edit.url(academicSpace)}>
                             <Pencil className="mr-2 h-4 w-4" />

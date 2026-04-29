@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Sheets;
+namespace App\Exports\Sheets\AdminAcademicSpace;
 
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -11,30 +11,34 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ByOutcomeSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
+class ByProgrammingSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
 {
-    /** @param list<array<string,mixed>> $byOutcome */
-    public function __construct(private readonly array $byOutcome) {}
+    /** @param list<array<string,mixed>> $byProgramming */
+    public function __construct(private readonly array $byProgramming) {}
 
     public function title(): string
     {
-        return 'Por Resultado';
+        return 'Por Programación';
     }
 
     public function headings(): array
     {
-        return ['Tipo de RA', 'Resultado Microcurricular', 'Promedio Grupo', 'Más Alto', 'Más Bajo'];
+        return ['Período', 'Grupo', 'Profesor', '# Estudiantes', 'Promedio Grupo', 'Más Alto', 'Más Bajo'];
     }
 
     public function array(): array
     {
-        return array_map(fn ($o) => [
-            $o['type_name'] ?? '—',
-            $o['outcome_desc'],
-            $o['group_average'],
-            $o['highest'],
-            $o['lowest'],
-        ], $this->byOutcome);
+        return array_map(fn ($p) => [
+            $p['period'] ?? '—',
+            $p['group'] ?? '—',
+            $p['professor']
+                ? ($p['professor']['first_name'].' '.$p['professor']['last_name'])
+                : '—',
+            $p['student_count'],
+            $p['group_average'],
+            $p['highest'],
+            $p['lowest'],
+        ], $this->byProgramming);
     }
 
     public function styles(Worksheet $sheet): array

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\AdminAcademicSpaceStatisticsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAcademicSpaceRequest;
 use App\Http\Requests\Admin\UpdateAcademicSpaceRequest;
@@ -15,6 +16,8 @@ use App\Models\Program;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AcademicSpaceController extends Controller
 {
@@ -259,6 +262,174 @@ class AcademicSpaceController extends Controller
             'academicSpace' => $academicSpace,
             'statistics' => $statistics,
         ]);
+    }
+
+    public function downloadStatistics(AcademicSpace $academicSpace): BinaryFileResponse
+    {
+        $academicSpace->load(['competency']);
+
+        $orderToGrade = [1 => 1.3, 2 => 2.5, 3 => 3.8, 4 => 5.0];
+        $performanceLevels = PerformanceLevel::orderBy('order')->get(['id', 'name', 'order']);
+        $programmingIds = $academicSpace->programmings()->pluck('id');
+
+        abort_if($programmingIds->isEmpty(), 422, 'Este espacio académico no tiene programaciones con datos.');
+
+        $grades = \App\Models\Grade::query()
+            ->whereHas('enrollment', fn ($q) => $q->whereIn('programming_id', $programmingIds))
+            ->with([
+                'enrollment.programming.academicPeriod',
+                'enrollment.programming.professor',
+                'microcurricularLearningOutcome.type',
+                'evaluationCriterion.outcomeType',
+                'performanceLevel',
+            ])
+            ->get();
+
+        abort_if($grades->isEmpty(), 422, 'Este espacio académico no tiene calificaciones registradas.');
+
+        $byProgramming = $grades
+            ->groupBy(fn ($g) => $g->enrollment->programming_id)
+            ->map(function ($pg) use ($performanceLevels, $orderToGrade) {
+                $prog = $pg->first()->enrollment->programming;
+
+                $gradesByStudent = $pg->groupBy('enrollment_id')
+                    ->map(fn ($sg) => round(
+                        $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                        2
+                    ))->values();
+
+                $groupAverage = $gradesByStudent->isNotEmpty()
+                    ? round($gradesByStudent->avg(), 2) : 0.0;
+
+                $totalGrades = $pg->count();
+                $distribution = $performanceLevels->map(fn ($l) => [
+                    'level_id' => $l->id,
+                    'level_name' => $l->name,
+                    'count' => $pg->where('performance_level_id', $l->id)->count(),
+                    'percentage' => $totalGrades > 0
+                        ? round(($pg->where('performance_level_id', $l->id)->count() / $totalGrades) * 100, 1)
+                        : 0.0,
+                ])->values();
+
+                return [
+                    'programming_id' => $prog->id,
+                    'period' => $prog->academicPeriod?->name ?? '—',
+                    'group' => $prog->group,
+                    'professor' => $prog->professor
+                        ? ['first_name' => $prog->professor->first_name, 'last_name' => $prog->professor->last_name]
+                        : null,
+                    'student_count' => $gradesByStudent->count(),
+                    'group_average' => $groupAverage,
+                    'highest' => $gradesByStudent->max() ?? 0.0,
+                    'lowest' => $gradesByStudent->min() ?? 0.0,
+                    'distribution' => $distribution,
+                ];
+            })
+            ->sortByDesc('group_average')
+            ->values();
+
+        $byOutcome = $grades
+            ->groupBy('microcurricular_learning_outcome_id')
+            ->map(function ($og) use ($performanceLevels, $orderToGrade) {
+                $outcome = $og->first()->microcurricularLearningOutcome;
+
+                $gradesByStudent = $og->groupBy('enrollment_id')
+                    ->map(fn ($sg) => round(
+                        $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                        2
+                    ))->values();
+
+                $groupAvg = $gradesByStudent->isNotEmpty()
+                    ? round($gradesByStudent->avg(), 2) : 0.0;
+
+                $totalGrades = $og->count();
+                $distribution = $performanceLevels->map(fn ($l) => [
+                    'level_id' => $l->id,
+                    'level_name' => $l->name,
+                    'count' => $og->where('performance_level_id', $l->id)->count(),
+                    'percentage' => $totalGrades > 0
+                        ? round(($og->where('performance_level_id', $l->id)->count() / $totalGrades) * 100, 1)
+                        : 0.0,
+                ])->values();
+
+                return [
+                    'outcome_id' => $outcome->id,
+                    'outcome_code' => $outcome->code,
+                    'outcome_desc' => $outcome->description,
+                    'type_id' => $outcome->type_id,
+                    'type_name' => $outcome->type?->name,
+                    'group_average' => $groupAvg,
+                    'highest' => $gradesByStudent->max() ?? 0.0,
+                    'lowest' => $gradesByStudent->min() ?? 0.0,
+                    'distribution' => $distribution,
+                    'programming_count' => $og->unique(fn ($g) => $g->enrollment->programming_id)->count(),
+                ];
+            })
+            ->sortByDesc('group_average')
+            ->values();
+
+        $byCriterion = $grades
+            ->groupBy('evaluation_criterion_id')
+            ->map(function ($cg) use ($orderToGrade) {
+                $criterion = $cg->first()->evaluationCriterion;
+
+                return [
+                    'criterion_id' => $criterion->id,
+                    'criterion_name' => $criterion->name,
+                    'type_id' => $criterion->microcurricular_learning_outcome_type_id,
+                    'type_name' => $criterion->outcomeType?->name,
+                    'group_average' => round(
+                        $cg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                        2
+                    ),
+                ];
+            })
+            ->sortByDesc('group_average')
+            ->values();
+
+        $allStudentAverages = $byProgramming->pluck('group_average');
+        $globalAverage = $allStudentAverages->isNotEmpty()
+            ? round($allStudentAverages->avg(), 2) : 0.0;
+
+        $totalGrades = $grades->count();
+        $globalDistribution = $performanceLevels->map(function ($l) use ($grades, $totalGrades) {
+            $count = $grades->where('performance_level_id', $l->id)->count();
+
+            return [
+                'level_id' => $l->id,
+                'level_name' => $l->name,
+                'count' => $count,
+                'percentage' => $totalGrades > 0 ? round(($count / $totalGrades) * 100, 1) : 0.0,
+            ];
+        })->values();
+
+        $trendByPeriod = $byProgramming
+            ->groupBy('period')
+            ->map(fn ($items) => round($items->avg('group_average'), 2))
+            ->map(fn ($avg, $period) => ['period' => $period, 'average' => $avg])
+            ->values()
+            ->sortBy('period')
+            ->values();
+
+        $statistics = [
+            'summary' => [
+                'global_average' => $globalAverage,
+                'total_programmings' => $byProgramming->count(),
+                'total_grade_records' => $totalGrades,
+                'distribution' => $globalDistribution->toArray(),
+                'trend_by_period' => $trendByPeriod->toArray(),
+            ],
+            'by_programming' => $byProgramming->toArray(),
+            'by_outcome' => $byOutcome->toArray(),
+            'by_criterion' => $byCriterion->toArray(),
+        ];
+
+        $fileName = 'estadisticas_espacio_'.$academicSpace->id.'_'.now()->format('Ymd').'.xlsx';
+
+        return Excel::download(
+            new AdminAcademicSpaceStatisticsExport($academicSpace, $statistics),
+            $fileName
+        );
     }
 
     public function edit(AcademicSpace $academicSpace): Response

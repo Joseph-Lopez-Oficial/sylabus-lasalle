@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Exports\Sheets;
+namespace App\Exports\Sheets\AdminAcademicSpace;
 
-use App\Models\Programming;
+use App\Models\AcademicSpace;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -16,7 +16,7 @@ class SummarySheet implements FromArray, ShouldAutoSize, WithStyles, WithTitle
     /** @param array<string,mixed> $summary */
     public function __construct(
         private readonly array $summary,
-        private readonly Programming $programming,
+        private readonly AcademicSpace $academicSpace,
     ) {}
 
     public function title(): string
@@ -27,36 +27,31 @@ class SummarySheet implements FromArray, ShouldAutoSize, WithStyles, WithTitle
     public function array(): array
     {
         $rows = [
-            ['Reporte de Calificaciones — Resumen Global'],
+            ['Reporte de Estadísticas — Espacio Académico'],
             [],
-            ['Espacio Académico', $this->programming->academicSpace->name ?? ''],
-            ['Período', $this->programming->academicPeriod?->name ?? '—'],
-            ['Grupo', $this->programming->group ?? 'N/A'],
-            ['Promedio General', $this->summary['overall_average']],
+            ['Espacio Académico', $this->academicSpace->name],
+            ['Código', $this->academicSpace->code ?? ''],
+            ['Competencia', $this->academicSpace->competency?->name ?? '—'],
             [],
-            ['Distribución de Niveles de Desempeño'],
-            ['Nivel', 'Cantidad', 'Porcentaje (%)'],
+            ['Promedio Global', $this->summary['global_average']],
+            ['Total Programaciones', $this->summary['total_programmings']],
+            ['Total Calificaciones', $this->summary['total_grade_records']],
+            [],
+            ['Distribución de Calificaciones'],
+            ['Nivel de Desempeño', 'Cantidad', '% del Total'],
         ];
 
         foreach ($this->summary['distribution'] as $dist) {
             $rows[] = [$dist['level_name'], $dist['count'], $dist['percentage']];
         }
 
-        $rows[] = [];
-        $rows[] = ['Top 5 Estudiantes'];
-        $rows[] = ['Estudiante', 'Promedio'];
-
-        foreach ($this->summary['top_students'] as $student) {
-            $rows[] = [$student['student_name'], $student['final_average']];
-        }
-
-        if (! empty($this->summary['below_basic'])) {
+        if (! empty($this->summary['trend_by_period'])) {
             $rows[] = [];
-            $rows[] = ['Estudiantes por debajo del nivel Básico'];
-            $rows[] = ['Estudiante', 'Promedio'];
+            $rows[] = ['Tendencia por Período'];
+            $rows[] = ['Período', 'Promedio'];
 
-            foreach ($this->summary['below_basic'] as $student) {
-                $rows[] = [$student['student_name'], $student['final_average']];
+            foreach ($this->summary['trend_by_period'] as $trend) {
+                $rows[] = [$trend['period'], $trend['average']];
             }
         }
 

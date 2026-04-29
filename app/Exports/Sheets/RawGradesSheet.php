@@ -16,6 +16,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class RawGradesSheet implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
 {
+    private const ORDER_TO_GRADE = [1 => 1.3, 2 => 2.5, 3 => 3.8, 4 => 5.0];
+
     public function __construct(private readonly Programming $programming) {}
 
     public function title(): string
@@ -31,12 +33,14 @@ class RawGradesSheet implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
 
         return Grade::query()
             ->whereIn('enrollment_id', $enrollmentIds)
-            ->with(['enrollment.student', 'microcurricularLearningOutcome', 'evaluationCriterion', 'performanceLevel']);
+            ->with(['enrollment.student', 'microcurricularLearningOutcome.type', 'evaluationCriterion', 'performanceLevel'])
+            ->orderBy('enrollment_id')
+            ->orderBy('microcurricular_learning_outcome_id');
     }
 
     public function headings(): array
     {
-        return ['Estudiante', 'Resultado Microcurricular', 'Criterio', 'Nivel de Desempeño'];
+        return ['Estudiante', 'Tipo de RA', 'Resultado Microcurricular', 'Criterio de Evaluación', 'Nivel de Desempeño', 'Nota'];
     }
 
     /** @param Grade $grade */
@@ -44,9 +48,11 @@ class RawGradesSheet implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
     {
         return [
             ($grade->enrollment->student->first_name ?? '').' '.($grade->enrollment->student->last_name ?? ''),
+            $grade->microcurricularLearningOutcome->type?->name ?? '—',
             $grade->microcurricularLearningOutcome->description ?? '',
             $grade->evaluationCriterion->name ?? '',
             $grade->performanceLevel->name ?? '',
+            self::ORDER_TO_GRADE[$grade->performanceLevel->order] ?? $grade->performanceLevel->order,
         ];
     }
 
