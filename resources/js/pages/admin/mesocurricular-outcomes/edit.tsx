@@ -23,7 +23,7 @@ import type {
 
 type Props = {
     outcome: MesocurricularLearningOutcome;
-    competencies: Pick<Competency, 'id' | 'name'>[];
+    competencies: Pick<Competency, 'id' | 'code' | 'name'>[];
 };
 
 export default function MesocurricularOutcomesEdit({
@@ -72,8 +72,8 @@ export default function MesocurricularOutcomesEdit({
                                                 outcome.competency_id,
                                             )}
                                         >
-                                            <SelectTrigger id="competency_id">
-                                                <SelectValue />
+                                            <SelectTrigger id="competency_id" className="overflow-hidden">
+                                                <SelectValue className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {competencies.map((c) => (
@@ -81,7 +81,10 @@ export default function MesocurricularOutcomesEdit({
                                                         key={c.id}
                                                         value={String(c.id)}
                                                     >
-                                                        {c.name}
+                                                        <span className="flex min-w-0 gap-1.5">
+                                                            <span className="shrink-0 font-mono text-xs text-muted-foreground">{c.code}</span>
+                                                            <span className="truncate">{c.name}</span>
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

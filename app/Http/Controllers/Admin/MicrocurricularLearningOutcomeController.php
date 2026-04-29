@@ -83,7 +83,7 @@ class MicrocurricularLearningOutcomeController extends Controller
     public function create(): Response
     {
         return Inertia::render('admin/microcurricular-outcomes/create', [
-            'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'name']),
+            'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'code', 'name']),
             'types' => MicrocurricularLearningOutcomeType::query()->orderBy('name')->get(['id', 'name']),
             'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderBy('id')->get(['id', 'description']),
         ]);
@@ -100,7 +100,7 @@ class MicrocurricularLearningOutcomeController extends Controller
     {
         return Inertia::render('admin/microcurricular-outcomes/edit', [
             'outcome' => $microcurricularOutcome->load(['academicSpace', 'type', 'mesocurricularLearningOutcome']),
-            'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'name']),
+            'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'code', 'name']),
             'types' => MicrocurricularLearningOutcomeType::query()->orderBy('name')->get(['id', 'name']),
             'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderBy('id')->get(['id', 'description']),
         ]);

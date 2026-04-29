@@ -23,11 +23,11 @@ import type {
 } from '@/types';
 
 type Props = {
-    academicSpaces: Pick<AcademicSpace, 'id' | 'name'>[];
+    academicSpaces: Pick<AcademicSpace, 'id' | 'code' | 'name'>[];
     types: Pick<MicrocurricularLearningOutcomeType, 'id' | 'name'>[];
     mesocurricularOutcomes: Pick<
         MesocurricularLearningOutcome,
-        'id' | 'description'
+        'id' | 'code' | 'description'
     >[];
 };
 
@@ -70,8 +70,8 @@ export default function MicrocurricularOutcomesCreate({
                                             Espacio Académico *
                                         </Label>
                                         <Select name="academic_space_id">
-                                            <SelectTrigger id="academic_space_id">
-                                                <SelectValue placeholder="Selecciona un espacio" />
+                                            <SelectTrigger id="academic_space_id" className="overflow-hidden">
+                                                <SelectValue placeholder="Selecciona un espacio" className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicSpaces.map((s) => (
@@ -79,7 +79,10 @@ export default function MicrocurricularOutcomesCreate({
                                                         key={s.id}
                                                         value={String(s.id)}
                                                     >
-                                                        {s.name}
+                                                        <span className="flex min-w-0 gap-1.5">
+                                                            <span className="shrink-0 font-mono text-xs text-muted-foreground">{s.code}</span>
+                                                            <span className="truncate">{s.name}</span>
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -137,8 +140,8 @@ export default function MicrocurricularOutcomesCreate({
                                             </span>
                                         </Label>
                                         <Select name="mesocurricular_learning_outcome_id">
-                                            <SelectTrigger id="mesocurricular_learning_outcome_id">
-                                                <SelectValue placeholder="Ninguno" />
+                                            <SelectTrigger id="mesocurricular_learning_outcome_id" className="overflow-hidden">
+                                                <SelectValue placeholder="Ninguno" className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {mesocurricularOutcomes.map(
@@ -147,8 +150,9 @@ export default function MicrocurricularOutcomesCreate({
                                                             key={m.id}
                                                             value={String(m.id)}
                                                         >
-                                                            <span className="line-clamp-1">
-                                                                {m.description}
+                                                            <span className="flex min-w-0 gap-1.5">
+                                                                <span className="shrink-0 font-mono text-xs text-muted-foreground">{m.code}</span>
+                                                                <span className="truncate">{m.description}</span>
                                                             </span>
                                                         </SelectItem>
                                                     ),

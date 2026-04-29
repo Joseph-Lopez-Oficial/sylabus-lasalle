@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import type { BreadcrumbItem, Competency } from '@/types';
 
-type Props = { competencies: Pick<Competency, 'id' | 'name'>[] };
+type Props = { competencies: Pick<Competency, 'id' | 'code' | 'name'>[] };
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Espacios Académicos', href: SpaceController.index.url() },
@@ -51,8 +51,8 @@ export default function AcademicSpacesCreate({ competencies }: Props) {
                                             Competencia *
                                         </Label>
                                         <Select name="competency_id">
-                                            <SelectTrigger id="competency_id">
-                                                <SelectValue placeholder="Selecciona una competencia" />
+                                            <SelectTrigger id="competency_id" className="overflow-hidden">
+                                                <SelectValue placeholder="Selecciona una competencia" className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {competencies.map((c) => (
@@ -60,7 +60,10 @@ export default function AcademicSpacesCreate({ competencies }: Props) {
                                                         key={c.id}
                                                         value={String(c.id)}
                                                     >
-                                                        {c.name}
+                                                        <span className="flex min-w-0 gap-1.5">
+                                                            <span className="shrink-0 font-mono text-xs text-muted-foreground">{c.code}</span>
+                                                            <span className="truncate">{c.name}</span>
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

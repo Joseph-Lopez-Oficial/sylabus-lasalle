@@ -62,8 +62,8 @@ export default function CompetenciesEdit({ competency, nuclei }: Props) {
                                                 competency.problematic_nucleus_id,
                                             )}
                                         >
-                                            <SelectTrigger id="problematic_nucleus_id">
-                                                <SelectValue />
+                                            <SelectTrigger id="problematic_nucleus_id" className="overflow-hidden">
+                                                <SelectValue className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {nuclei.map((n) => (

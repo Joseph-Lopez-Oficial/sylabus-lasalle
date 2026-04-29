@@ -70,7 +70,7 @@ class AcademicSpaceController extends Controller
     public function create(): Response
     {
         return Inertia::render('admin/academic-spaces/create', [
-            'competencies' => Competency::query()->active()->orderBy('name')->get(['id', 'name']),
+            'competencies' => Competency::query()->active()->orderBy('name')->get(['id', 'code', 'name']),
         ]);
     }
 
@@ -265,7 +265,7 @@ class AcademicSpaceController extends Controller
     {
         return Inertia::render('admin/academic-spaces/edit', [
             'academicSpace' => $academicSpace->load('competency'),
-            'competencies' => Competency::query()->active()->orderBy('name')->get(['id', 'name']),
+            'competencies' => Competency::query()->active()->orderBy('name')->get(['id', 'code', 'name']),
         ]);
     }
 
