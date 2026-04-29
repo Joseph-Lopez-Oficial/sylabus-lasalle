@@ -52,7 +52,7 @@ class MesocurricularLearningOutcomeController extends Controller
             ->when($programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
             ->when($facultyId && ! $programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'code', 'name']);
 
         return Inertia::render('admin/mesocurricular-outcomes/index', [
             'outcomes' => $outcomes,
@@ -60,7 +60,7 @@ class MesocurricularLearningOutcomeController extends Controller
             'programs' => $programs,
             'nuclei' => $nuclei,
             'competencies' => $competencies,
-            'filters' => request()->only('search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id'),
+            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id']),
         ]);
     }
 

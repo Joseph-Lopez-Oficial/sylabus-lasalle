@@ -26,11 +26,6 @@
 * **seeders:** add activity types and translate all catalog seeders to Spanish ([02451e2](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/02451e281723c6144090ff9eafa4aad241db2e03)), closes [#17](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/17)
 * **students:** add Excel import with template for students, and professor enrollment module ([53953c6](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/53953c6f3f7cec23d39e25831bbbd29c201a7748)), closes [#22](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/22)
 
-
-### BREAKING CHANGES
-
-* **admin:** n
-
 # [1.1.0](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v1.0.0...v1.1.0) (2026-04-20)
 
 

@@ -1,6 +1,14 @@
 import { Form, Head, Link, router } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Download, FileSpreadsheet, Pencil, Plus, Power, Upload, X } from 'lucide-react';
+import {
+    Download,
+    FileSpreadsheet,
+    Pencil,
+    Plus,
+    Power,
+    Upload,
+    X,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 import * as StudentController from '@/actions/App/Http/Controllers/Admin/StudentController';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -9,7 +17,6 @@ import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import type { BreadcrumbItem, PaginatedResponse, Student } from '@/types';
 
@@ -25,7 +32,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Estudiantes', href: StudentController.index.url() },
 ];
 
-export default function StudentsIndex({ students, filters, import_results }: Props) {
+export default function StudentsIndex({
+    students,
+    filters,
+    import_results,
+}: Props) {
     const [toggleTarget, setToggleTarget] = useState<Student | null>(null);
     const [toggling, setToggling] = useState(false);
     const [showImport, setShowImport] = useState(!!import_results?.length);
@@ -135,10 +146,12 @@ export default function StudentsIndex({ students, filters, import_results }: Pro
                             <p className="text-sm text-muted-foreground">
                                 Columnas requeridas:{' '}
                                 <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-                                    documento, nombres, apellidos, correo, telefono
+                                    documento, nombres, apellidos, correo,
+                                    telefono
                                 </code>
                                 . Si el documento ya existe se actualiza; si el
-                                correo pertenece a otro documento se reporta error.
+                                correo pertenece a otro documento se reporta
+                                error.
                             </p>
 
                             {!import_results?.length ? (
@@ -156,20 +169,30 @@ export default function StudentsIndex({ students, filters, import_results }: Pro
                                                         ? 'border-primary bg-primary/5'
                                                         : 'border-muted-foreground/25 hover:border-muted-foreground/50'
                                                 }`}
-                                                onClick={() => fileRef.current?.click()}
+                                                onClick={() =>
+                                                    fileRef.current?.click()
+                                                }
                                                 onDragOver={(e) => {
                                                     e.preventDefault();
                                                     setDragOver(true);
                                                 }}
-                                                onDragLeave={() => setDragOver(false)}
+                                                onDragLeave={() =>
+                                                    setDragOver(false)
+                                                }
                                                 onDrop={(e) => {
                                                     e.preventDefault();
                                                     setDragOver(false);
-                                                    const file = e.dataTransfer.files[0];
-                                                    if (file && fileRef.current) {
-                                                        const dt = new DataTransfer();
+                                                    const file =
+                                                        e.dataTransfer.files[0];
+                                                    if (
+                                                        file &&
+                                                        fileRef.current
+                                                    ) {
+                                                        const dt =
+                                                            new DataTransfer();
                                                         dt.items.add(file);
-                                                        fileRef.current.files = dt.files;
+                                                        fileRef.current.files =
+                                                            dt.files;
                                                         setSelectedFile(file);
                                                     }
                                                 }}
@@ -179,10 +202,18 @@ export default function StudentsIndex({ students, filters, import_results }: Pro
                                                         <FileSpreadsheet className="h-8 w-8 text-green-600" />
                                                         <div className="text-left">
                                                             <p className="text-sm font-medium">
-                                                                {selectedFile.name}
+                                                                {
+                                                                    selectedFile.name
+                                                                }
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                {(selectedFile.size / 1024).toFixed(1)} KB
+                                                                {(
+                                                                    selectedFile.size /
+                                                                    1024
+                                                                ).toFixed(
+                                                                    1,
+                                                                )}{' '}
+                                                                KB
                                                             </p>
                                                         </div>
                                                         <button
@@ -190,8 +221,14 @@ export default function StudentsIndex({ students, filters, import_results }: Pro
                                                             className="ml-2 rounded-full p-1 hover:bg-muted"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                setSelectedFile(null);
-                                                                if (fileRef.current) fileRef.current.value = '';
+                                                                setSelectedFile(
+                                                                    null,
+                                                                );
+                                                                if (
+                                                                    fileRef.current
+                                                                )
+                                                                    fileRef.current.value =
+                                                                        '';
                                                             }}
                                                         >
                                                             <X className="h-4 w-4 text-muted-foreground" />
@@ -202,10 +239,14 @@ export default function StudentsIndex({ students, filters, import_results }: Pro
                                                         <Upload className="h-8 w-8 text-muted-foreground" />
                                                         <div className="text-center">
                                                             <p className="text-sm font-medium">
-                                                                Arrastra el archivo aquí
+                                                                Arrastra el
+                                                                archivo aquí
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                o haz clic para seleccionar (.xlsx, .xls, .csv)
+                                                                o haz clic para
+                                                                seleccionar
+                                                                (.xlsx, .xls,
+                                                                .csv)
                                                             </p>
                                                         </div>
                                                     </>
@@ -218,7 +259,10 @@ export default function StudentsIndex({ students, filters, import_results }: Pro
                                                 accept=".xlsx,.xls,.csv"
                                                 className="hidden"
                                                 onChange={(e) =>
-                                                    setSelectedFile(e.target.files?.[0] ?? null)
+                                                    setSelectedFile(
+                                                        e.target.files?.[0] ??
+                                                            null,
+                                                    )
                                                 }
                                             />
                                             {selectedFile && (
@@ -228,7 +272,9 @@ export default function StudentsIndex({ students, filters, import_results }: Pro
                                                     disabled={processing}
                                                 >
                                                     <Upload className="mr-2 h-4 w-4" />
-                                                    {processing ? 'Procesando...' : 'Importar archivo'}
+                                                    {processing
+                                                        ? 'Procesando...'
+                                                        : 'Importar archivo'}
                                                 </Button>
                                             )}
                                         </div>
@@ -238,7 +284,8 @@ export default function StudentsIndex({ students, filters, import_results }: Pro
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm font-medium">
-                                            Resultado de la importación ({import_results.length} filas)
+                                            Resultado de la importación (
+                                            {import_results.length} filas)
                                         </p>
                                         <Button
                                             variant="outline"

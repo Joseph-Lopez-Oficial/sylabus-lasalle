@@ -81,7 +81,10 @@ export default function MicrocurricularOutcomesEdit({
                                                 outcome.academic_space_id,
                                             )}
                                         >
-                                            <SelectTrigger id="academic_space_id" className="overflow-hidden">
+                                            <SelectTrigger
+                                                id="academic_space_id"
+                                                className="overflow-hidden"
+                                            >
                                                 <SelectValue className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -91,8 +94,12 @@ export default function MicrocurricularOutcomesEdit({
                                                         value={String(s.id)}
                                                     >
                                                         <span className="flex min-w-0 gap-1.5">
-                                                            <span className="shrink-0 font-mono text-xs text-muted-foreground">{s.code}</span>
-                                                            <span className="truncate">{s.name}</span>
+                                                            <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                                                                {s.code}
+                                                            </span>
+                                                            <span className="truncate">
+                                                                {s.name}
+                                                            </span>
                                                         </span>
                                                     </SelectItem>
                                                 ))}
@@ -129,8 +136,11 @@ export default function MicrocurricularOutcomesEdit({
                                                 outcome.type_id,
                                             )}
                                         >
-                                            <SelectTrigger id="type_id">
-                                                <SelectValue />
+                                            <SelectTrigger
+                                                id="type_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {types.map((t) => (
@@ -138,7 +148,9 @@ export default function MicrocurricularOutcomesEdit({
                                                         key={t.id}
                                                         value={String(t.id)}
                                                     >
-                                                        {t.name}
+                                                        <span className="truncate">
+                                                            {t.name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -166,8 +178,14 @@ export default function MicrocurricularOutcomesEdit({
                                                     : undefined
                                             }
                                         >
-                                            <SelectTrigger id="mesocurricular_learning_outcome_id" className="overflow-hidden">
-                                                <SelectValue placeholder="Ninguno" className="truncate" />
+                                            <SelectTrigger
+                                                id="mesocurricular_learning_outcome_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Ninguno"
+                                                    className="truncate"
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {mesocurricularOutcomes.map(
@@ -177,8 +195,14 @@ export default function MicrocurricularOutcomesEdit({
                                                             value={String(m.id)}
                                                         >
                                                             <span className="flex min-w-0 gap-1.5">
-                                                                <span className="shrink-0 font-mono text-xs text-muted-foreground">{m.code}</span>
-                                                                <span className="truncate">{m.description}</span>
+                                                                <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                                                                    {m.code}
+                                                                </span>
+                                                                <span className="truncate">
+                                                                    {
+                                                                        m.description
+                                                                    }
+                                                                </span>
                                                             </span>
                                                         </SelectItem>
                                                     ),

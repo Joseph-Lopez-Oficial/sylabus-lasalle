@@ -148,82 +148,142 @@ export default function CompetenciesIndex({
                         </Link>
                     </Button>
                 </PageHeader>
-                <div className="flex flex-wrap items-center gap-2">
-                    <Select
-                        value={filters.faculty_id ?? ''}
-                        onValueChange={(val) =>
-                            router.get(
-                                CompetencyController.index.url(),
-                                val ? { faculty_id: val } : {},
-                                { preserveState: true },
-                            )
-                        }
-                    >
-                        <SelectTrigger className="w-48">
-                            <SelectValue placeholder="Todas las facultades" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {faculties.map((f) => (
-                                <SelectItem key={f.id} value={String(f.id)}>
-                                    {f.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    {filters.faculty_id && (
+                <div className="flex flex-wrap items-end gap-2">
+                    <div className="flex flex-col gap-0.5">
+                        <p className="text-xs font-medium text-muted-foreground">
+                            Facultad
+                        </p>
                         <Select
-                            value={filters.program_id ?? ''}
+                            value={filters.faculty_id ?? ''}
                             onValueChange={(val) =>
                                 router.get(
                                     CompetencyController.index.url(),
-                                    {
-                                        faculty_id: filters.faculty_id,
-                                        ...(val ? { program_id: val } : {}),
-                                    },
+                                    val ? { faculty_id: val } : {},
                                     { preserveState: true },
                                 )
                             }
                         >
-                            <SelectTrigger className="w-48">
-                                <SelectValue placeholder="Todos los programas" />
+                            <SelectTrigger className="w-48 overflow-hidden">
+                                <SelectValue
+                                    placeholder="Todas las facultades"
+                                    className="truncate"
+                                />
                             </SelectTrigger>
                             <SelectContent>
-                                {programs.map((p) => (
-                                    <SelectItem key={p.id} value={String(p.id)}>
-                                        {p.name}
+                                {faculties.length === 0 ? (
+                                    <SelectItem value="__empty__" disabled>
+                                        Sin opciones disponibles
                                     </SelectItem>
-                                ))}
+                                ) : (
+                                    faculties.map((f) => (
+                                        <SelectItem
+                                            key={f.id}
+                                            value={String(f.id)}
+                                        >
+                                            <span className="truncate">
+                                                {f.name}
+                                            </span>
+                                        </SelectItem>
+                                    ))
+                                )}
                             </SelectContent>
                         </Select>
+                    </div>
+                    {filters.faculty_id && (
+                        <div className="flex flex-col gap-0.5">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Programa
+                            </p>
+                            <Select
+                                value={filters.program_id ?? ''}
+                                onValueChange={(val) =>
+                                    router.get(
+                                        CompetencyController.index.url(),
+                                        {
+                                            faculty_id: filters.faculty_id,
+                                            ...(val ? { program_id: val } : {}),
+                                        },
+                                        { preserveState: true },
+                                    )
+                                }
+                            >
+                                <SelectTrigger className="w-48 overflow-hidden">
+                                    <SelectValue
+                                        placeholder="Todos los programas"
+                                        className="truncate"
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {programs.length === 0 ? (
+                                        <SelectItem value="__empty__" disabled>
+                                            Sin opciones disponibles
+                                        </SelectItem>
+                                    ) : (
+                                        programs.map((p) => (
+                                            <SelectItem
+                                                key={p.id}
+                                                value={String(p.id)}
+                                            >
+                                                <span className="truncate">
+                                                    {p.name}
+                                                </span>
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     )}
                     {filters.program_id && (
-                        <Select
-                            value={filters.problematic_nucleus_id ?? ''}
-                            onValueChange={(val) =>
-                                router.get(
-                                    CompetencyController.index.url(),
-                                    {
-                                        faculty_id: filters.faculty_id,
-                                        program_id: filters.program_id,
-                                        ...(val
-                                            ? { problematic_nucleus_id: val }
-                                            : {}),
-                                    },
-                                    { preserveState: true },
-                                )
-                            }
-                        >
-                            <SelectTrigger className="w-56">
-                                <SelectValue placeholder="Todos los núcleos" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {nuclei.map((n) => (
-                                    <SelectItem key={n.id} value={String(n.id)}>
-                                        {n.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex flex-col gap-0.5">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Núcleo Problémico
+                            </p>
+                            <Select
+                                value={filters.problematic_nucleus_id ?? ''}
+                                onValueChange={(val) =>
+                                    router.get(
+                                        CompetencyController.index.url(),
+                                        {
+                                            faculty_id: filters.faculty_id,
+                                            program_id: filters.program_id,
+                                            ...(val
+                                                ? {
+                                                      problematic_nucleus_id:
+                                                          val,
+                                                  }
+                                                : {}),
+                                        },
+                                        { preserveState: true },
+                                    )
+                                }
+                            >
+                                <SelectTrigger className="w-72 overflow-hidden">
+                                    <SelectValue
+                                        placeholder="Todos los núcleos"
+                                        className="truncate"
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {nuclei.length === 0 ? (
+                                        <SelectItem value="__empty__" disabled>
+                                            Sin opciones disponibles
+                                        </SelectItem>
+                                    ) : (
+                                        nuclei.map((n) => (
+                                            <SelectItem
+                                                key={n.id}
+                                                value={String(n.id)}
+                                            >
+                                                <span className="truncate">
+                                                    {n.name}
+                                                </span>
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     )}
                     {(filters.faculty_id ||
                         filters.program_id ||

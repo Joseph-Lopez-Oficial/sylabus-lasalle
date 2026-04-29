@@ -66,8 +66,14 @@ export default function ProgrammingsCreate({
                                             Espacio Académico *
                                         </Label>
                                         <Select name="academic_space_id">
-                                            <SelectTrigger id="academic_space_id">
-                                                <SelectValue placeholder="Selecciona un espacio académico" />
+                                            <SelectTrigger
+                                                id="academic_space_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Selecciona un espacio académico"
+                                                    className="truncate"
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicSpaces.map((s) => (
@@ -75,7 +81,9 @@ export default function ProgrammingsCreate({
                                                         key={s.id}
                                                         value={String(s.id)}
                                                     >
-                                                        {s.name}
+                                                        <span className="truncate">
+                                                            {s.name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -91,8 +99,14 @@ export default function ProgrammingsCreate({
                                             Profesor *
                                         </Label>
                                         <Select name="professor_id">
-                                            <SelectTrigger id="professor_id">
-                                                <SelectValue placeholder="Selecciona un profesor" />
+                                            <SelectTrigger
+                                                id="professor_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Selecciona un profesor"
+                                                    className="truncate"
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {professors.map((p) => (
@@ -100,8 +114,10 @@ export default function ProgrammingsCreate({
                                                         key={p.id}
                                                         value={String(p.id)}
                                                     >
-                                                        {p.first_name}{' '}
-                                                        {p.last_name}
+                                                        <span className="truncate">
+                                                            {p.first_name}{' '}
+                                                            {p.last_name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -117,8 +133,14 @@ export default function ProgrammingsCreate({
                                             Modalidad *
                                         </Label>
                                         <Select name="modality_id">
-                                            <SelectTrigger id="modality_id">
-                                                <SelectValue placeholder="Selecciona la modalidad" />
+                                            <SelectTrigger
+                                                id="modality_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Selecciona la modalidad"
+                                                    className="truncate"
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {modalities.map((m) => (
@@ -126,7 +148,9 @@ export default function ProgrammingsCreate({
                                                         key={m.id}
                                                         value={String(m.id)}
                                                     >
-                                                        {m.name}
+                                                        <span className="truncate">
+                                                            {m.name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -143,8 +167,14 @@ export default function ProgrammingsCreate({
                                                 Período académico *
                                             </Label>
                                             <Select name="academic_period_id">
-                                                <SelectTrigger id="academic_period_id">
-                                                    <SelectValue placeholder="Selecciona un período" />
+                                                <SelectTrigger
+                                                    id="academic_period_id"
+                                                    className="overflow-hidden"
+                                                >
+                                                    <SelectValue
+                                                        placeholder="Selecciona un período"
+                                                        className="truncate"
+                                                    />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {academicPeriods.map(
@@ -155,7 +185,9 @@ export default function ProgrammingsCreate({
                                                                     p.id,
                                                                 )}
                                                             >
-                                                                {p.name}
+                                                                <span className="truncate">
+                                                                    {p.name}
+                                                                </span>
                                                             </SelectItem>
                                                         ),
                                                     )}

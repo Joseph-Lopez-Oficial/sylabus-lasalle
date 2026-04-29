@@ -28,7 +28,6 @@ import {
     YAxis,
 } from 'recharts';
 import * as SpaceController from '@/actions/App/Http/Controllers/Admin/AcademicSpaceController';
-import * as OutcomeController from '@/actions/App/Http/Controllers/Admin/MicrocurricularLearningOutcomeController';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
@@ -517,7 +516,6 @@ export default function AcademicSpacesShow({
 
 function AcademicSpaceStats({ statistics }: { statistics: SpaceStats }) {
     const [expandedProg, setExpandedProg] = useState<number | null>(null);
-    const [expandedCrit, setExpandedCrit] = useState<number | null>(null);
     const [activeSection, setActiveSection] = useState<
         'summary' | 'programmings' | 'outcomes' | 'criteria'
     >('summary');

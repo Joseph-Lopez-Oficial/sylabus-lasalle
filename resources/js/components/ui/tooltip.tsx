@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 function TooltipProvider({
-  delayDuration = 0,
+  delayDuration = 3000,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
   return (
@@ -17,11 +17,18 @@ function TooltipProvider({
 }
 
 function Tooltip({
+  delayDuration = 3000,
+  disableHoverableContent = true,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
   return (
     <TooltipProvider>
-      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+      <TooltipPrimitive.Root
+        data-slot="tooltip"
+        delayDuration={delayDuration}
+        disableHoverableContent={disableHoverableContent}
+        {...props}
+      />
     </TooltipProvider>
   )
 }

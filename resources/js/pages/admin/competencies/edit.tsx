@@ -62,7 +62,10 @@ export default function CompetenciesEdit({ competency, nuclei }: Props) {
                                                 competency.problematic_nucleus_id,
                                             )}
                                         >
-                                            <SelectTrigger id="problematic_nucleus_id" className="overflow-hidden">
+                                            <SelectTrigger
+                                                id="problematic_nucleus_id"
+                                                className="overflow-hidden"
+                                            >
                                                 <SelectValue className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -71,7 +74,9 @@ export default function CompetenciesEdit({ competency, nuclei }: Props) {
                                                         key={n.id}
                                                         value={String(n.id)}
                                                     >
-                                                        {n.name}
+                                                        <span className="truncate">
+                                                            {n.name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

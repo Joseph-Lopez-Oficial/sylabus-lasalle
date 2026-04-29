@@ -70,8 +70,14 @@ export default function MicrocurricularOutcomesCreate({
                                             Espacio Académico *
                                         </Label>
                                         <Select name="academic_space_id">
-                                            <SelectTrigger id="academic_space_id" className="overflow-hidden">
-                                                <SelectValue placeholder="Selecciona un espacio" className="truncate" />
+                                            <SelectTrigger
+                                                id="academic_space_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Selecciona un espacio"
+                                                    className="truncate"
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicSpaces.map((s) => (
@@ -80,8 +86,12 @@ export default function MicrocurricularOutcomesCreate({
                                                         value={String(s.id)}
                                                     >
                                                         <span className="flex min-w-0 gap-1.5">
-                                                            <span className="shrink-0 font-mono text-xs text-muted-foreground">{s.code}</span>
-                                                            <span className="truncate">{s.name}</span>
+                                                            <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                                                                {s.code}
+                                                            </span>
+                                                            <span className="truncate">
+                                                                {s.name}
+                                                            </span>
                                                         </span>
                                                     </SelectItem>
                                                 ))}
@@ -112,8 +122,14 @@ export default function MicrocurricularOutcomesCreate({
                                             Tipo de resultado *
                                         </Label>
                                         <Select name="type_id">
-                                            <SelectTrigger id="type_id">
-                                                <SelectValue placeholder="Selecciona el tipo" />
+                                            <SelectTrigger
+                                                id="type_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Selecciona el tipo"
+                                                    className="truncate"
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {types.map((t) => (
@@ -121,7 +137,9 @@ export default function MicrocurricularOutcomesCreate({
                                                         key={t.id}
                                                         value={String(t.id)}
                                                     >
-                                                        {t.name}
+                                                        <span className="truncate">
+                                                            {t.name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -140,8 +158,14 @@ export default function MicrocurricularOutcomesCreate({
                                             </span>
                                         </Label>
                                         <Select name="mesocurricular_learning_outcome_id">
-                                            <SelectTrigger id="mesocurricular_learning_outcome_id" className="overflow-hidden">
-                                                <SelectValue placeholder="Ninguno" className="truncate" />
+                                            <SelectTrigger
+                                                id="mesocurricular_learning_outcome_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Ninguno"
+                                                    className="truncate"
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {mesocurricularOutcomes.map(
@@ -151,8 +175,14 @@ export default function MicrocurricularOutcomesCreate({
                                                             value={String(m.id)}
                                                         >
                                                             <span className="flex min-w-0 gap-1.5">
-                                                                <span className="shrink-0 font-mono text-xs text-muted-foreground">{m.code}</span>
-                                                                <span className="truncate">{m.description}</span>
+                                                                <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                                                                    {m.code}
+                                                                </span>
+                                                                <span className="truncate">
+                                                                    {
+                                                                        m.description
+                                                                    }
+                                                                </span>
                                                             </span>
                                                         </SelectItem>
                                                     ),

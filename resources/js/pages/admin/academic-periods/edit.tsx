@@ -4,6 +4,7 @@ import * as PeriodController from '@/actions/App/Http/Controllers/Admin/Academic
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -74,16 +75,11 @@ export default function AcademicPeriodsEdit({ period }: Props) {
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="grid gap-1.5">
-                                            <Label htmlFor="start_date">
-                                                Fecha de inicio
-                                            </Label>
-                                            <Input
-                                                id="start_date"
+                                            <Label>Fecha de inicio</Label>
+                                            <DatePicker
                                                 name="start_date"
-                                                type="date"
-                                                defaultValue={
-                                                    period.start_date ?? ''
-                                                }
+                                                defaultValue={period.start_date}
+                                                placeholder="Fecha de inicio"
                                             />
                                             {errors.start_date && (
                                                 <p className="text-sm text-destructive">
@@ -92,16 +88,11 @@ export default function AcademicPeriodsEdit({ period }: Props) {
                                             )}
                                         </div>
                                         <div className="grid gap-1.5">
-                                            <Label htmlFor="end_date">
-                                                Fecha de fin
-                                            </Label>
-                                            <Input
-                                                id="end_date"
+                                            <Label>Fecha de fin</Label>
+                                            <DatePicker
                                                 name="end_date"
-                                                type="date"
-                                                defaultValue={
-                                                    period.end_date ?? ''
-                                                }
+                                                defaultValue={period.end_date}
+                                                placeholder="Fecha de fin"
                                             />
                                             {errors.end_date && (
                                                 <p className="text-sm text-destructive">

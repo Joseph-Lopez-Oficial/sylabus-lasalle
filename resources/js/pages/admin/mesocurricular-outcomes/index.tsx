@@ -157,7 +157,9 @@ export default function MesocurricularOutcomesIndex({
 
                 <div className="flex flex-wrap items-end gap-2">
                     <div className="flex flex-col gap-0.5">
-                        <p className="text-xs font-medium text-muted-foreground">Facultad</p>
+                        <p className="text-xs font-medium text-muted-foreground">
+                            Facultad
+                        </p>
                         <Select
                             value={filters.faculty_id ?? ''}
                             onValueChange={(val) =>
@@ -168,22 +170,38 @@ export default function MesocurricularOutcomesIndex({
                                 )
                             }
                         >
-                            <SelectTrigger className="w-48 overflow-hidden" title="Filtrar por facultad">
-                                <SelectValue placeholder="Todas las facultades" className="truncate" />
+                            <SelectTrigger className="w-48 overflow-hidden">
+                                <SelectValue
+                                    placeholder="Todas las facultades"
+                                    className="truncate"
+                                />
                             </SelectTrigger>
                             <SelectContent>
-                                {faculties.map((f) => (
-                                    <SelectItem key={f.id} value={String(f.id)}>
-                                        {f.name}
+                                {faculties.length === 0 ? (
+                                    <SelectItem value="__empty__" disabled>
+                                        Sin opciones disponibles
                                     </SelectItem>
-                                ))}
+                                ) : (
+                                    faculties.map((f) => (
+                                        <SelectItem
+                                            key={f.id}
+                                            value={String(f.id)}
+                                        >
+                                            <span className="truncate">
+                                                {f.name}
+                                            </span>
+                                        </SelectItem>
+                                    ))
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
 
                     {filters.faculty_id && (
                         <div className="flex flex-col gap-0.5">
-                            <p className="text-xs font-medium text-muted-foreground">Programa</p>
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Programa
+                            </p>
                             <Select
                                 value={filters.program_id ?? ''}
                                 onValueChange={(val) =>
@@ -197,15 +215,29 @@ export default function MesocurricularOutcomesIndex({
                                     )
                                 }
                             >
-                                <SelectTrigger className="w-48 overflow-hidden" title="Filtrar por programa">
-                                    <SelectValue placeholder="Todos los programas" className="truncate" />
+                                <SelectTrigger className="w-48 overflow-hidden">
+                                    <SelectValue
+                                        placeholder="Todos los programas"
+                                        className="truncate"
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {programs.map((p) => (
-                                        <SelectItem key={p.id} value={String(p.id)}>
-                                            {p.name}
+                                    {programs.length === 0 ? (
+                                        <SelectItem value="__empty__" disabled>
+                                            Sin opciones disponibles
                                         </SelectItem>
-                                    ))}
+                                    ) : (
+                                        programs.map((p) => (
+                                            <SelectItem
+                                                key={p.id}
+                                                value={String(p.id)}
+                                            >
+                                                <span className="truncate">
+                                                    {p.name}
+                                                </span>
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -213,7 +245,9 @@ export default function MesocurricularOutcomesIndex({
 
                     {filters.program_id && (
                         <div className="flex flex-col gap-0.5">
-                            <p className="text-xs font-medium text-muted-foreground">Núcleo Problémico</p>
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Núcleo Problémico
+                            </p>
                             <Select
                                 value={filters.problematic_nucleus_id ?? ''}
                                 onValueChange={(val) =>
@@ -223,22 +257,39 @@ export default function MesocurricularOutcomesIndex({
                                             faculty_id: filters.faculty_id,
                                             program_id: filters.program_id,
                                             ...(val
-                                                ? { problematic_nucleus_id: val }
+                                                ? {
+                                                      problematic_nucleus_id:
+                                                          val,
+                                                  }
                                                 : {}),
                                         },
                                         { preserveState: true },
                                     )
                                 }
                             >
-                                <SelectTrigger className="w-56 overflow-hidden" title="Filtrar por núcleo problémico">
-                                    <SelectValue placeholder="Todos los núcleos" className="truncate" />
+                                <SelectTrigger className="w-72 overflow-hidden">
+                                    <SelectValue
+                                        placeholder="Todos los núcleos"
+                                        className="truncate"
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {nuclei.map((n) => (
-                                        <SelectItem key={n.id} value={String(n.id)}>
-                                            {n.name}
+                                    {nuclei.length === 0 ? (
+                                        <SelectItem value="__empty__" disabled>
+                                            Sin opciones disponibles
                                         </SelectItem>
-                                    ))}
+                                    ) : (
+                                        nuclei.map((n) => (
+                                            <SelectItem
+                                                key={n.id}
+                                                value={String(n.id)}
+                                            >
+                                                <span className="truncate">
+                                                    {n.name}
+                                                </span>
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -246,7 +297,9 @@ export default function MesocurricularOutcomesIndex({
 
                     {filters.problematic_nucleus_id && (
                         <div className="flex flex-col gap-0.5">
-                            <p className="text-xs font-medium text-muted-foreground">Competencia</p>
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Competencia
+                            </p>
                             <Select
                                 value={filters.competency_id ?? ''}
                                 onValueChange={(val) =>
@@ -257,24 +310,42 @@ export default function MesocurricularOutcomesIndex({
                                             program_id: filters.program_id,
                                             problematic_nucleus_id:
                                                 filters.problematic_nucleus_id,
-                                            ...(val ? { competency_id: val } : {}),
+                                            ...(val
+                                                ? { competency_id: val }
+                                                : {}),
                                         },
                                         { preserveState: true },
                                     )
                                 }
                             >
-                                <SelectTrigger className="w-56 overflow-hidden" title="Filtrar por competencia">
-                                    <SelectValue placeholder="Todas las competencias" className="truncate" />
+                                <SelectTrigger className="w-72 overflow-hidden">
+                                    <SelectValue
+                                        placeholder="Todas las competencias"
+                                        className="truncate"
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {competencies.map((c) => (
-                                        <SelectItem key={c.id} value={String(c.id)}>
-                                            <span className="flex min-w-0 gap-1.5">
-                                                <span className="shrink-0 font-mono text-xs text-muted-foreground">{c.code}</span>
-                                                <span className="truncate">{c.name}</span>
-                                            </span>
+                                    {competencies.length === 0 ? (
+                                        <SelectItem value="__empty__" disabled>
+                                            Sin opciones disponibles
                                         </SelectItem>
-                                    ))}
+                                    ) : (
+                                        competencies.map((c) => (
+                                            <SelectItem
+                                                key={c.id}
+                                                value={String(c.id)}
+                                            >
+                                                <span className="flex min-w-0 gap-1.5">
+                                                    <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                                                        {c.code}
+                                                    </span>
+                                                    <span className="truncate">
+                                                        {c.name}
+                                                    </span>
+                                                </span>
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>

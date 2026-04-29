@@ -51,8 +51,14 @@ export default function CompetenciesCreate({ nuclei }: Props) {
                                             Núcleo Problémico *
                                         </Label>
                                         <Select name="problematic_nucleus_id">
-                                            <SelectTrigger id="problematic_nucleus_id" className="overflow-hidden">
-                                                <SelectValue placeholder="Selecciona un núcleo" className="truncate" />
+                                            <SelectTrigger
+                                                id="problematic_nucleus_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue
+                                                    placeholder="Selecciona un núcleo"
+                                                    className="truncate"
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {nuclei.map((n) => (
@@ -60,7 +66,9 @@ export default function CompetenciesCreate({ nuclei }: Props) {
                                                         key={n.id}
                                                         value={String(n.id)}
                                                     >
-                                                        {n.name}
+                                                        <span className="truncate">
+                                                            {n.name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

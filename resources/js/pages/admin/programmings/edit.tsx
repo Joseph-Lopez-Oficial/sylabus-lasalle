@@ -82,8 +82,11 @@ export default function ProgrammingsEdit({
                                                 programming.academic_space_id,
                                             )}
                                         >
-                                            <SelectTrigger id="academic_space_id">
-                                                <SelectValue />
+                                            <SelectTrigger
+                                                id="academic_space_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicSpaces.map((s) => (
@@ -91,7 +94,9 @@ export default function ProgrammingsEdit({
                                                         key={s.id}
                                                         value={String(s.id)}
                                                     >
-                                                        {s.name}
+                                                        <span className="truncate">
+                                                            {s.name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -112,8 +117,11 @@ export default function ProgrammingsEdit({
                                                 programming.professor_id,
                                             )}
                                         >
-                                            <SelectTrigger id="professor_id">
-                                                <SelectValue />
+                                            <SelectTrigger
+                                                id="professor_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {professors.map((p) => (
@@ -121,8 +129,10 @@ export default function ProgrammingsEdit({
                                                         key={p.id}
                                                         value={String(p.id)}
                                                     >
-                                                        {p.first_name}{' '}
-                                                        {p.last_name}
+                                                        <span className="truncate">
+                                                            {p.first_name}{' '}
+                                                            {p.last_name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -143,8 +153,11 @@ export default function ProgrammingsEdit({
                                                 programming.modality_id,
                                             )}
                                         >
-                                            <SelectTrigger id="modality_id">
-                                                <SelectValue />
+                                            <SelectTrigger
+                                                id="modality_id"
+                                                className="overflow-hidden"
+                                            >
+                                                <SelectValue className="truncate" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {modalities.map((m) => (
@@ -152,7 +165,9 @@ export default function ProgrammingsEdit({
                                                         key={m.id}
                                                         value={String(m.id)}
                                                     >
-                                                        {m.name}
+                                                        <span className="truncate">
+                                                            {m.name}
+                                                        </span>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -174,8 +189,11 @@ export default function ProgrammingsEdit({
                                                     programming.academic_period_id,
                                                 )}
                                             >
-                                                <SelectTrigger id="academic_period_id">
-                                                    <SelectValue />
+                                                <SelectTrigger
+                                                    id="academic_period_id"
+                                                    className="overflow-hidden"
+                                                >
+                                                    <SelectValue className="truncate" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {academicPeriods.map(
@@ -186,7 +204,9 @@ export default function ProgrammingsEdit({
                                                                     p.id,
                                                                 )}
                                                             >
-                                                                {p.name}
+                                                                <span className="truncate">
+                                                                    {p.name}
+                                                                </span>
                                                             </SelectItem>
                                                         ),
                                                     )}

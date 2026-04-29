@@ -62,7 +62,7 @@ class MicrocurricularLearningOutcomeController extends Controller
             ->when($programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
             ->when($facultyId && ! $programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'code', 'name']);
 
         $academicSpaces = AcademicSpace::query()->active()
             ->when($competencyId, fn ($q) => $q->where('competency_id', $competencyId))
@@ -70,7 +70,7 @@ class MicrocurricularLearningOutcomeController extends Controller
             ->when($programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
             ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'code', 'name']);
 
         return Inertia::render('admin/microcurricular-outcomes/index', [
             'outcomes' => $outcomes,
@@ -79,7 +79,7 @@ class MicrocurricularLearningOutcomeController extends Controller
             'nuclei' => $nuclei,
             'competencies' => $competencies,
             'academicSpaces' => $academicSpaces,
-            'filters' => request()->only('search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id'),
+            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id']),
         ]);
     }
 
@@ -88,7 +88,7 @@ class MicrocurricularLearningOutcomeController extends Controller
         return Inertia::render('admin/microcurricular-outcomes/create', [
             'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'code', 'name']),
             'types' => MicrocurricularLearningOutcomeType::query()->orderBy('name')->get(['id', 'name']),
-            'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderBy('id')->get(['id', 'description']),
+            'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderBy('id')->get(['id', 'code', 'description']),
         ]);
     }
 
@@ -105,7 +105,7 @@ class MicrocurricularLearningOutcomeController extends Controller
             'outcome' => $microcurricularOutcome->load(['academicSpace', 'type', 'mesocurricularLearningOutcome']),
             'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'code', 'name']),
             'types' => MicrocurricularLearningOutcomeType::query()->orderBy('name')->get(['id', 'name']),
-            'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderBy('id')->get(['id', 'description']),
+            'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderBy('id')->get(['id', 'code', 'description']),
         ]);
     }
 

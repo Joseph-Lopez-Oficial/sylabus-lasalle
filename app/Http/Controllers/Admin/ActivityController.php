@@ -60,7 +60,7 @@ class ActivityController extends Controller
             ->when($programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
             ->when($facultyId && ! $programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'code', 'name']);
 
         $academicSpaces = AcademicSpace::query()->active()
             ->when($competencyId, fn ($q) => $q->where('competency_id', $competencyId))
@@ -68,7 +68,7 @@ class ActivityController extends Controller
             ->when($programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
             ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'code', 'name']);
 
         $topics = Topic::query()->active()
             ->when($spaceId, fn ($q) => $q->where('academic_space_id', $spaceId))
@@ -87,7 +87,7 @@ class ActivityController extends Controller
             'competencies' => $competencies,
             'academicSpaces' => $academicSpaces,
             'topics' => $topics,
-            'filters' => request()->only('search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id', 'topic_id'),
+            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id', 'topic_id']),
         ]);
     }
 
