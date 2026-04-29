@@ -28,7 +28,6 @@ class GradeFactory extends Factory
             'performance_level_id' => PerformanceLevel::factory(),
             'graded_by' => User::factory()->admin(),
             'observations' => fake()->optional()->sentence(),
-            'graded_at' => now(),
         ];
     }
 }

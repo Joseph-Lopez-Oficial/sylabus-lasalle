@@ -58,9 +58,15 @@ beforeEach(function () {
         'is_active' => true,
     ]);
 
-    // Criteria
-    $this->criterion1 = EvaluationCriterion::factory()->create(['order' => 1]);
-    $this->criterion2 = EvaluationCriterion::factory()->create(['order' => 2]);
+    // Criteria — must match the outcome's type so completeness and statistics resolve them correctly
+    $this->criterion1 = EvaluationCriterion::factory()->create([
+        'microcurricular_learning_outcome_type_id' => $outcomeType->id,
+        'order' => 1,
+    ]);
+    $this->criterion2 = EvaluationCriterion::factory()->create([
+        'microcurricular_learning_outcome_type_id' => $outcomeType->id,
+        'order' => 2,
+    ]);
 
     // Performance levels with known order values
     $this->levelOrder1 = PerformanceLevel::factory()->create(['order' => 1, 'name' => 'Insuficiente']);
@@ -130,19 +136,21 @@ test('byStudent calculates correct final averages', function () {
     $studentBStats = collect($result['byStudent'])
         ->firstWhere('enrollment_id', $this->enrollmentB->id);
 
-    // Student A total for outcome = 4+3 = 7; avg of [7] = 7.0
-    expect($studentAStats['final_average'])->toBe(7.0);
-    // Student B total for outcome = 2+1 = 3; avg of [3] = 3.0
-    expect($studentBStats['final_average'])->toBe(3.0);
+    // Student A: criterion1=order4(5.0), criterion2=order3(3.8) → RA avg=(5.0+3.8)/2=4.4 → final=4.4
+    expect($studentAStats['final_average'])->toBe(4.4);
+    // Student B: criterion1=order2(2.5), criterion2=order1(1.3) → RA avg=(2.5+1.3)/2=1.9 → final=1.9
+    expect($studentBStats['final_average'])->toBe(1.9);
 });
 
-test('byStudent includes criterion breakdown', function () {
+test('byStudent includes outcome breakdown with criterion detail', function () {
     $result = $this->service->calculate($this->programming);
 
     $studentAStats = collect($result['byStudent'])
         ->firstWhere('enrollment_id', $this->enrollmentA->id);
 
-    expect($studentAStats['by_criterion'])->toHaveCount(2);
+    // byStudent now exposes by_outcome with per-criterion breakdown
+    expect($studentAStats['by_outcome'])->toHaveCount(1);
+    expect($studentAStats['by_outcome'][0]['by_criterion'])->toHaveCount(2);
 });
 
 test('byOutcome calculates correct group average', function () {
@@ -151,10 +159,10 @@ test('byOutcome calculates correct group average', function () {
     $outcomeStats = collect($result['byOutcome'])
         ->firstWhere('outcome_id', $this->outcome->id);
 
-    // Totals: A=7, B=3 → avg = 5.0
-    expect($outcomeStats['group_average'])->toBe(5.0);
-    expect($outcomeStats['highest'])->toBe(7);
-    expect($outcomeStats['lowest'])->toBe(3);
+    // A avg=4.4, B avg=1.9 → group avg=(4.4+1.9)/2=3.15
+    expect($outcomeStats['group_average'])->toBe(3.15);
+    expect((float) $outcomeStats['highest'])->toBe(4.4);
+    expect((float) $outcomeStats['lowest'])->toBe(1.9);
 });
 
 test('byOutcome includes performance level distribution', function () {
@@ -165,7 +173,7 @@ test('byOutcome includes performance level distribution', function () {
 
     expect($outcomeStats['distribution'])->not->toBeEmpty();
     $total = collect($outcomeStats['distribution'])->sum('count');
-    expect($total)->toBe(4); // 2 students × 2 criteria
+    expect($total)->toBe(4); // 2 students × 2 criteria = 4 individual grades
 });
 
 test('byCriterion calculates correct group averages', function () {
@@ -176,17 +184,17 @@ test('byCriterion calculates correct group averages', function () {
     $c2Stats = collect($result['byCriterion'])
         ->firstWhere('criterion_id', $this->criterion2->id);
 
-    // criterion1: (4+2)/2 = 3.0
-    expect($c1Stats['group_average'])->toBe(3.0);
-    // criterion2: (3+1)/2 = 2.0
-    expect($c2Stats['group_average'])->toBe(2.0);
+    // criterion1: (5.0+2.5)/2 = 3.75
+    expect($c1Stats['group_average'])->toBe(3.75);
+    // criterion2: (3.8+1.3)/2 = 2.55
+    expect($c2Stats['group_average'])->toBe(2.55);
 });
 
 test('summary overall average is correct', function () {
     $result = $this->service->calculate($this->programming);
 
-    // Student A final_average=7, B=3 → (7+3)/2 = 5.0
-    expect($result['summary']['overall_average'])->toBe(5.0);
+    // Student A final=4.4, B=1.9 → (4.4+1.9)/2 = 3.15
+    expect($result['summary']['overall_average'])->toBe(3.15);
 });
 
 test('summary top students returns at most 5 ordered by average', function () {

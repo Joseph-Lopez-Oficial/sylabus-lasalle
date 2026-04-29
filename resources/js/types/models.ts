@@ -299,7 +299,6 @@ export type Grade = {
     performance_level_id: number;
     graded_by: number;
     observations: string | null;
-    graded_at: string;
     created_at: string;
     updated_at: string;
     enrollment?: Enrollment;

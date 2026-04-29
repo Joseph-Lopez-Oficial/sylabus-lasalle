@@ -36,7 +36,6 @@ class GradingService
                         'performance_level_id' => $gradeData['performance_level_id'],
                         'graded_by' => $gradedByUserId,
                         'observations' => $gradeData['observations'] ?? null,
-                        'graded_at' => now(),
                     ]
                 );
             }

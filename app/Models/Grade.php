@@ -18,14 +18,11 @@ class Grade extends Model
         'performance_level_id',
         'graded_by',
         'observations',
-        'graded_at',
     ];
 
     protected function casts(): array
     {
-        return [
-            'graded_at' => 'datetime',
-        ];
+        return [];
     }
 
     /**

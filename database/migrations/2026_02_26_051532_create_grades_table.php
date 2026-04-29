@@ -55,7 +55,6 @@ return new class extends Migration
             $table->foreignId('performance_level_id')->constrained('performance_levels');
             $table->foreignId('graded_by')->constrained('users');
             $table->text('observations')->nullable();
-            $table->timestamp('graded_at')->useCurrent();
             $table->timestamps();
 
             $table->unique(

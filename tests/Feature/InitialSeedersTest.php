@@ -37,13 +37,15 @@ class InitialSeedersTest extends TestCase
 
     public function test_evaluation_criteria_are_seeded(): void
     {
+        // Criteria depend on outcome types existing first
+        $this->seed(MicrocurricularLearningOutcomeTypeSeeder::class);
         $this->seed(EvaluationCriterionSeeder::class);
 
-        $this->assertDatabaseCount('evaluation_criteria', 4);
-        $this->assertDatabaseHas('evaluation_criteria', ['name' => 'Saber Conocer', 'order' => 1]);
-        $this->assertDatabaseHas('evaluation_criteria', ['name' => 'Saber Hacer', 'order' => 2]);
-        $this->assertDatabaseHas('evaluation_criteria', ['name' => 'Saber Ser', 'order' => 3]);
-        $this->assertDatabaseHas('evaluation_criteria', ['name' => 'Saber Transferir', 'order' => 4]);
+        // 4 for Conocimiento + 3 for Habilidad + 3 for Actitud = 10
+        $this->assertDatabaseCount('evaluation_criteria', 10);
+        $this->assertDatabaseHas('evaluation_criteria', ['name' => 'Comprensión Conceptual', 'order' => 1]);
+        $this->assertDatabaseHas('evaluation_criteria', ['name' => 'Dominio del Procedimiento', 'order' => 1]);
+        $this->assertDatabaseHas('evaluation_criteria', ['name' => 'Compromiso y Responsabilidad', 'order' => 1]);
     }
 
     public function test_performance_levels_are_seeded(): void
@@ -63,7 +65,7 @@ class InitialSeedersTest extends TestCase
 
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseHas('users', [
-            'email' => 'admin@lasalle.edu.co',
+            'email' => 'admin@unisalle.edu.co',
             'name' => 'Administrador',
             'role' => 'admin',
         ]);
@@ -71,10 +73,11 @@ class InitialSeedersTest extends TestCase
 
     public function test_running_seeder_twice_does_not_duplicate_records(): void
     {
+        $this->seed(MicrocurricularLearningOutcomeTypeSeeder::class);
         $this->seed(EvaluationCriterionSeeder::class);
         $this->seed(EvaluationCriterionSeeder::class);
 
-        $this->assertDatabaseCount('evaluation_criteria', 4);
+        $this->assertDatabaseCount('evaluation_criteria', 10);
     }
 
     public function test_activity_types_are_seeded(): void
@@ -93,7 +96,7 @@ class InitialSeedersTest extends TestCase
 
         $this->assertDatabaseCount('microcurricular_learning_outcome_types', 3);
         $this->assertDatabaseCount('modalities', 3);
-        $this->assertDatabaseCount('evaluation_criteria', 4);
+        $this->assertDatabaseCount('evaluation_criteria', 10);
         $this->assertDatabaseCount('performance_levels', 4);
         $this->assertDatabaseCount('activity_types', 3);
         $this->assertDatabaseCount('users', 1);
