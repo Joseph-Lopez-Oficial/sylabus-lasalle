@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v2.0.0...v2.0.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* **ui:** add labels, empty state in filters, truncate selects, datepicker, and fix select item overf ([55b2fce](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/55b2fce091b9a50e895ed87933751222e4dd99dc)), closes [#35](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/35)
+
 # [2.0.0](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v1.1.0...v2.0.0) (2026-04-29)
 
 
