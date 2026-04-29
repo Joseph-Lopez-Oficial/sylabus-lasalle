@@ -8,18 +8,37 @@ import { DataTable } from '@/components/data-table';
 import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import type {
     BreadcrumbItem,
     Competency,
+    Faculty,
     MesocurricularLearningOutcome,
     PaginatedResponse,
+    ProblematicNucleus,
+    Program,
 } from '@/types';
 
 type Props = {
     outcomes: PaginatedResponse<MesocurricularLearningOutcome>;
+    faculties: Pick<Faculty, 'id' | 'name'>[];
+    programs: Pick<Program, 'id' | 'name'>[];
+    nuclei: Pick<ProblematicNucleus, 'id' | 'name'>[];
     competencies: Pick<Competency, 'id' | 'name'>[];
-    filters: { search?: string; competency_id?: string };
+    filters: {
+        search?: string;
+        faculty_id?: string;
+        program_id?: string;
+        problematic_nucleus_id?: string;
+        competency_id?: string;
+    };
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -31,6 +50,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function MesocurricularOutcomesIndex({
     outcomes,
+    faculties,
+    programs,
+    nuclei,
     competencies,
     filters,
 }: Props) {
@@ -132,43 +154,137 @@ export default function MesocurricularOutcomesIndex({
                         </Link>
                     </Button>
                 </PageHeader>
-                <div className="flex flex-wrap gap-2">
-                    <Button
-                        variant={
-                            !filters.competency_id ? 'secondary' : 'outline'
-                        }
-                        size="sm"
-                        onClick={() =>
+
+                <div className="flex flex-wrap items-center gap-2">
+                    <Select
+                        value={filters.faculty_id ?? ''}
+                        onValueChange={(val) =>
                             router.get(
                                 OutcomeController.index.url(),
-                                {},
+                                val ? { faculty_id: val } : {},
                                 { preserveState: true },
                             )
                         }
                     >
-                        Todas las competencias
-                    </Button>
-                    {competencies.map((c) => (
-                        <Button
-                            key={c.id}
-                            size="sm"
-                            variant={
-                                filters.competency_id === String(c.id)
-                                    ? 'secondary'
-                                    : 'outline'
-                            }
-                            onClick={() =>
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Todas las facultades" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {faculties.map((f) => (
+                                <SelectItem key={f.id} value={String(f.id)}>
+                                    {f.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {filters.faculty_id && (
+                        <Select
+                            value={filters.program_id ?? ''}
+                            onValueChange={(val) =>
                                 router.get(
                                     OutcomeController.index.url(),
-                                    { competency_id: c.id },
+                                    {
+                                        faculty_id: filters.faculty_id,
+                                        ...(val ? { program_id: val } : {}),
+                                    },
                                     { preserveState: true },
                                 )
                             }
                         >
-                            {c.name}
+                            <SelectTrigger className="w-48">
+                                <SelectValue placeholder="Todos los programas" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {programs.map((p) => (
+                                    <SelectItem key={p.id} value={String(p.id)}>
+                                        {p.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+
+                    {filters.program_id && (
+                        <Select
+                            value={filters.problematic_nucleus_id ?? ''}
+                            onValueChange={(val) =>
+                                router.get(
+                                    OutcomeController.index.url(),
+                                    {
+                                        faculty_id: filters.faculty_id,
+                                        program_id: filters.program_id,
+                                        ...(val
+                                            ? { problematic_nucleus_id: val }
+                                            : {}),
+                                    },
+                                    { preserveState: true },
+                                )
+                            }
+                        >
+                            <SelectTrigger className="w-56">
+                                <SelectValue placeholder="Todos los núcleos" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {nuclei.map((n) => (
+                                    <SelectItem key={n.id} value={String(n.id)}>
+                                        {n.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+
+                    {filters.problematic_nucleus_id && (
+                        <Select
+                            value={filters.competency_id ?? ''}
+                            onValueChange={(val) =>
+                                router.get(
+                                    OutcomeController.index.url(),
+                                    {
+                                        faculty_id: filters.faculty_id,
+                                        program_id: filters.program_id,
+                                        problematic_nucleus_id:
+                                            filters.problematic_nucleus_id,
+                                        ...(val ? { competency_id: val } : {}),
+                                    },
+                                    { preserveState: true },
+                                )
+                            }
+                        >
+                            <SelectTrigger className="w-56">
+                                <SelectValue placeholder="Todas las competencias" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {competencies.map((c) => (
+                                    <SelectItem key={c.id} value={String(c.id)}>
+                                        {c.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+
+                    {(filters.faculty_id ||
+                        filters.program_id ||
+                        filters.problematic_nucleus_id ||
+                        filters.competency_id) && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                                router.get(
+                                    OutcomeController.index.url(),
+                                    {},
+                                    { preserveState: true },
+                                )
+                            }
+                        >
+                            Limpiar filtros
                         </Button>
-                    ))}
+                    )}
                 </div>
+
                 <DataTable
                     data={outcomes}
                     columns={columns}

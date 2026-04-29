@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreMesocurricularLearningOutcomeRequest;
 use App\Http\Requests\Admin\UpdateMesocurricularLearningOutcomeRequest;
 use App\Models\Competency;
+use App\Models\Faculty;
 use App\Models\MesocurricularLearningOutcome;
+use App\Models\ProblematicNucleus;
+use App\Models\Program;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,20 +18,49 @@ class MesocurricularLearningOutcomeController extends Controller
 {
     public function index(): Response
     {
+        $facultyId = request('faculty_id');
+        $programId = request('program_id');
+        $nucleusId = request('problematic_nucleus_id');
+        $competencyId = request('competency_id');
+
         $outcomes = MesocurricularLearningOutcome::query()
-            ->with('competency.problematicNucleus')
-            ->when(request('search'), fn ($q, $search) => $q->where('description', 'like', "%{$search}%"))
-            ->when(request('competency_id'), fn ($q, $competencyId) => $q->where('competency_id', $competencyId))
+            ->with('competency.problematicNucleus.program.faculty')
+            ->when(request('search'), fn($q, $search) => $q->where('description', 'like', "%{$search}%"))
+            ->when($competencyId, fn($q) => $q->where('competency_id', $competencyId))
+            ->when($nucleusId && ! $competencyId, fn($q) => $q->whereHas('competency', fn($cq) => $cq->where('problematic_nucleus_id', $nucleusId)))
+            ->when($programId && ! $nucleusId && ! $competencyId, fn($q) => $q->whereHas('competency.problematicNucleus', fn($nq) => $nq->where('program_id', $programId)))
+            ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId, fn($q) => $q->whereHas('competency.problematicNucleus.program', fn($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('id')
             ->paginate(15)
             ->withQueryString();
 
-        $competencies = Competency::query()->active()->orderBy('name')->get(['id', 'name']);
+        $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
+
+        $programs = Program::query()->active()
+            ->when($facultyId, fn($q) => $q->where('faculty_id', $facultyId))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $nuclei = ProblematicNucleus::query()->active()
+            ->when($programId, fn($q) => $q->where('program_id', $programId))
+            ->when($facultyId && ! $programId, fn($q) => $q->whereHas('program', fn($pq) => $pq->where('faculty_id', $facultyId)))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $competencies = Competency::query()->active()
+            ->when($nucleusId, fn($q) => $q->where('problematic_nucleus_id', $nucleusId))
+            ->when($programId && ! $nucleusId, fn($q) => $q->whereHas('problematicNucleus', fn($nq) => $nq->where('program_id', $programId)))
+            ->when($facultyId && ! $programId && ! $nucleusId, fn($q) => $q->whereHas('problematicNucleus.program', fn($pq) => $pq->where('faculty_id', $facultyId)))
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return Inertia::render('admin/mesocurricular-outcomes/index', [
             'outcomes' => $outcomes,
+            'faculties' => $faculties,
+            'programs' => $programs,
+            'nuclei' => $nuclei,
             'competencies' => $competencies,
-            'filters' => request()->only('search', 'competency_id'),
+            'filters' => request()->only('search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id'),
         ]);
     }
 
