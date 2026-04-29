@@ -37,7 +37,7 @@ class MicrocurricularLearningOutcomeController extends Controller
             ->when($nucleusId && ! $competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace.competency', fn ($cq) => $cq->where('problematic_nucleus_id', $nucleusId)))
             ->when($programId && ! $nucleusId && ! $competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace.competency.problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
             ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace.competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
-            ->orderByDesc('id')
+            ->orderBy('id')
             ->paginate(15)
             ->withQueryString();
 
@@ -85,7 +85,7 @@ class MicrocurricularLearningOutcomeController extends Controller
         return Inertia::render('admin/microcurricular-outcomes/create', [
             'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'name']),
             'types' => MicrocurricularLearningOutcomeType::query()->orderBy('name')->get(['id', 'name']),
-            'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderByDesc('id')->get(['id', 'description']),
+            'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderBy('id')->get(['id', 'description']),
         ]);
     }
 
@@ -102,7 +102,7 @@ class MicrocurricularLearningOutcomeController extends Controller
             'outcome' => $microcurricularOutcome->load(['academicSpace', 'type', 'mesocurricularLearningOutcome']),
             'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'name']),
             'types' => MicrocurricularLearningOutcomeType::query()->orderBy('name')->get(['id', 'name']),
-            'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderByDesc('id')->get(['id', 'description']),
+            'mesocurricularOutcomes' => MesocurricularLearningOutcome::query()->active()->orderBy('id')->get(['id', 'description']),
         ]);
     }
 

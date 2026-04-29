@@ -19,7 +19,7 @@ class MesocurricularLearningOutcomeController extends Controller
             ->with('competency.problematicNucleus')
             ->when(request('search'), fn ($q, $search) => $q->where('description', 'like', "%{$search}%"))
             ->when(request('competency_id'), fn ($q, $competencyId) => $q->where('competency_id', $competencyId))
-            ->orderByDesc('id')
+            ->orderBy('id')
             ->paginate(15)
             ->withQueryString();
 
