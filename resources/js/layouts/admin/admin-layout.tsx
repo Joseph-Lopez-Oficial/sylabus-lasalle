@@ -1,11 +1,20 @@
 import { Link } from '@inertiajs/react';
 import {
-    BookOpen,
+    Award,
     Building2,
+    CalendarClock,
+    CalendarDays,
+    ClipboardCheck,
     GraduationCap,
     LayoutDashboard,
-    Settings,
+    List,
+    Package,
+    School,
+    Target,
+    TrendingUp,
+    UserCheck,
     Users,
+    Zap,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AppContent } from '@/components/app-content';
@@ -55,37 +64,37 @@ const navItems = [
             {
                 title: 'Núcleos Problémicos',
                 href: '/admin/problematic-nuclei',
-                icon: BookOpen,
+                icon: Target,
             },
             {
                 title: 'Competencias',
                 href: '/admin/competencies',
-                icon: BookOpen,
+                icon: Award,
             },
             {
                 title: 'Resultados Meso.',
                 href: '/admin/mesocurricular-outcomes',
-                icon: BookOpen,
+                icon: TrendingUp,
             },
             {
                 title: 'Espacios Académicos',
                 href: '/admin/academic-spaces',
-                icon: BookOpen,
+                icon: School,
             },
             {
                 title: 'Resultados Micro.',
                 href: '/admin/microcurricular-outcomes',
-                icon: BookOpen,
+                icon: ClipboardCheck,
             },
-            { title: 'Temas', href: '/admin/topics', icon: BookOpen },
-            { title: 'Actividades', href: '/admin/activities', icon: BookOpen },
-            { title: 'Productos', href: '/admin/products', icon: BookOpen },
+            { title: 'Temas', href: '/admin/topics', icon: List },
+            { title: 'Actividades', href: '/admin/activities', icon: Zap },
+            { title: 'Productos', href: '/admin/products', icon: Package },
         ],
     },
     {
         group: 'Personas',
         items: [
-            { title: 'Profesores', href: '/admin/professors', icon: Users },
+            { title: 'Profesores', href: '/admin/professors', icon: UserCheck },
             { title: 'Estudiantes', href: '/admin/students', icon: Users },
         ],
     },
@@ -95,12 +104,12 @@ const navItems = [
             {
                 title: 'Períodos Académicos',
                 href: '/admin/academic-periods',
-                icon: Settings,
+                icon: CalendarDays,
             },
             {
                 title: 'Programaciones',
                 href: '/admin/programmings',
-                icon: Settings,
+                icon: CalendarClock,
             },
         ],
     },
