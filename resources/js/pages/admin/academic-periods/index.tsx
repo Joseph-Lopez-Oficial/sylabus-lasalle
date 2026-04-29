@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import AdminLayout from '@/layouts/admin/admin-layout';
+import { formatDate } from '@/lib/utils';
 import type {
     AcademicPeriod,
     BreadcrumbItem,
@@ -67,7 +68,7 @@ export default function AcademicPeriodsIndex({ periods, filters }: Props) {
             cell: ({ row }) => {
                 const { start_date, end_date } = row.original;
                 if (!start_date && !end_date) return '—';
-                return `${start_date ?? '?'} → ${end_date ?? '?'}`;
+                return `${formatDate(start_date)} → ${formatDate(end_date)}`;
             },
         },
         {

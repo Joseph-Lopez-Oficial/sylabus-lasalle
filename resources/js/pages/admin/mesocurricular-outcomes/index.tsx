@@ -68,7 +68,10 @@ export default function MesocurricularOutcomesIndex({
             accessorKey: 'description',
             header: 'Descripción',
             cell: ({ row }) => (
-                <span className="line-clamp-2 max-w-md">
+                <span
+                    className="block max-w-sm truncate"
+                    title={row.original.description}
+                >
                     {row.original.description}
                 </span>
             ),
@@ -76,7 +79,14 @@ export default function MesocurricularOutcomesIndex({
         {
             id: 'competency',
             header: 'Competencia',
-            cell: ({ row }) => row.original.competency?.name ?? '—',
+            cell: ({ row }) => {
+                const name = row.original.competency?.name ?? '—';
+                return (
+                    <span className="block max-w-xs truncate" title={name}>
+                        {name}
+                    </span>
+                );
+            },
         },
         {
             accessorKey: 'is_active',
@@ -89,7 +99,7 @@ export default function MesocurricularOutcomesIndex({
             id: 'actions',
             header: '',
             cell: ({ row }) => (
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex w-24 shrink-0 items-center justify-end gap-1">
                     <Button variant="ghost" size="icon" asChild>
                         <Link href={OutcomeController.edit.url(row.original)}>
                             <Pencil className="h-4 w-4" />

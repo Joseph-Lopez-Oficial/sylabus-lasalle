@@ -78,11 +78,29 @@ export default function CompetenciesIndex({
                 </span>
             ),
         },
-        { accessorKey: 'name', header: 'Nombre' },
+        {
+            accessorKey: 'name',
+            header: 'Nombre',
+            cell: ({ row }) => (
+                <span
+                    className="block max-w-sm truncate"
+                    title={row.original.name}
+                >
+                    {row.original.name}
+                </span>
+            ),
+        },
         {
             id: 'nucleus',
             header: 'Núcleo Problémico',
-            cell: ({ row }) => row.original.problematic_nucleus?.name ?? '—',
+            cell: ({ row }) => {
+                const name = row.original.problematic_nucleus?.name ?? '—';
+                return (
+                    <span className="block max-w-xs truncate" title={name}>
+                        {name}
+                    </span>
+                );
+            },
         },
         {
             accessorKey: 'is_active',
@@ -95,7 +113,7 @@ export default function CompetenciesIndex({
             id: 'actions',
             header: '',
             cell: ({ row }) => (
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex w-24 shrink-0 items-center justify-end gap-1">
                     <Button variant="ghost" size="icon" asChild>
                         <Link
                             href={CompetencyController.edit.url(row.original)}

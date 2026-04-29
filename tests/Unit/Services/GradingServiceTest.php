@@ -48,7 +48,9 @@ beforeEach(function () {
         'is_active' => true,
     ]);
 
-    $this->criterion = EvaluationCriterion::factory()->create();
+    $this->criterion = EvaluationCriterion::factory()->create([
+        'microcurricular_learning_outcome_type_id' => $this->outcomeType->id,
+    ]);
     $this->performanceLevel = PerformanceLevel::factory()->create();
 
     $this->enrollment = Enrollment::factory()->create([

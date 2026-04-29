@@ -63,11 +63,29 @@ export default function ProblematicNucleiIndex({
     }
 
     const columns: ColumnDef<ProblematicNucleus, unknown>[] = [
-        { accessorKey: 'name', header: 'Nombre' },
+        {
+            accessorKey: 'name',
+            header: 'Nombre',
+            cell: ({ row }) => (
+                <span
+                    className="block max-w-xs truncate"
+                    title={row.original.name}
+                >
+                    {row.original.name}
+                </span>
+            ),
+        },
         {
             id: 'program',
             header: 'Programa',
-            cell: ({ row }) => row.original.program?.name ?? '—',
+            cell: ({ row }) => {
+                const name = row.original.program?.name ?? '—';
+                return (
+                    <span className="block max-w-xs truncate" title={name}>
+                        {name}
+                    </span>
+                );
+            },
         },
         {
             accessorKey: 'is_active',
@@ -80,7 +98,7 @@ export default function ProblematicNucleiIndex({
             id: 'actions',
             header: '',
             cell: ({ row }) => (
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex w-24 shrink-0 items-center justify-end gap-1">
                     <Button variant="ghost" size="icon" asChild>
                         <Link href={NucleusController.edit.url(row.original)}>
                             <Pencil className="h-4 w-4" />
