@@ -1,0 +1,515 @@
+{
+    "competencies": [
+        {
+            "code": "C1",
+            "description": "Analiza un problema y elabora una solución algorítmica y/o de ingeniería en el área de software de forma adecuada con el fin de solucionar problemáticas en contextos industriales, organizacionales o sociales en un nivel básico."
+        },
+        {
+            "code": "C2",
+            "description": "Diseña software a partir de sistemas, componentes o procesos, seguros con el fin de satisfacer las necesidades en contextos económicos, ambientales, sociales, políticos, éticos, de salud y de la seguridad de las organizaciones.​"
+        },
+        {
+            "code": "C3",
+            "description": "Analiza el impacto global de las soluciones de software en las personas, las organizaciones y la sociedad con el fin de garantizar la integridad del ser humano y la sostenibilidad de los recursos ambientales.​"
+        },
+        {
+            "code": "C4",
+            "description": "Desarrolla, integra y gestiona software aplicado a la inteligencia artificial, las aplicaciones móviles, la visualización y el análisis de los datos como aporte al desarrollo económico y social del país.​"
+        },
+        {
+            "code": "C5",
+            "description": "Evalúa e investiga nuevas ideas, así como nuevas fuentes de información con el fin de desarrollar capacidades que le permiten un aprendizaje permanente.​"
+        }
+    ],
+    "academic_spaces": [
+        {
+            "code": "LOGP_I",
+            "name": "Logica De Programación I"
+        },
+        {
+            "code": "LOGP_II",
+            "name": "Lógica De Programación II"
+        },
+        {
+            "code": "LENP_I",
+            "name": "Lenguaje De Programación I"
+        },
+        {
+            "code": "LENP_II",
+            "name": "Lenguaje De Programacion II"
+        },
+        {
+            "code": "CS",
+            "name": "Construccion De Software"
+        },
+        {
+            "code": "AF",
+            "name": "Algoritmos Formales"
+        },
+        {
+            "code": "HS_I",
+            "name": "Herramientas De Software I"
+        },
+        {
+            "code": "HS_II",
+            "name": "Herramientas De Software II"
+        },
+        {
+            "code": "IC",
+            "name": "Ingenieria En Contexto"
+        },
+        {
+            "code": "IHC",
+            "name": "Interaccion Humano Computador"
+        },
+        {
+            "code": "ADS",
+            "name": "Ambiente Y Desarrollo Sostenible"
+        },
+        {
+            "code": "PS",
+            "name": "Práctica Social"
+        },
+        {
+            "code": "BD_I",
+            "name": "Bases De Datos I"
+        },
+        {
+            "code": "BD_II",
+            "name": "Bases De Datos II"
+        },
+        {
+            "code": "SS_I",
+            "name": "Seguridad En Software I"
+        },
+        {
+            "code": "SS_II",
+            "name": "Seguridad En Software II"
+        },
+        {
+            "code": "CM",
+            "name": "Computación Móvil"
+        },
+        {
+            "code": "IS",
+            "name": "Ingenieria De Software"
+        },
+        {
+            "code": "CS_I",
+            "name": "Calidad En Software I"
+        },
+        {
+            "code": "CS_II",
+            "name": "Calidad En Software II"
+        },
+        {
+            "code": "RCD",
+            "name": "Redes Y Comunicacion De Datos"
+        },
+        {
+            "code": "AS_I",
+            "name": "Arquitectura De Software I"
+        },
+        {
+            "code": "AS_II",
+            "name": "Arquitectura De Softweare II"
+        },
+        {
+            "code": "SO",
+            "name": "Sistemas Operativos"
+        },
+        {
+            "code": "ED",
+            "name": "Estructuras Discretas"
+        },
+        {
+            "code": "TC_I",
+            "name": "Teoría De La Computación I"
+        },
+        {
+            "code": "TC_II",
+            "name": "Teoría De La Computación II"
+        },
+        {
+            "code": "THVD",
+            "name": "Técnicas Y Herramientas De Visualización De Datos"
+        },
+        {
+            "code": "I4.0",
+            "name": "Industrias 4.0"
+        },
+        {
+            "code": "LIE",
+            "name": "Liderazgo, Innovacion Y Emprendimiento"
+        },
+        {
+            "code": "PI_I",
+            "name": "Proyecto Integrador I"
+        },
+        {
+            "code": "PI_II",
+            "name": "Proyecto Integrador II"
+        },
+        {
+            "code": "MG_I",
+            "name": "Modalidad De Grado I"
+        },
+        {
+            "code": "MG_II",
+            "name": "Modalidad De Grado II"
+        },
+        {
+            "code": "HI_I",
+            "name": "Habilidades Investigativas I"
+        }
+    ],
+    "professors": [
+        "Oscar Acosta Villamil",
+        "Karla Yovana Sanchez",
+        "Jefferson Urrego",
+        "Magda Fernandez",
+        "Natalia Martinez Rojas",
+        "Alexis Mendez",
+        "Johan Manuel Gordillo",
+        "Cristian Bermudez",
+        "Fabio Hernandez",
+        "Mary Luz Rubiano"
+    ],
+    "outcomes": [
+        {
+            "code": "RA1",
+            "description": "Identifica modelos simbólicos de problemas aplicados descritos en lenguaje natural.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA2",
+            "description": "Desarrolla algoritmos para resolver problemas simples y rastrear la ejecución de programas de computador.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA3",
+            "description": "Analiza la eficiencia de los algoritmos recursivos para optimizar el software",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA5",
+            "description": "Crea soluciones de programación que utilicen estructuras de datos y bibliotecas existentes.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA8",
+            "description": "Analiza la eficiencia de los algoritmos recursivos para optimizar el software",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA12",
+            "description": "Contrasta una variedad de algoritmos de búsqueda y clasificación y analizar la eficiencia del tiempo y el espacio.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA13",
+            "description": "Analiza la terminología básica y las propiedades de gráficos y árboles.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA15",
+            "description": "Construye soluciones de programación utilizando una variedad de técnicas recursivas.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA4",
+            "description": "Analiza la ejecución de algoritmos de búsqueda y ordenación. -Diferenciar entre las metodologías de programación orientada a objetos, estructurada y funcional.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA6",
+            "description": "Identifica los tipos de datos primitivos de un lenguaje de programación según los criterios de selección y su almacenamiento.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA7",
+            "description": "Aplica técnicas de codificación segura a soluciones de programación orientada a objetos con lenguajes de programación.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA9",
+            "description": "Analiza la ejecución de algoritmos de búsqueda y ordenación. -Diferenciar entre las metodologías de programación orientada a objetos, estructurada y funcional.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA11",
+            "description": "Evalua la conveniencia de utilizar la recursividad para resolver un problema determinado.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA17",
+            "description": "Examina sistemas complejos utilizando las mejores prácticas de análisis orientado a objetos y herramientas y técnicas de diseño.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA16",
+            "description": "Analiza un programa en subtareas y utiliza el paso de parámetros para intercambiar información entre las subpartes.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA10",
+            "description": "Desarrolla software reutilizable utilizando plantillas y estructuras de datos adecuadas.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA14",
+            "description": "Utiliza gráficos y árboles para resolver problemas algorítmicamente.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA18",
+            "description": "Describe las fases de compilación, interpretación, vinculación y ejecución, y diferenciar las condiciones de error asociadas con cada fase.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA19",
+            "description": "Conoce los criterios básicos para el análisis técnico, social, ético y ambiental de los proyectos en ingeniería, identificando problemáticas regionales, nacionales e internacionales, a las que se pueden aportar soluciones desde la ingeniería con enfoque sostenible",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA21",
+            "description": "Reconoce la importancia de la sostenibilidad en el desarrollo de proyectos de ingeniería.",
+            "type": "Actitud"
+        },
+        {
+            "code": "RA25",
+            "description": "Conoce las diferentes herramientas y metodologías de la Ingeniería para poder intervenir en poblaciones vulnerables.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA26",
+            "description": "Propone proyectos para solucionar necesidades actuales en su contexto de manera sostenible, optimizando la idea general de creación de valor dual -económico y social.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA29",
+            "description": "Propone proyectos para solucionar necesidades sociales de manera sostenible.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA22",
+            "description": "Implementar interfaces centradas en el usuario consistentes y coherentes que cumplan con las prácticas estándar de User Interface.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA23",
+            "description": "Desarrolla interfaces gráficas de usuario que incorporen modelos de color simples, accesibles y con aspectos de usabilidad.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA28",
+            "description": "Conoce las diferentes herramientas y metodologías de la Ingeniería para desarrollar proyectos con comunidades y territorios.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA20",
+            "description": "Desarrolla eficientemente búsquedas de información.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA24",
+            "description": "Identifica el impacto de las soluciones a un problema de ingeniería en un contexto global y social.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA27",
+            "description": "Asume responsabilidades en el cuidado del medio ambiente, contribuyendo desde su perfil profesional con el desarrollo sostenible.",
+            "type": "Actitud"
+        },
+        {
+            "code": "RA30",
+            "description": "Reconoce la responsabilidad social y el impacto de los proyectos de ingeniería con las comunidades y los territorios.",
+            "type": "Actitud"
+        },
+        {
+            "code": "RA31",
+            "description": "Diseña repositorios de datos con el fin de dar solución a los requerimientos de un sistema de información, aplicación y/o software.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA32",
+            "description": "Determina la configuración, administración y optimización de sistemas gestores de bases de datos relacionales.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA33",
+            "description": "Desarrolla programas seguros y tolerantes a fallas que mitiguen las posibles vulnerabilidades de seguridad.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA34",
+            "description": "Utiliza técnicas estándar de análisis y diseño para producir una aplicación de software segura, de tamaño mediano y desarrollada en equipo que esté completamente implementada y probada formalmente.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA36",
+            "description": "Desarrolla software eficaz, eficiente y seguro, que refleje los principios estándar de ingeniería de software y garantía de software.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA44",
+            "description": "Identifica los requerimientos de los usuarios mediante el diseño centrado en el usuario y la aplicación de modelos existentes.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA45",
+            "description": "Aplica procesos y metodologías de desarrollo de software. - Diseñar soluciones basadas en arquitecturas orientadas a servicios.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA37",
+            "description": "Prueba los requisitos del sistema de software que consideran tanto la validación como la verificación.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA38",
+            "description": "Diseña pruebas unitarias, funcionales y de integración en software.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA39",
+            "description": "Determina los resultados obtenidos en pruebas de software para evaluar la calidad.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA40",
+            "description": "Valida la corrección del programa mediante el desarrollo de planes de prueba sólidos y la implementación de casos de prueba integrales.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA41",
+            "description": "Ejecutar pruebas de carga en los sistemas desarrollados con el fin de saber límites y puntos críticos.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA46",
+            "description": "Diseña sistemas basados en arquitecturas de alta disponibilidad y tolerancia a fallos.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA35",
+            "description": "Desarrollar arquitecturas que contengan dispositivos móviles.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA42",
+            "description": "Identifica conceptos básicos en redes de comunicaciones.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA43",
+            "description": "Diseña algoritmos para la gestión y administración de redes.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA47",
+            "description": "Determina la función y estructura de un sistema operativo.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA48",
+            "description": "Analiza la validez lógica de los argumentos y demostraciones que se aplican a las expresiones booleanas.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA49",
+            "description": "Realiza conversiones y operaciones entre diferentes sistemas numéricos.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA51",
+            "description": "Evalua la complejidad computacional de un problema.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA50",
+            "description": "Desarrolla modelos computacionales que reflejen situaciones reales.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA52",
+            "description": "Diseña tableros de visualización para el apoyo en la toma de decisiones.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA53",
+            "description": "Evalúa plataformas de desarrollo teniendo en cuenta características de hardware y software para el desarrollo de aplicaciones y servicios informáticos de diversa complejidad.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA54",
+            "description": "Identifica técnicas de innovación y creatividad.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA55",
+            "description": "Desarrolla soluciones creativas e innovadoras en el área de software.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA57",
+            "description": "Propone una solución técnica e innovadora a una necesidad y/o problema de contexto.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA59",
+            "description": "Conoce los conceptos y niveles de innovación aplicables a un proyecto de ingeniería.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA60",
+            "description": "Diseña un sistema, proceso, programa o artefacto tecnológico para satisfacer una necesidad deseada.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA63",
+            "description": "Construye el anteproyecto de modalidad de grado a partir del análisis del contexto.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA65",
+            "description": "Desarrolla apropiadamente experimentación, analisis e interpretación de datos, y usa el juicio de ingeniería para elaborar conclusiones.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA56",
+            "description": "Identifica las etapas de la metodología de la investigación, para la formulación de proyectos.",
+            "type": "Conocimiento"
+        },
+        {
+            "code": "RA58",
+            "description": "Establecer una comunicación adecuada para el trabajo en equipos multidisciplinarios, asumiendo funciones y responsabilidades para alcanzar metas comunes.",
+            "type": "Actitud"
+        },
+        {
+            "code": "RA61",
+            "description": "Participa activamente con grupos interdisciplinarios de ingeniería para formular y evaluar proyectos de ingeniería.",
+            "type": "Actitud"
+        },
+        {
+            "code": "RA62",
+            "description": "Comunica de forma asertiva sus ideas en diferentes escenarios.",
+            "type": "Actitud"
+        },
+        {
+            "code": "RA64",
+            "description": "Argumenta la propuesta de modalidad de grado.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA66",
+            "description": "Elabora un documento que evidencia el logro de los objetivos, los análisis de resultados y conclusiones de su modalidad de grado.",
+            "type": "Habilidad"
+        },
+        {
+            "code": "RA67",
+            "description": "Comunica de forma asertiva sus ideas en diferentes escenarios.",
+            "type": "Actitud"
+        }
+    ]
+}

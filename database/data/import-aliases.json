@@ -1,0 +1,19 @@
+{
+    "_comment": "Equivalencias que las reglas automáticas no cubren. Cada clave es el texto tal como aparece en los archivos, normalizado sin tildes ni mayúsculas; cada valor es la entrada del catálogo a la que corresponde. Se revisan a mano porque asumirlas por parecido de texto es justo lo que no debe pasar en silencio.",
+
+    "academic_spaces": {
+        "lenguajes de programacion 1": "Lenguaje De Programación I",
+        "lenguaje de programacion i cd": "Lenguaje De Programación I",
+        "logica de programacion i cd": "Logica De Programación I",
+        "logica de programacion ii cd": "Lógica De Programación II",
+        "calidad de software ii": "Calidad En Software II",
+        "teoria de control": null
+    },
+
+    "professors": {
+        "jeferson urrego": "Jefferson Urrego",
+        "jhon alexis mendez lara": "Alexis Mendez",
+        "natalia martinez rojas": "Natalia Martinez Rojas",
+        "salazar caceres jose fabian": "Jose Fabian Salazar Caceres"
+    }
+}
