@@ -18,6 +18,9 @@
         </include>
     </source>
     <php>
+        <!-- Building the Excel exports in memory exceeds the 128M default of a
+             stock php.ini, which aborts the run with a fatal error. -->
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
