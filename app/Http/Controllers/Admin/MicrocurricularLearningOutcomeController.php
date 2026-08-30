@@ -118,6 +118,17 @@ class MicrocurricularLearningOutcomeController extends Controller
 
     public function toggleStatus(MicrocurricularLearningOutcome $microcurricularOutcome): RedirectResponse
     {
+        if ($microcurricularOutcome->is_active) {
+            $gradesCount = $microcurricularOutcome->gradesBlockingDeactivation();
+
+            if ($gradesCount > 0) {
+                return back()->with(
+                    'error',
+                    "No se puede desactivar este resultado de aprendizaje porque {$gradesCount} calificación(es) dependen de él."
+                );
+            }
+        }
+
         $microcurricularOutcome->update(['is_active' => ! $microcurricularOutcome->is_active]);
 
         $status = $microcurricularOutcome->is_active ? 'activado' : 'desactivado';

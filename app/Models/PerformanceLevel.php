@@ -39,13 +39,14 @@ class PerformanceLevel extends Model
      */
     private const DEFAULT_BELOW_BASIC_THRESHOLD = 2.5;
 
-    protected $fillable = ['name', 'description', 'order', 'grade_value', 'is_below_basic_threshold'];
+    protected $fillable = ['name', 'description', 'order', 'grade_value', 'is_below_basic_threshold', 'is_active'];
 
     protected function casts(): array
     {
         return [
             'grade_value' => 'float',
             'is_below_basic_threshold' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -154,6 +155,18 @@ class PerformanceLevel extends Model
     public function grade(): ?float
     {
         return self::gradeForOrder($this->order);
+    }
+
+    /**
+     * Levels still offered when grading.
+     *
+     * Averages and reports keep reading the whole catalogue, because a grade
+     * assigned before a level was retired must still resolve to its value; only
+     * the screens where a new grade is chosen are filtered.
+     */
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->where('is_active', true);
     }
 
     /**

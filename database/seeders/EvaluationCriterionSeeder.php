@@ -42,7 +42,7 @@ class EvaluationCriterionSeeder extends Seeder
                         'microcurricular_learning_outcome_type_id' => $type->id,
                         'name' => $criterion['name'],
                     ],
-                    ['order' => $criterion['order']],
+                    ['order' => $criterion['order'], 'is_active' => true],
                 );
             }
         }

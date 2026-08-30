@@ -1,8 +1,7 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import * as PerformanceLevelController from '@/actions/App/Http/Controllers/Admin/PerformanceLevelController';
 import { PageHeader } from '@/components/page-header';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -12,32 +11,20 @@ import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import type { BreadcrumbItem } from '@/types';
 
-type Level = {
-    id: number;
-    name: string;
-    description: string | null;
-    order: number;
-    grade_value: number | null;
-    is_below_basic_threshold: boolean;
-    is_active: boolean;
-};
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Niveles de Desempeño',
+        href: PerformanceLevelController.index.url(),
+    },
+    { title: 'Nuevo nivel', href: PerformanceLevelController.create.url() },
+];
 
-type Props = { level: Level; gradesCount: number };
-
-export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: 'Niveles de Desempeño',
-            href: PerformanceLevelController.index.url(),
-        },
-        { title: level.name, href: PerformanceLevelController.edit.url(level) },
-    ];
-
+export default function PerformanceLevelsCreate() {
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Editar: ${level.name}`} />
+            <Head title="Nuevo Nivel de Desempeño" />
             <div className="flex flex-1 flex-col gap-6 p-6">
-                <PageHeader title={`Editar: ${level.name}`}>
+                <PageHeader title="Nuevo Nivel de Desempeño">
                     <Button variant="outline" asChild>
                         <Link href={PerformanceLevelController.index.url()}>
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -46,24 +33,11 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
                     </Button>
                 </PageHeader>
 
-                {gradesCount > 0 && (
-                    <Alert className="max-w-2xl border-amber-300 bg-amber-50 dark:bg-amber-950/20">
-                        <AlertTriangle className="h-4 w-4 text-amber-600" />
-                        <AlertDescription className="text-amber-800 dark:text-amber-200">
-                            {gradesCount} calificación(es) usan este nivel. Al
-                            cambiar su valor se recalculan los promedios y las
-                            estadísticas que dependen de ellas.
-                        </AlertDescription>
-                    </Alert>
-                )}
-
                 <Card className="max-w-2xl">
                     <CardContent className="pt-6">
                         <Form
-                            action={PerformanceLevelController.update.url(
-                                level,
-                            )}
-                            method="put"
+                            action={PerformanceLevelController.store.url()}
+                            method="post"
                             className="space-y-5"
                         >
                             {({ errors, processing }) => (
@@ -73,7 +47,6 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
                                         <Input
                                             id="name"
                                             name="name"
-                                            defaultValue={level.name}
                                             className="max-w-sm"
                                             autoFocus
                                         />
@@ -91,9 +64,6 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
                                         <Textarea
                                             id="description"
                                             name="description"
-                                            defaultValue={
-                                                level.description ?? ''
-                                            }
                                             rows={3}
                                         />
                                         {errors.description && (
@@ -113,9 +83,12 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
                                                 name="order"
                                                 type="number"
                                                 min={1}
-                                                defaultValue={level.order}
+                                                defaultValue={1}
                                                 className="w-28 font-mono"
                                             />
+                                            <p className="text-xs text-muted-foreground">
+                                                1 es el nivel más bajo
+                                            </p>
                                             {errors.order && (
                                                 <p className="text-sm text-destructive">
                                                     {errors.order}
@@ -125,7 +98,7 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
 
                                         <div className="grid gap-1.5">
                                             <Label htmlFor="grade_value">
-                                                Valor (0 a 5)
+                                                Valor
                                             </Label>
                                             <Input
                                                 id="grade_value"
@@ -134,14 +107,10 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
                                                 step="0.01"
                                                 min={0}
                                                 max={5}
-                                                defaultValue={
-                                                    level.grade_value ?? ''
-                                                }
-                                                className="w-32 font-mono"
+                                                className="w-28 font-mono"
                                             />
                                             <p className="text-xs text-muted-foreground">
-                                                Nota con la que se calculan los
-                                                promedios
+                                                Sin valor no promedia
                                             </p>
                                             {errors.grade_value && (
                                                 <p className="text-sm text-destructive">
@@ -153,9 +122,6 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
 
                                     <div className="grid gap-1.5">
                                         <div className="flex items-center gap-2">
-                                            {/* An unchecked box submits nothing,
-                                            so the hidden 0 makes unchecking
-                                            reach the server as an explicit false. */}
                                             <input
                                                 type="hidden"
                                                 name="is_below_basic_threshold"
@@ -165,9 +131,6 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
                                                 id="is_below_basic_threshold"
                                                 name="is_below_basic_threshold"
                                                 value="1"
-                                                defaultChecked={
-                                                    level.is_below_basic_threshold
-                                                }
                                             />
                                             <Label
                                                 htmlFor="is_below_basic_threshold"
@@ -178,9 +141,8 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
                                             </Label>
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            Los estudiantes cuyo promedio quede
-                                            por debajo de este valor se reportan
-                                            en riesgo académico
+                                            Marcarlo quita la marca al nivel que
+                                            la tenga actualmente
                                         </p>
                                         {errors.is_below_basic_threshold && (
                                             <p className="text-sm text-destructive">
@@ -189,47 +151,18 @@ export default function PerformanceLevelsEdit({ level, gradesCount }: Props) {
                                         )}
                                     </div>
 
-                                    <div className="grid gap-1.5">
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="hidden"
-                                                name="is_active"
-                                                value={
-                                                    gradesCount > 0 ? '1' : '0'
-                                                }
-                                            />
-                                            <Checkbox
-                                                id="is_active"
-                                                name="is_active"
-                                                value="1"
-                                                defaultChecked={level.is_active}
-                                                disabled={gradesCount > 0}
-                                            />
-                                            <Label
-                                                htmlFor="is_active"
-                                                className="font-normal"
-                                            >
-                                                Nivel activo
-                                            </Label>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">
-                                            Un nivel inactivo deja de ofrecerse
-                                            al calificar, pero conserva las notas
-                                            ya registradas con él
-                                        </p>
-                                        {errors.is_active && (
-                                            <p className="text-sm text-destructive">
-                                                {errors.is_active}
-                                            </p>
-                                        )}
-                                    </div>
+                                    <input
+                                        type="hidden"
+                                        name="is_active"
+                                        value="1"
+                                    />
 
                                     <div className="flex gap-2 pt-2">
                                         <Button
                                             type="submit"
                                             disabled={processing}
                                         >
-                                            Guardar cambios
+                                            Crear nivel
                                         </Button>
                                         <Button
                                             type="button"

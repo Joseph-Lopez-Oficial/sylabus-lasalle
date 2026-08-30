@@ -25,6 +25,7 @@ class UpdatePerformanceLevelRequest extends FormRequest
             'order' => ['required', 'integer', 'min:1', Rule::unique('performance_levels', 'order')->ignore($levelId)],
             'grade_value' => ['nullable', 'numeric', 'min:0', 'max:5'],
             'is_below_basic_threshold' => ['boolean'],
+            'is_active' => ['boolean'],
         ];
     }
 
@@ -42,7 +43,30 @@ class UpdatePerformanceLevelRequest extends FormRequest
 
             $this->rejectClearingValueWhenInUse($validator, $level);
             $this->rejectLeavingSystemWithoutThreshold($validator, $level);
+            $this->rejectDeactivatingWhenInUse($validator, $level);
         });
+    }
+
+    /**
+     * A level already used by grades cannot be retired: the marks assigned to
+     * it would stop being offered while still being stored.
+     */
+    private function rejectDeactivatingWhenInUse(Validator $validator, PerformanceLevel $level): void
+    {
+        // An absent field means the flag is not being touched, not that the
+        // level should be retired.
+        if (! $level->is_active || ! $this->has('is_active') || $this->boolean('is_active')) {
+            return;
+        }
+
+        $gradesCount = Grade::where('performance_level_id', $level->id)->count();
+
+        if ($gradesCount > 0) {
+            $validator->errors()->add(
+                'is_active',
+                "No se puede desactivar este nivel porque {$gradesCount} calificación(es) lo usan."
+            );
+        }
     }
 
     /**

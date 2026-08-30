@@ -170,9 +170,12 @@ test('professor can download statistics report when grading is complete', functi
 });
 
 test('report download is rejected when grading is incomplete', function () {
-    // Add a second criterion of the same type → grading becomes incomplete
+    // A second criterion of the same type, in place before grading started, so
+    // the group is genuinely missing a mark. A criterion created afterwards is
+    // deliberately not demanded from a group already graded.
     EvaluationCriterion::factory()->create([
         'microcurricular_learning_outcome_type_id' => $this->outcomeType->id,
+        'created_at' => now()->subDay(),
     ]);
 
     $this->actingAs($this->professorUser)

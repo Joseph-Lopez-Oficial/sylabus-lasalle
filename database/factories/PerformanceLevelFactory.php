@@ -37,6 +37,7 @@ class PerformanceLevelFactory extends Factory
             'order' => fake()->numberBetween(1, 10),
             'grade_value' => fn (array $attributes) => self::INSTITUTIONAL_SCALE[$attributes['order']] ?? null,
             'is_below_basic_threshold' => fn (array $attributes) => $attributes['order'] === 2,
+            'is_active' => true,
         ];
     }
 

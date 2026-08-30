@@ -45,6 +45,7 @@ class PerformanceLevelSeeder extends Seeder
                     'order' => $level['order'],
                     'grade_value' => $level['grade_value'],
                     'is_below_basic_threshold' => $level['is_below_basic_threshold'] ?? false,
+                    'is_active' => true,
                 ],
             );
         }

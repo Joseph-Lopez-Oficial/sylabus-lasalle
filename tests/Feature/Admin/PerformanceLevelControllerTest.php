@@ -47,13 +47,22 @@ afterEach(fn () => PerformanceLevel::forgetScaleCache());
 /** Payload with every required field, so each test only overrides what it exercises. */
 function levelPayload(PerformanceLevel $level, array $overrides = []): array
 {
-    return array_merge([
+    $payload = array_merge([
         'name' => $level->name,
         'description' => $level->description,
         'order' => $level->order,
         'grade_value' => $level->grade_value,
         'is_below_basic_threshold' => $level->is_below_basic_threshold,
+        'is_active' => $level->is_active,
     ], $overrides);
+
+    // A false bool serialises to an empty string in a form post, which the
+    // boolean rule rejects; sending 0/1 mirrors what the browser submits.
+    foreach (['is_below_basic_threshold', 'is_active'] as $flag) {
+        $payload[$flag] = $payload[$flag] ? 1 : 0;
+    }
+
+    return $payload;
 }
 
 // ── Acceso ────────────────────────────────────────────────────────────────────
@@ -130,6 +139,7 @@ test('changing the value from the interface changes the computed statistics', fu
 
     $this->actingAs($this->admin)
         ->put(route('admin.performance-levels.update', $this->top), levelPayload($this->top, ['grade_value' => 4.0]))
+        ->assertSessionHasNoErrors()
         ->assertRedirect();
 
     $after = app(StatisticsService::class)->calculate($programming->fresh());
@@ -212,6 +222,152 @@ test('marking a level as the threshold clears the flag from the previous one', f
 
     PerformanceLevel::forgetScaleCache();
     expect(PerformanceLevel::belowBasicThreshold())->toBe(5.0);
+});
+
+// ── Creación ──────────────────────────────────────────────────────────────────
+
+test('professor cannot create a performance level', function () {
+    $this->actingAs(User::factory()->create(['role' => 'professor']))
+        ->post(route('admin.performance-levels.store'), [
+            'name' => 'Intruso',
+            'order' => 9,
+            'grade_value' => 3.0,
+        ])
+        ->assertForbidden();
+
+    expect(PerformanceLevel::where('name', 'Intruso')->exists())->toBeFalse();
+});
+
+test('admin can create a performance level', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.performance-levels.store'), [
+            'name' => 'Competente',
+            'description' => 'Alcanza lo esperado',
+            'order' => 3,
+            'grade_value' => 3.8,
+            'is_below_basic_threshold' => false,
+            'is_active' => true,
+        ])
+        ->assertRedirect(route('admin.performance-levels.index'));
+
+    $created = PerformanceLevel::where('name', 'Competente')->first();
+
+    expect($created)->not->toBeNull()
+        ->and($created->order)->toBe(3)
+        ->and($created->grade_value)->toBe(3.8)
+        ->and($created->is_active)->toBeTrue();
+});
+
+test('a new level cannot reuse an existing name or order', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.performance-levels.store'), [
+            'name' => 'Básico',
+            'order' => 7,
+            'grade_value' => 3.0,
+        ])
+        ->assertSessionHasErrors('name');
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.performance-levels.store'), [
+            'name' => 'Nuevo nivel',
+            'order' => 2,
+            'grade_value' => 3.0,
+        ])
+        ->assertSessionHasErrors('order');
+});
+
+test('a new level marked as threshold clears the flag from the previous one', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.performance-levels.store'), [
+            'name' => 'Mínimo aceptable',
+            'order' => 3,
+            'grade_value' => 3.0,
+            'is_below_basic_threshold' => true,
+        ])
+        ->assertRedirect();
+
+    expect($this->basic->fresh()->is_below_basic_threshold)->toBeFalse();
+
+    PerformanceLevel::forgetScaleCache();
+    expect(PerformanceLevel::belowBasicThreshold())->toBe(3.0)
+        ->and(PerformanceLevel::belowBasicLevelName())->toBe('Mínimo aceptable');
+});
+
+test('a created level immediately joins the grading scale', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.performance-levels.store'), [
+            'name' => 'Competente',
+            'order' => 3,
+            'grade_value' => 3.8,
+        ])
+        ->assertRedirect();
+
+    expect(PerformanceLevel::gradeForOrder(3))->toBe(3.8);
+});
+
+// ── Desactivación ─────────────────────────────────────────────────────────────
+
+test('professor cannot toggle a performance level', function () {
+    $this->actingAs(User::factory()->create(['role' => 'professor']))
+        ->patch(route('admin.performance-levels.toggle-status', $this->top))
+        ->assertForbidden();
+
+    expect($this->top->fresh()->is_active)->toBeTrue();
+});
+
+test('an unused level can be deactivated and reactivated', function () {
+    $this->actingAs($this->admin)
+        ->patch(route('admin.performance-levels.toggle-status', $this->top))
+        ->assertSessionHas('success');
+
+    expect($this->top->fresh()->is_active)->toBeFalse();
+
+    $this->actingAs($this->admin)
+        ->patch(route('admin.performance-levels.toggle-status', $this->top))
+        ->assertSessionHas('success');
+
+    expect($this->top->fresh()->is_active)->toBeTrue();
+});
+
+test('a level used by grades cannot be deactivated from the toggle', function () {
+    makeGradedEnrollment($this->top, $this->admin);
+
+    $this->actingAs($this->admin)
+        ->patch(route('admin.performance-levels.toggle-status', $this->top))
+        ->assertSessionHas('error');
+
+    expect($this->top->fresh()->is_active)->toBeTrue();
+});
+
+test('a level used by grades cannot be deactivated from the edit form', function () {
+    makeGradedEnrollment($this->top, $this->admin);
+
+    $this->actingAs($this->admin)
+        ->put(route('admin.performance-levels.update', $this->top), levelPayload($this->top, ['is_active' => false]))
+        ->assertSessionHasErrors('is_active');
+
+    expect($this->top->fresh()->is_active)->toBeTrue();
+});
+
+test('the threshold level cannot be deactivated', function () {
+    $this->actingAs($this->admin)
+        ->patch(route('admin.performance-levels.toggle-status', $this->basic))
+        ->assertSessionHas('error');
+
+    expect($this->basic->fresh()->is_active)->toBeTrue();
+});
+
+test('a deactivated level still resolves the grades already assigned to it', function () {
+    $programming = makeGradedEnrollment($this->top, $this->admin, returnProgramming: true);
+
+    $this->top->update(['is_active' => false]);
+    PerformanceLevel::forgetScaleCache();
+
+    // Averages read the whole catalogue, so retiring a level must not change a
+    // single number already computed from it.
+    $stats = app(StatisticsService::class)->calculate($programming->fresh());
+
+    expect($stats['summary']['overall_average'])->toBe(5.0);
 });
 
 /**

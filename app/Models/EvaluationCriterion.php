@@ -12,7 +12,14 @@ class EvaluationCriterion extends Model
     /** @use HasFactory<\Database\Factories\EvaluationCriterionFactory> */
     use HasFactory;
 
-    protected $fillable = ['microcurricular_learning_outcome_type_id', 'name', 'description', 'order'];
+    protected $fillable = ['microcurricular_learning_outcome_type_id', 'name', 'description', 'order', 'is_active'];
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
 
     /**
      * @return BelongsTo<\App\Models\MicrocurricularLearningOutcomeType, $this>

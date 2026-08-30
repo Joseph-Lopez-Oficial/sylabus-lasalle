@@ -57,7 +57,11 @@ class GradingTemplateExport implements WithMultipleSheets
             ->map(fn ($items) => $items->values()->toArray())
             ->toArray();
 
-        $this->performanceLevelNames = PerformanceLevel::orderBy('order')
+        // Only active levels are offered in the dropdown; retired ones stay
+        // importable so a template downloaded earlier keeps working.
+        $this->performanceLevelNames = PerformanceLevel::query()
+            ->active()
+            ->orderBy('order')
             ->pluck('name')
             ->toArray();
 

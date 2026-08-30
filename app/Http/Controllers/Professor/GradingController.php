@@ -70,10 +70,30 @@ class GradingController extends Controller
 
         $completeness = $this->gradingService->completeness($programming);
 
-        $criteriaByTypeId = EvaluationCriterion::orderBy('order')
+        // Active criteria, plus any retired one this group already has grades
+        // for: hiding those would leave the professor unable to see or correct
+        // the marks already recorded against them.
+        $gradedCriterionIds = $existingGrades->pluck('evaluation_criterion_id')->unique();
+
+        $criteriaByTypeId = EvaluationCriterion::query()
+            ->where(fn ($q) => $q
+                ->where('is_active', true)
+                ->orWhereIn('id', $gradedCriterionIds)
+            )
+            ->orderBy('order')
             ->get(['id', 'microcurricular_learning_outcome_type_id', 'name', 'order'])
             ->groupBy('microcurricular_learning_outcome_type_id')
             ->map(fn ($items) => $items->values());
+
+        // Same reasoning for the scale: a level retired after this group was
+        // graded must remain visible, or the marks assigned to it render blank.
+        $performanceLevels = PerformanceLevel::query()
+            ->where(fn ($q) => $q
+                ->where('is_active', true)
+                ->orWhereIn('id', $existingGrades->pluck('performance_level_id')->unique())
+            )
+            ->orderBy('order')
+            ->get(['id', 'name', 'order']);
 
         return Inertia::render('professor/grading/show', [
             'programming' => $programming->only(['id', 'group']),
@@ -81,7 +101,7 @@ class GradingController extends Controller
             'outcomesByType' => $outcomesByType,
             'enrollments' => $enrollments,
             'criteriaByTypeId' => $criteriaByTypeId,
-            'performanceLevels' => PerformanceLevel::orderBy('order')->get(['id', 'name', 'order']),
+            'performanceLevels' => $performanceLevels,
             'existingGrades' => $existingGrades,
             'completeness' => $completeness,
             'enrollment_import_results' => session('enrollment_import_results'),

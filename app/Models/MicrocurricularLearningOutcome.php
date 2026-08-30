@@ -64,4 +64,16 @@ class MicrocurricularLearningOutcome extends Model
     {
         return $query->where('is_active', true);
     }
+
+    /**
+     * Number of grades that would stop being accounted for if this outcome were
+     * deactivated. Deactivating it keeps the rows in the database but drops them
+     * from the completeness count, so a half-graded programming would jump to
+     * 100%; both the edit form and the toggle refuse the change when this is
+     * greater than zero.
+     */
+    public function gradesBlockingDeactivation(): int
+    {
+        return $this->grades()->count();
+    }
 }

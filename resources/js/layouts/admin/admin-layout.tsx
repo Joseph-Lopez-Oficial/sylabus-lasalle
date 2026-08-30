@@ -8,6 +8,7 @@ import {
     GraduationCap,
     LayoutDashboard,
     List,
+    ListChecks,
     Package,
     School,
     SlidersHorizontal,
@@ -117,6 +118,11 @@ const navItems = [
     {
         group: 'Configuración',
         items: [
+            {
+                title: 'Criterios de Evaluación',
+                href: '/admin/evaluation-criteria',
+                icon: ListChecks,
+            },
             {
                 title: 'Niveles de Desempeño',
                 href: '/admin/performance-levels',

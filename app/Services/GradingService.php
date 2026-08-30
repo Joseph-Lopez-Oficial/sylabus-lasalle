@@ -121,6 +121,60 @@ class GradingService
      *
      * @return array{percentage: float, total: int, completed: int, pending: list<array{enrollment_id: int, microcurricular_learning_outcome_id: int, evaluation_criterion_id: int}>}
      */
+    /**
+     * Criteria a programming is expected to be graded on.
+     *
+     * A programming that already has grades keeps the catalogue it was graded
+     * with: adding a criterion afterwards would otherwise push a course that was
+     * closed at 100% back to an incomplete state. Programmings with no grades
+     * yet use the current active catalogue.
+     *
+     * @param  \Illuminate\Support\Collection<int, int>  $typeIds
+     * @return \Illuminate\Support\Collection<int, EvaluationCriterion>
+     */
+    private function criteriaRequiredBy(Programming $programming, \Illuminate\Support\Collection $typeIds): \Illuminate\Support\Collection
+    {
+        $usedCriterionIds = Grade::query()
+            ->whereIn('enrollment_id', $programming->enrollments()->pluck('id'))
+            ->distinct()
+            ->pluck('evaluation_criterion_id');
+
+        return EvaluationCriterion::query()
+            ->whereIn('microcurricular_learning_outcome_type_id', $typeIds)
+            // Active criteria are always required. Grading in progress may also
+            // involve criteria retired since it started: those stay required so
+            // the grades already recorded against them keep being counted.
+            ->where(fn ($q) => $q
+                ->where('is_active', true)
+                ->orWhereIn('id', $usedCriterionIds)
+            )
+            // A criterion created after grading began is not demanded from a
+            // programming that was already being graded, since that would push a
+            // course closed at 100% back to an incomplete state. Timestamps have
+            // second granularity, so a criterion created in the same second as
+            // the first grade is treated as new: the comparison errs towards not
+            // disturbing a group that is already finished.
+            ->when(
+                $usedCriterionIds->isNotEmpty(),
+                fn ($q) => $q->where(fn ($sub) => $sub
+                    ->whereIn('id', $usedCriterionIds)
+                    ->orWhere('created_at', '<', $this->gradingStartedAt($programming))
+                )
+            )
+            ->orderBy('order')
+            ->get(['id', 'microcurricular_learning_outcome_type_id']);
+    }
+
+    /**
+     * When the first grade of this programming was recorded.
+     */
+    private function gradingStartedAt(Programming $programming): string
+    {
+        return Grade::query()
+            ->whereIn('enrollment_id', $programming->enrollments()->pluck('id'))
+            ->min('created_at') ?? now()->toDateTimeString();
+    }
+
     public function completeness(Programming $programming): array
     {
         $enrollmentIds = $programming->enrollments()
@@ -136,11 +190,7 @@ class GradingService
             return ['percentage' => 100.0, 'total' => 0, 'completed' => 0, 'pending' => []];
         }
 
-        // Build map of type_id => [criterion_ids]
-        $criteriaByType = EvaluationCriterion::whereIn(
-            'microcurricular_learning_outcome_type_id',
-            $outcomes->pluck('type_id')->unique()
-        )->orderBy('order')->get(['id', 'microcurricular_learning_outcome_type_id']);
+        $criteriaByType = $this->criteriaRequiredBy($programming, $outcomes->pluck('type_id')->unique());
 
         $criterionsByType = $criteriaByType->groupBy('microcurricular_learning_outcome_type_id')
             ->map(fn ($items) => $items->pluck('id'));

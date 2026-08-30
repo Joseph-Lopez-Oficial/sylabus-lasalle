@@ -54,6 +54,28 @@ class UpdateMicrocurricularLearningOutcomeRequest extends FormRequest
         ];
     }
 
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $validator) {
+            $outcome = $this->route('microcurricularOutcome');
+
+            // An absent field means the flag is not being touched, not that the
+            // outcome should be retired.
+            if (! $outcome || ! $outcome->is_active || ! $this->has('is_active') || $this->boolean('is_active')) {
+                return;
+            }
+
+            $gradesCount = $outcome->gradesBlockingDeactivation();
+
+            if ($gradesCount > 0) {
+                $validator->errors()->add(
+                    'is_active',
+                    "No se puede desactivar este resultado de aprendizaje porque {$gradesCount} calificación(es) dependen de él."
+                );
+            }
+        });
+    }
+
     public function messages(): array
     {
         return [

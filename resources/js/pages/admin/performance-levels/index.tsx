@@ -1,7 +1,10 @@
-import { Head, Link } from '@inertiajs/react';
-import { Info, Pencil } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Info, Pencil, Plus, Power } from 'lucide-react';
+import { useState } from 'react';
 import * as PerformanceLevelController from '@/actions/App/Http/Controllers/Admin/PerformanceLevelController';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageHeader } from '@/components/page-header';
+import { StatusBadge } from '@/components/status-badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,6 +27,7 @@ type Level = {
     order: number;
     grade_value: number | null;
     is_below_basic_threshold: boolean;
+    is_active: boolean;
     grades_count: number;
 };
 
@@ -37,6 +41,25 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function PerformanceLevelsIndex({ levels }: Props) {
+    const [toggleTarget, setToggleTarget] = useState<Level | null>(null);
+    const [toggling, setToggling] = useState(false);
+
+    function handleToggle() {
+        if (!toggleTarget) return;
+        setToggling(true);
+        router.patch(
+            PerformanceLevelController.toggleStatus.url(toggleTarget),
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setToggling(false);
+                    setToggleTarget(null);
+                },
+            },
+        );
+    }
+
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
             <Head title="Niveles de Desempeño" />
@@ -44,7 +67,14 @@ export default function PerformanceLevelsIndex({ levels }: Props) {
                 <PageHeader
                     title="Niveles de Desempeño"
                     description="Escala de calificación institucional aplicada en todo el sistema"
-                />
+                >
+                    <Button asChild>
+                        <Link href={PerformanceLevelController.create.url()}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Nuevo nivel
+                        </Link>
+                    </Button>
+                </PageHeader>
 
                 <Alert>
                     <Info className="h-4 w-4" />
@@ -69,6 +99,9 @@ export default function PerformanceLevelsIndex({ levels }: Props) {
                                     </TableHead>
                                     <TableHead className="w-44">
                                         Calificaciones
+                                    </TableHead>
+                                    <TableHead className="w-28">
+                                        Estado
                                     </TableHead>
                                     <TableHead className="w-24" />
                                 </TableRow>
@@ -109,20 +142,36 @@ export default function PerformanceLevelsIndex({ levels }: Props) {
                                         <TableCell className="text-sm text-muted-foreground">
                                             {level.grades_count}
                                         </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                asChild
-                                            >
-                                                <Link
-                                                    href={PerformanceLevelController.edit.url(
-                                                        level,
-                                                    )}
+                                        <TableCell>
+                                            <StatusBadge
+                                                isActive={level.is_active}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex w-24 shrink-0 items-center justify-end gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    asChild
                                                 >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Link>
-                                            </Button>
+                                                    <Link
+                                                        href={PerformanceLevelController.edit.url(
+                                                            level,
+                                                        )}
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Link>
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        setToggleTarget(level)
+                                                    }
+                                                >
+                                                    <Power className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -131,6 +180,41 @@ export default function PerformanceLevelsIndex({ levels }: Props) {
                     </CardContent>
                 </Card>
             </div>
+
+            <ConfirmDialog
+                open={!!toggleTarget}
+                onOpenChange={(open) => {
+                    if (!open) setToggleTarget(null);
+                }}
+                title={
+                    toggleTarget?.is_active
+                        ? 'Desactivar nivel'
+                        : 'Activar nivel'
+                }
+                description={toggleDescription(toggleTarget)}
+                confirmLabel={
+                    toggleTarget?.is_active ? 'Desactivar' : 'Activar'
+                }
+                variant={toggleTarget?.is_active ? 'destructive' : 'default'}
+                loading={toggling}
+                onConfirm={handleToggle}
+            />
         </AdminLayout>
     );
+}
+
+function toggleDescription(level: Level | null): string {
+    if (!level?.is_active) {
+        return `¿Confirmas activar "${level?.name}"?`;
+    }
+
+    if (level.grades_count > 0) {
+        return `Este nivel tiene ${level.grades_count} calificación(es) asociadas y no puede desactivarse.`;
+    }
+
+    if (level.is_below_basic_threshold) {
+        return 'Este nivel define el umbral de bajo rendimiento y no puede desactivarse. Marque otro nivel como umbral primero.';
+    }
+
+    return `¿Confirmas desactivar "${level.name}"?`;
 }

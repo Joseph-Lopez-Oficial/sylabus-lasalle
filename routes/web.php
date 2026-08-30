@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\CompetencyController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EnrollmentController;
+use App\Http\Controllers\Admin\EvaluationCriterionController;
 use App\Http\Controllers\Admin\FacultyController;
 use App\Http\Controllers\Admin\MesocurricularLearningOutcomeController;
 use App\Http\Controllers\Admin\MicrocurricularLearningOutcomeController;
@@ -165,10 +166,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('academic-periods/{academicPeriod}', [AcademicPeriodController::class, 'update'])->name('academic-periods.update');
     Route::patch('academic-periods/{academicPeriod}/toggle-status', [AcademicPeriodController::class, 'toggleStatus'])->name('academic-periods.toggle-status');
 
+    // Criterios de Evaluación (configuración del modelo evaluativo)
+    Route::get('evaluation-criteria', [EvaluationCriterionController::class, 'index'])->name('evaluation-criteria.index');
+    Route::get('evaluation-criteria/create', [EvaluationCriterionController::class, 'create'])->name('evaluation-criteria.create');
+    Route::post('evaluation-criteria', [EvaluationCriterionController::class, 'store'])->name('evaluation-criteria.store');
+    Route::get('evaluation-criteria/{evaluationCriterion}/edit', [EvaluationCriterionController::class, 'edit'])->name('evaluation-criteria.edit');
+    Route::put('evaluation-criteria/{evaluationCriterion}', [EvaluationCriterionController::class, 'update'])->name('evaluation-criteria.update');
+    Route::patch('evaluation-criteria/{evaluationCriterion}/toggle-status', [EvaluationCriterionController::class, 'toggleStatus'])->name('evaluation-criteria.toggle-status');
+
     // Niveles de Desempeño (configuración de la escala de calificación)
     Route::get('performance-levels', [PerformanceLevelController::class, 'index'])->name('performance-levels.index');
+    Route::get('performance-levels/create', [PerformanceLevelController::class, 'create'])->name('performance-levels.create');
+    Route::post('performance-levels', [PerformanceLevelController::class, 'store'])->name('performance-levels.store');
     Route::get('performance-levels/{performanceLevel}/edit', [PerformanceLevelController::class, 'edit'])->name('performance-levels.edit');
     Route::put('performance-levels/{performanceLevel}', [PerformanceLevelController::class, 'update'])->name('performance-levels.update');
+    Route::patch('performance-levels/{performanceLevel}/toggle-status', [PerformanceLevelController::class, 'toggleStatus'])->name('performance-levels.toggle-status');
 
     // Programaciones
     Route::get('programmings', [ProgrammingController::class, 'index'])->name('programmings.index');

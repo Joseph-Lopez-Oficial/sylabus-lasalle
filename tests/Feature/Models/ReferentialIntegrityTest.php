@@ -63,25 +63,50 @@ beforeEach(function () {
     ]);
 });
 
-test('deactivating a graded outcome removes it from completeness accounting', function () {
+test('a graded outcome cannot be deactivated from the toggle', function () {
     $service = app(\App\Services\GradingService::class);
 
     expect($service->completeness($this->programming)['total'])->toBe(1);
 
-    // An admin deactivates an outcome that already has grades recorded.
+    // Deactivating it would drop the outcome from the completeness count while
+    // keeping its grades stored, letting a partially graded programming jump to
+    // 100%; the operation is refused instead.
     $this->actingAs($this->admin)
         ->patch(route('admin.microcurricular-outcomes.toggle-status', $this->outcome))
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHas('error');
 
-    $after = $service->completeness($this->programming);
+    expect($this->outcome->fresh()->is_active)->toBeTrue()
+        ->and(Grade::count())->toBe(1)
+        ->and($service->completeness($this->programming->fresh())['total'])->toBe(1);
+});
 
-    // Characterisation test: the grade row survives but stops being counted,
-    // so a partially graded programming can jump to 100% complete. Whether an
-    // outcome with existing grades may be deactivated at all is a product
-    // decision tracked alongside the evaluation-configuration work.
-    expect(Grade::count())->toBe(1);
-    expect($after['total'])->toBe(0)
-        ->and($after['percentage'])->toBe(100.0);
+test('a graded outcome cannot be deactivated from the edit form', function () {
+    $this->actingAs($this->admin)
+        ->put(route('admin.microcurricular-outcomes.update', $this->outcome), [
+            'academic_space_id' => $this->outcome->academic_space_id,
+            'code' => $this->outcome->code,
+            'type_id' => $this->outcome->type_id,
+            'description' => $this->outcome->description,
+            'is_active' => 0,
+        ])
+        ->assertSessionHasErrors('is_active');
+
+    expect($this->outcome->fresh()->is_active)->toBeTrue();
+});
+
+test('an outcome without grades can still be deactivated', function () {
+    $spare = MicrocurricularLearningOutcome::factory()->create([
+        'academic_space_id' => $this->space->id,
+        'type_id' => $this->outcome->type_id,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->patch(route('admin.microcurricular-outcomes.toggle-status', $spare))
+        ->assertSessionHas('success');
+
+    expect($spare->fresh()->is_active)->toBeFalse();
 });
 
 test('deleting an academic space cascades to its outcomes and grades', function () {

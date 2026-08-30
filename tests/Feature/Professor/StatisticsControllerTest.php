@@ -100,9 +100,12 @@ test('professor cannot view statistics for another professor programming', funct
 });
 
 test('statistics endpoint rejects incomplete grading', function () {
-    // Add a second criterion of the same type as the outcome → grading becomes incomplete
+    // A second criterion of the same type, in place before grading started, so
+    // the group is genuinely missing a mark. A criterion created afterwards is
+    // deliberately not demanded from a group already graded.
     EvaluationCriterion::factory()->create([
         'microcurricular_learning_outcome_type_id' => $this->outcomeType->id,
+        'created_at' => now()->subDay(),
     ]);
 
     $this->actingAs($this->professorUser)
