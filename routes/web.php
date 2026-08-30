@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AcademicPeriodController;
+use App\Http\Controllers\Admin\AcademicSpaceAnalysisController as AdminAnalysisController;
 use App\Http\Controllers\Admin\AcademicSpaceController;
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\CompetencyController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Admin\ProgramController;
 use App\Http\Controllers\Admin\ProgrammingController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\TopicController;
+use App\Http\Controllers\Professor\AcademicSpaceAnalysisController as ProfessorAnalysisController;
 use App\Http\Controllers\Professor\DashboardController;
 use App\Http\Controllers\Professor\GradingController;
 use App\Http\Controllers\Professor\StatisticsController;
@@ -189,6 +191,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('programmings/{programming}', [ProgrammingController::class, 'show'])->name('programmings.show');
     Route::get('programmings/{programming}/statistics', [ProgrammingController::class, 'statistics'])->name('programmings.statistics');
     Route::get('programmings/{programming}/statistics/export', [ProgrammingController::class, 'downloadStatistics'])->name('programmings.statistics.export');
+    Route::get('programmings/{programming}/analysis', [AdminAnalysisController::class, 'show'])->name('programmings.analysis');
     Route::get('programmings/{programming}/edit', [ProgrammingController::class, 'edit'])->name('programmings.edit');
     Route::put('programmings/{programming}', [ProgrammingController::class, 'update'])->name('programmings.update');
     Route::patch('programmings/{programming}/toggle-status', [ProgrammingController::class, 'toggleStatus'])->name('programmings.toggle-status');
@@ -219,6 +222,10 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     Route::post('programmings/{programming}/enrollments', [GradingController::class, 'enrollByDocument'])->name('programmings.enrollments.store');
     Route::get('programmings/{programming}/enrollments/template', [GradingController::class, 'downloadEnrollmentTemplate'])->name('programmings.enrollments.template');
     Route::post('programmings/{programming}/enrollments/import', [GradingController::class, 'importEnrollments'])->name('programmings.enrollments.import');
+
+    // Análisis del espacio académico
+    Route::get('programmings/{programming}/analysis', [ProfessorAnalysisController::class, 'show'])->name('programmings.analysis.show');
+    Route::post('programmings/{programming}/analysis', [ProfessorAnalysisController::class, 'save'])->name('programmings.analysis.save');
 
     // Estadísticas
     Route::get('programmings/{programming}/statistics', [StatisticsController::class, 'show'])->name('programmings.statistics.show');

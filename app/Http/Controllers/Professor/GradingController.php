@@ -19,6 +19,7 @@ use App\Models\MicrocurricularLearningOutcomeType;
 use App\Models\PerformanceLevel;
 use App\Models\Programming;
 use App\Models\Student;
+use App\Services\AcademicSpaceAnalysisService;
 use App\Services\GradingService;
 use App\Services\StatisticsService;
 use Illuminate\Http\JsonResponse;
@@ -35,6 +36,7 @@ class GradingController extends Controller
     public function __construct(
         private readonly GradingService $gradingService,
         private readonly StatisticsService $statisticsService,
+        private readonly AcademicSpaceAnalysisService $analysisService,
     ) {}
 
     public function show(Request $request, Programming $programming): Response
@@ -104,6 +106,7 @@ class GradingController extends Controller
             'performanceLevels' => $performanceLevels,
             'existingGrades' => $existingGrades,
             'completeness' => $completeness,
+            'pendingAnalysisCount' => count($this->analysisService->pendingOutcomeIds($programming)),
             'enrollment_import_results' => session('enrollment_import_results'),
         ]);
     }

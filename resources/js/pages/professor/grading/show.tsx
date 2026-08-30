@@ -8,6 +8,7 @@ import {
     ChevronUp,
     Download,
     FileSpreadsheet,
+    FileText,
     Plus,
     Save,
     Send,
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useCallback } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import * as AnalysisController from '@/actions/App/Http/Controllers/Professor/AcademicSpaceAnalysisController';
 import * as GradingController from '@/actions/App/Http/Controllers/Professor/GradingController';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
@@ -123,6 +125,7 @@ type Props = {
     performanceLevels: PerformanceLevel[];
     existingGrades: ExistingGrade[];
     completeness: Completeness;
+    pendingAnalysisCount: number;
     enrollment_import_results?: ImportResult[];
 };
 
@@ -425,6 +428,7 @@ export default function GradingShow({
     performanceLevels,
     existingGrades,
     completeness: initialCompleteness,
+    pendingAnalysisCount,
     enrollment_import_results,
 }: Props) {
     // Build initial grade map from server data
@@ -728,6 +732,22 @@ export default function GradingShow({
                                 )}
                             >
                                 ↑ Importar Excel
+                            </Link>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link
+                                href={AnalysisController.show.url(programming)}
+                            >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Análisis
+                                {pendingAnalysisCount > 0 && (
+                                    <Badge
+                                        variant="secondary"
+                                        className="ml-2"
+                                    >
+                                        {pendingAnalysisCount}
+                                    </Badge>
+                                )}
                             </Link>
                         </Button>
                     </div>

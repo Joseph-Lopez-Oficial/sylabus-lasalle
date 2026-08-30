@@ -4,6 +4,7 @@ import {
     ChevronUp,
     Download,
     FileSpreadsheet,
+    FileText,
     Pencil,
     Plus,
     Power,
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 import { BarChart2 } from 'lucide-react';
 import { useRef, useState } from 'react';
+import * as AdminAnalysisController from '@/actions/App/Http/Controllers/Admin/AcademicSpaceAnalysisController';
 import * as EnrollmentController from '@/actions/App/Http/Controllers/Admin/EnrollmentController';
 import * as ProgrammingController from '@/actions/App/Http/Controllers/Admin/ProgrammingController';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -157,6 +159,17 @@ export default function ProgrammingsShow({
                             >
                                 <BarChart2 className="h-3.5 w-3.5" />
                                 Estadísticas
+                            </Link>
+                        </TabsTrigger>
+                        <TabsTrigger value="analysis" asChild>
+                            <Link
+                                href={AdminAnalysisController.show.url(
+                                    programming,
+                                )}
+                                className="flex items-center gap-1.5"
+                            >
+                                <FileText className="h-3.5 w-3.5" />
+                                Análisis
                             </Link>
                         </TabsTrigger>
                         <TabsTrigger value="enrollments">

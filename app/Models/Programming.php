@@ -76,6 +76,14 @@ class Programming extends Model
         return $this->hasMany(ImportLog::class);
     }
 
+    /**
+     * @return HasMany<\App\Models\AcademicSpaceAnalysis, $this>
+     */
+    public function academicSpaceAnalyses(): HasMany
+    {
+        return $this->hasMany(AcademicSpaceAnalysis::class);
+    }
+
     public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_active', true);
