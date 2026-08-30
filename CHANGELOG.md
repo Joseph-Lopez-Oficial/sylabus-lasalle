@@ -1,3 +1,16 @@
+# [2.1.0](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v2.0.1...v2.1.0) (2026-08-30)
+
+
+### Bug Fixes
+
+* **security:** enforce grade ownership and fix reporting accuracy ([28511e8](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/28511e8c861fe8a36a7ee4146bd7e2a0082625d8)), closes [#36](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/36)
+
+
+### Features
+
+* **config:** add evaluation criteria and performance level management ([5132ea7](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/5132ea78ef7ef1f8b3055b7e4d5ec1bd7ce1e797)), closes [#38](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/38)
+* **grading:** make the institutional grading scale configurable ([d27dc9a](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/d27dc9a3716cae540b4262e839a62144b54bf7b5)), closes [#37](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/37)
+
 ## [2.0.1](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v2.0.0...v2.0.1) (2026-04-29)
 
 
