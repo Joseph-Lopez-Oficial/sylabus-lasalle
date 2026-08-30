@@ -10,6 +10,7 @@ import {
     List,
     Package,
     School,
+    SlidersHorizontal,
     Target,
     TrendingUp,
     UserCheck,
@@ -110,6 +111,16 @@ const navItems = [
                 title: 'Programaciones',
                 href: '/admin/programmings',
                 icon: CalendarClock,
+            },
+        ],
+    },
+    {
+        group: 'Configuración',
+        items: [
+            {
+                title: 'Niveles de Desempeño',
+                href: '/admin/performance-levels',
+                icon: SlidersHorizontal,
             },
         ],
     },

@@ -168,14 +168,15 @@ test('BUG: academic space global average is a mean of group means', function () 
         ->assertInertia(fn ($page) => $page->where('statistics.summary.global_average', 2.23));
 });
 
-test('the grading scale lives in a single place', function () {
+test('the grading scale is read from the database', function () {
     expect(PerformanceLevel::gradeForOrder(1))->toBe(1.3)
         ->and(PerformanceLevel::gradeForOrder(2))->toBe(2.5)
         ->and(PerformanceLevel::gradeForOrder(3))->toBe(3.8)
         ->and(PerformanceLevel::gradeForOrder(4))->toBe(5.0);
 
-    // An unmapped order degrades to its own value rather than throwing.
-    expect(PerformanceLevel::gradeForOrder(9))->toBe(9.0);
+    // An order with no level behind it has no grade, rather than degrading to
+    // the order number itself, which was never a grade.
+    expect(PerformanceLevel::gradeForOrder(9))->toBeNull();
 });
 
 test('inactive enrollments are excluded from the outcome report', function () {

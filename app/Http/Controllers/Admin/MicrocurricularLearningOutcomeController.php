@@ -264,6 +264,7 @@ class MicrocurricularLearningOutcomeController extends Controller
             ],
             'summary' => $stats['summary'],
             'by_programming' => $stats['by_programming'],
+            'scale' => PerformanceLevel::scaleForDisplay(),
         ]);
     }
 

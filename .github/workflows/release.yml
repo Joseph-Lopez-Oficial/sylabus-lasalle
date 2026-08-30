@@ -26,8 +26,11 @@ jobs:
               with:
                   # Fetch full history so semantic-release can read all commits
                   fetch-depth: 0
-                  # Use a token with write access to push version bump commits
-                  token: ${{ secrets.GITHUB_TOKEN }}
+                  # RELEASE_TOKEN is a personal access token allowed to bypass
+                  # the branch protection on main. GITHUB_TOKEN cannot: pushes
+                  # made with it are rejected by the "require pull request" rule.
+                  token: ${{ secrets.RELEASE_TOKEN }}
+                  persist-credentials: true
 
             - name: Setup Node.js
               uses: actions/setup-node@v5
@@ -49,6 +52,8 @@ jobs:
 
             - name: Run semantic-release
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  # The same bypass token is needed here: @semantic-release/git
+                  # pushes the version bump commit back to the protected branch.
+                  GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
                   HUSKY: 0
               run: npx semantic-release

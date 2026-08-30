@@ -268,6 +268,7 @@ class AcademicSpaceController extends Controller
         return Inertia::render('admin/academic-spaces/show', [
             'academicSpace' => $academicSpace,
             'statistics' => $statistics,
+            'scale' => PerformanceLevel::scaleForDisplay(),
         ]);
     }
 

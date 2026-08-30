@@ -36,6 +36,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminLayout from '@/layouts/admin/admin-layout';
+import {
+    gradeBadgeClass,
+    gradeTextClass,
+    levelColor,
+    levelLabelForGrade,
+    setActiveScale,
+} from '@/lib/grading-scale';
 import { formatDecimal } from '@/lib/utils';
 import type {
     AcademicSpace,
@@ -43,6 +50,7 @@ import type {
     MicrocurricularLearningOutcome,
     MicrocurricularLearningOutcomeType,
     Programming,
+    ScaleLevel,
     Topic,
 } from '@/types';
 
@@ -121,16 +129,11 @@ type SpaceStats = {
 type Props = {
     academicSpace: AcademicSpaceWithRelations;
     statistics: SpaceStats;
+    scale: ScaleLevel[];
 };
 
 // ── Stats constants ───────────────────────────────────────────────────────────
 
-const LEVEL_COLORS: Record<string, string> = {
-    Insuficiente: '#ef4444',
-    Básico: '#f97316',
-    Competente: '#22c55e',
-    Destacado: '#3b82f6',
-};
 const LEVEL_LIST = ['#ef4444', '#f97316', '#22c55e', '#3b82f6'];
 const TYPE_COLORS: Record<string, string> = {
     Conocimiento: '#6366f1',
@@ -139,32 +142,19 @@ const TYPE_COLORS: Record<string, string> = {
 };
 const TYPE_FALLBACK = '#8b5cf6';
 
-function gc(g: number) {
-    if (g >= 3.8) return 'text-blue-600 dark:text-blue-400';
-    if (g >= 2.5) return 'text-green-600 dark:text-green-400';
-    if (g >= 1.3) return 'text-orange-500 dark:text-orange-400';
-    return 'text-red-600 dark:text-red-400';
-}
-function gbg(g: number) {
-    if (g >= 3.8)
-        return 'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-    if (g >= 2.5)
-        return 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-    if (g >= 1.3)
-        return 'bg-orange-50 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
-    return 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-}
-function ll(g: number) {
-    if (g >= 3.8) return 'Destacado';
-    if (g >= 2.5) return 'Competente';
-    if (g >= 1.3) return 'Básico';
-    return 'Insuficiente';
-}
+const gc = gradeTextClass;
+const gbg = gradeBadgeClass;
+const ll = levelLabelForGrade;
 
 export default function AcademicSpacesShow({
     academicSpace,
     statistics,
+    scale,
 }: Props) {
+    // Set before the tree renders, so nested components colour levels from the
+    // configured scale rather than from hardcoded names.
+    setActiveScale(scale);
+
     const [expandedTopics, setExpandedTopics] = useState<Set<number>>(
         new Set(),
     );
@@ -678,9 +668,7 @@ function AcademicSpaceStats({ statistics }: { statistics: SpaceStats }) {
                                                 <Cell
                                                     key={i}
                                                     fill={
-                                                        LEVEL_COLORS[
-                                                            donutData[i].name
-                                                        ] ?? LEVEL_LIST[i % 4]
+                                                        levelColor(donutData[i].name) ?? LEVEL_LIST[i % 4]
                                                     }
                                                 />
                                             ))}
@@ -765,11 +753,9 @@ function AcademicSpaceStats({ statistics }: { statistics: SpaceStats }) {
                                                         <Cell
                                                             key={i}
                                                             fill={
-                                                                LEVEL_COLORS[
-                                                                    ll(
+                                                                levelColor(ll(
                                                                         t.average,
-                                                                    )
-                                                                ] ?? '#6366f1'
+                                                                    )) ?? '#6366f1'
                                                             }
                                                         />
                                                     ),
@@ -918,11 +904,9 @@ function AcademicSpaceStats({ statistics }: { statistics: SpaceStats }) {
                                                     <Cell
                                                         key={i}
                                                         fill={
-                                                            LEVEL_COLORS[
-                                                                ll(
+                                                            levelColor(ll(
                                                                     p.group_average,
-                                                                )
-                                                            ] ?? '#6366f1'
+                                                                )) ?? '#6366f1'
                                                         }
                                                         opacity={
                                                             p.programming_id ===
@@ -1032,10 +1016,8 @@ function AcademicSpaceStats({ statistics }: { statistics: SpaceStats }) {
                                                                             className="text-xs font-medium"
                                                                             style={{
                                                                                 color:
-                                                                                    LEVEL_COLORS[
-                                                                                        d
-                                                                                            .level_name
-                                                                                    ] ??
+                                                                                    levelColor(d
+                                                                                            .level_name) ??
                                                                                     '#ccc',
                                                                             }}
                                                                         >
@@ -1055,10 +1037,8 @@ function AcademicSpaceStats({ statistics }: { statistics: SpaceStats }) {
                                                                             style={{
                                                                                 width: `${d.percentage}%`,
                                                                                 backgroundColor:
-                                                                                    LEVEL_COLORS[
-                                                                                        d
-                                                                                            .level_name
-                                                                                    ] ??
+                                                                                    levelColor(d
+                                                                                            .level_name) ??
                                                                                     '#ccc',
                                                                             }}
                                                                         />
@@ -1246,9 +1226,7 @@ function AcademicSpaceStats({ statistics }: { statistics: SpaceStats }) {
                                                 style={{
                                                     width: `${((o.group_average - 1.3) / 3.7) * 100}%`,
                                                     backgroundColor:
-                                                        LEVEL_COLORS[
-                                                            ll(o.group_average)
-                                                        ] ?? typeColor,
+                                                        levelColor(ll(o.group_average)) ?? typeColor,
                                                 }}
                                             />
                                         </div>

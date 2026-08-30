@@ -33,6 +33,13 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminLayout from '@/layouts/admin/admin-layout';
+import {
+    gradeBadgeClass,
+    gradeTextClass,
+    levelColor,
+    levelLabelForGrade,
+    setActiveScale,
+} from '@/lib/grading-scale';
 import { formatDecimal } from '@/lib/utils';
 import type {
     BreadcrumbItem,
@@ -62,12 +69,6 @@ type Props = {
 
 // ── Constants (same as professor stats) ───────────────────────────────────────
 
-const LEVEL_COLORS: Record<string, string> = {
-    Insuficiente: '#ef4444',
-    Básico: '#f97316',
-    Competente: '#22c55e',
-    Destacado: '#3b82f6',
-};
 const LEVEL_COLOR_LIST = ['#ef4444', '#f97316', '#22c55e', '#3b82f6'];
 
 const TYPE_COLORS: Record<string, string> = {
@@ -77,27 +78,9 @@ const TYPE_COLORS: Record<string, string> = {
 };
 const TYPE_FALLBACK = '#8b5cf6';
 
-function gradeColor(g: number) {
-    if (g >= 3.8) return 'text-blue-600 dark:text-blue-400';
-    if (g >= 2.5) return 'text-green-600 dark:text-green-400';
-    if (g >= 1.3) return 'text-orange-500 dark:text-orange-400';
-    return 'text-red-600 dark:text-red-400';
-}
-function gradeBgClass(g: number) {
-    if (g >= 3.8)
-        return 'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-    if (g >= 2.5)
-        return 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-    if (g >= 1.3)
-        return 'bg-orange-50 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
-    return 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-}
-function levelLabel(g: number) {
-    if (g >= 3.8) return 'Destacado';
-    if (g >= 2.5) return 'Competente';
-    if (g >= 1.3) return 'Básico';
-    return 'Insuficiente';
-}
+const gradeColor = gradeTextClass;
+const gradeBgClass = gradeBadgeClass;
+const levelLabel = levelLabelForGrade;
 
 // ── Shared distribution charts ────────────────────────────────────────────────
 
@@ -153,7 +136,7 @@ function DistributionCharts({
                                     <Cell
                                         key={i}
                                         fill={
-                                            LEVEL_COLORS[d.name] ??
+                                            levelColor(d.name) ??
                                             LEVEL_COLOR_LIST[i % 4]
                                         }
                                     />
@@ -197,7 +180,7 @@ function DistributionCharts({
                                     <Cell
                                         key={i}
                                         fill={
-                                            LEVEL_COLORS[d.name] ??
+                                            levelColor(d.name) ??
                                             LEVEL_COLOR_LIST[i % 4]
                                         }
                                     />
@@ -425,11 +408,9 @@ function ByStudentTab({
                                             className="inline-block h-2 w-2 rounded-full"
                                             style={{
                                                 backgroundColor:
-                                                    LEVEL_COLORS[
-                                                        levelLabel(
+                                                    levelColor(levelLabel(
                                                             s.final_average,
-                                                        )
-                                                    ] ?? '#ccc',
+                                                        )) ?? '#ccc',
                                             }}
                                         />
                                         #{i + 1} {s.student_name} —{' '}
@@ -884,9 +865,7 @@ function ByOutcomeTab({
                                     <p
                                         className="text-xs font-medium"
                                         style={{
-                                            color: LEVEL_COLORS[
-                                                levelLabel(Number(m.value))
-                                            ],
+                                            color: levelColor(levelLabel(Number(m.value))),
                                         }}
                                     >
                                         {levelLabel(Number(m.value))}
@@ -944,11 +923,9 @@ function ByOutcomeTab({
                                                         style={{
                                                             width: `${((s.grade - 1.3) / 3.7) * 100}%`,
                                                             backgroundColor:
-                                                                LEVEL_COLORS[
-                                                                    levelLabel(
+                                                                levelColor(levelLabel(
                                                                         s.grade,
-                                                                    )
-                                                                ] ?? '#ccc',
+                                                                    )) ?? '#ccc',
                                                         }}
                                                     />
                                                 </div>
@@ -1424,6 +1401,10 @@ export default function ProgrammingStatistics({
     statistics,
     completeness,
 }: Props) {
+    // Set before the tree renders, so nested components label grades from the
+    // configured scale rather than fixed thresholds.
+    setActiveScale(statistics.scale);
+
     const [activeTab, setActiveTab] = useState('summary');
     const [highlightedId, setHighlightedId] = useState<number | undefined>();
 

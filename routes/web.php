@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\EnrollmentController;
 use App\Http\Controllers\Admin\FacultyController;
 use App\Http\Controllers\Admin\MesocurricularLearningOutcomeController;
 use App\Http\Controllers\Admin\MicrocurricularLearningOutcomeController;
+use App\Http\Controllers\Admin\PerformanceLevelController;
 use App\Http\Controllers\Admin\ProblematicNucleusController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProfessorController;
@@ -163,6 +164,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('academic-periods/{academicPeriod}/edit', [AcademicPeriodController::class, 'edit'])->name('academic-periods.edit');
     Route::put('academic-periods/{academicPeriod}', [AcademicPeriodController::class, 'update'])->name('academic-periods.update');
     Route::patch('academic-periods/{academicPeriod}/toggle-status', [AcademicPeriodController::class, 'toggleStatus'])->name('academic-periods.toggle-status');
+
+    // Niveles de Desempeño (configuración de la escala de calificación)
+    Route::get('performance-levels', [PerformanceLevelController::class, 'index'])->name('performance-levels.index');
+    Route::get('performance-levels/{performanceLevel}/edit', [PerformanceLevelController::class, 'edit'])->name('performance-levels.edit');
+    Route::put('performance-levels/{performanceLevel}', [PerformanceLevelController::class, 'update'])->name('performance-levels.update');
 
     // Programaciones
     Route::get('programmings', [ProgrammingController::class, 'index'])->name('programmings.index');

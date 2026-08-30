@@ -28,8 +28,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/admin/admin-layout';
+import {
+    gradeTextClass,
+    levelBadgeClass,
+    levelColor,
+    levelLabelForGrade,
+    setActiveScale,
+} from '@/lib/grading-scale';
 import { formatDecimal } from '@/lib/utils';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem, ScaleLevel } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -88,16 +95,11 @@ type Props = {
         trend_by_period: TrendPoint[];
     };
     by_programming: ProgrammingRow[];
+    scale: ScaleLevel[];
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const LEVEL_COLORS: Record<string, string> = {
-    Insuficiente: '#ef4444',
-    Básico: '#f97316',
-    Competente: '#22c55e',
-    Destacado: '#3b82f6',
-};
 const LEVEL_COLOR_LIST = ['#ef4444', '#f97316', '#22c55e', '#3b82f6'];
 
 const TYPE_COLORS: Record<string, string> = {
@@ -107,27 +109,8 @@ const TYPE_COLORS: Record<string, string> = {
 };
 const TYPE_FALLBACK = '#8b5cf6';
 
-function gradeColor(g: number) {
-    if (g >= 3.8) return 'text-blue-600 dark:text-blue-400';
-    if (g >= 2.5) return 'text-green-600 dark:text-green-400';
-    if (g >= 1.3) return 'text-orange-500 dark:text-orange-400';
-    return 'text-red-600 dark:text-red-400';
-}
-function gradeBgClass(g: number) {
-    if (g >= 3.8)
-        return 'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-    if (g >= 2.5)
-        return 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-    if (g >= 1.3)
-        return 'bg-orange-50 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
-    return 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-}
-function levelLabel(g: number) {
-    if (g >= 3.8) return 'Destacado';
-    if (g >= 2.5) return 'Competente';
-    if (g >= 1.3) return 'Básico';
-    return 'Insuficiente';
-}
+const gradeColor = gradeTextClass;
+const levelLabel = levelLabelForGrade;
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
@@ -135,7 +118,12 @@ export default function MicrocurricularOutcomeShow({
     outcome,
     summary,
     by_programming,
+    scale,
 }: Props) {
+    // Set before the tree renders, so nested components label grades from the
+    // configured scale rather than fixed thresholds.
+    setActiveScale(scale);
+
     const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
     const typeColor = TYPE_COLORS[outcome.type?.name ?? ''] ?? TYPE_FALLBACK;
@@ -403,10 +391,8 @@ export default function MicrocurricularOutcomeShow({
                                                     <Cell
                                                         key={i}
                                                         fill={
-                                                            LEVEL_COLORS[
-                                                                donutData[i]
-                                                                    .name
-                                                            ] ??
+                                                            levelColor(donutData[i]
+                                                                    .name) ??
                                                             LEVEL_COLOR_LIST[
                                                                 i % 4
                                                             ]
@@ -487,11 +473,9 @@ export default function MicrocurricularOutcomeShow({
                                                         <Cell
                                                             key={i}
                                                             fill={
-                                                                LEVEL_COLORS[
-                                                                    levelLabel(
+                                                                levelColor(levelLabel(
                                                                         d.promedio,
-                                                                    )
-                                                                ] ?? typeColor
+                                                                    )) ?? typeColor
                                                             }
                                                         />
                                                     ))}
@@ -569,11 +553,9 @@ export default function MicrocurricularOutcomeShow({
                                                 <Cell
                                                     key={i}
                                                     fill={
-                                                        LEVEL_COLORS[
-                                                            levelLabel(
+                                                        levelColor(levelLabel(
                                                                 e.promedio,
-                                                            )
-                                                        ] ?? typeColor
+                                                            )) ?? typeColor
                                                     }
                                                     opacity={
                                                         e.id ===
@@ -719,10 +701,8 @@ export default function MicrocurricularOutcomeShow({
                                                                                 className="text-xs font-medium"
                                                                                 style={{
                                                                                     color:
-                                                                                        LEVEL_COLORS[
-                                                                                            d
-                                                                                                .level_name
-                                                                                        ] ??
+                                                                                        levelColor(d
+                                                                                                .level_name) ??
                                                                                         '#ccc',
                                                                                 }}
                                                                             >
@@ -731,17 +711,8 @@ export default function MicrocurricularOutcomeShow({
                                                                                 }
                                                                             </span>
                                                                             <span
-                                                                                className={`rounded px-1.5 py-0.5 text-xs font-bold ${gradeBgClass(
-                                                                                    d.level_name ===
-                                                                                        'Destacado'
-                                                                                        ? 4.5
-                                                                                        : d.level_name ===
-                                                                                            'Competente'
-                                                                                          ? 3.8
-                                                                                          : d.level_name ===
-                                                                                              'Básico'
-                                                                                            ? 2.5
-                                                                                            : 1.3,
+                                                                                className={`rounded px-1.5 py-0.5 text-xs font-bold ${levelBadgeClass(
+                                                                                    d.level_name,
                                                                                 )}`}
                                                                             >
                                                                                 {
@@ -755,10 +726,8 @@ export default function MicrocurricularOutcomeShow({
                                                                                 style={{
                                                                                     width: `${d.percentage}%`,
                                                                                     backgroundColor:
-                                                                                        LEVEL_COLORS[
-                                                                                            d
-                                                                                                .level_name
-                                                                                        ] ??
+                                                                                        levelColor(d
+                                                                                                .level_name) ??
                                                                                         '#ccc',
                                                                                 }}
                                                                             />

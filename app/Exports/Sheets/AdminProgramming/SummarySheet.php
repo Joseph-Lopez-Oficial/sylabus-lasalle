@@ -63,7 +63,7 @@ class SummarySheet implements FromArray, ShouldAutoSize, WithStyles, WithTitle
 
         if (! empty($this->summary['below_basic'])) {
             $rows[] = [];
-            $rows[] = ['Estudiantes por debajo de Básico (< '.PerformanceLevel::BELOW_BASIC_THRESHOLD.')'];
+            $rows[] = ['Estudiantes por debajo de '.PerformanceLevel::belowBasicLevelName().' (< '.PerformanceLevel::belowBasicThreshold().')'];
             $rows[] = ['Estudiante', 'Promedio Final'];
 
             foreach ($this->summary['below_basic'] as $student) {

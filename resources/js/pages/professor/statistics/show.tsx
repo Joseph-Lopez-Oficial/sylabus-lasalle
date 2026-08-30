@@ -33,6 +33,13 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProfessorLayout from '@/layouts/professor/professor-layout';
+import {
+    gradeBadgeClass,
+    gradeTextClass,
+    levelColor,
+    levelLabelForGrade,
+    setActiveScale,
+} from '@/lib/grading-scale';
 import { formatDecimal } from '@/lib/utils';
 import type {
     BreadcrumbItem,
@@ -62,12 +69,6 @@ type Props = {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const LEVEL_COLORS: Record<string, string> = {
-    Insuficiente: '#ef4444',
-    Básico: '#f97316',
-    Competente: '#22c55e',
-    Destacado: '#3b82f6',
-};
 const LEVEL_COLOR_LIST = ['#ef4444', '#f97316', '#22c55e', '#3b82f6'];
 
 const TYPE_COLORS: Record<string, string> = {
@@ -77,29 +78,12 @@ const TYPE_COLORS: Record<string, string> = {
 };
 const TYPE_FALLBACK = '#8b5cf6';
 
-function gradeColor(grade: number): string {
-    if (grade >= 3.8) return 'text-blue-600 dark:text-blue-400';
-    if (grade >= 2.5) return 'text-green-600 dark:text-green-400';
-    if (grade >= 1.3) return 'text-orange-500 dark:text-orange-400';
-    return 'text-red-600 dark:text-red-400';
-}
-
-function gradeBgClass(grade: number): string {
-    if (grade >= 3.8)
-        return 'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-    if (grade >= 2.5)
-        return 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-    if (grade >= 1.3)
-        return 'bg-orange-50 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
-    return 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-}
-
-function levelLabel(grade: number): string {
-    if (grade >= 3.8) return 'Destacado';
-    if (grade >= 2.5) return 'Competente';
-    if (grade >= 1.3) return 'Básico';
-    return 'Insuficiente';
-}
+// Names, colours and thresholds all come from the configured scale, so
+// renaming a level or changing its value from the administration screen is
+// reflected here without touching this file.
+const gradeColor = gradeTextClass;
+const gradeBgClass = gradeBadgeClass;
+const levelLabel = levelLabelForGrade;
 
 // ── Shared: Distribution Chart ────────────────────────────────────────────────
 // Two-bar horizontal chart: calificaciones individuales + por estudiantes
@@ -156,7 +140,7 @@ function DistributionCharts({
                                     <Cell
                                         key={i}
                                         fill={
-                                            LEVEL_COLORS[d.name] ??
+                                            levelColor(d.name) ??
                                             LEVEL_COLOR_LIST[i % 4]
                                         }
                                     />
@@ -200,7 +184,7 @@ function DistributionCharts({
                                     <Cell
                                         key={i}
                                         fill={
-                                            LEVEL_COLORS[d.name] ??
+                                            levelColor(d.name) ??
                                             LEVEL_COLOR_LIST[i % 4]
                                         }
                                     />
@@ -468,11 +452,9 @@ function ByStudentTab({
                                             className={`inline-block h-2 w-2 rounded-full`}
                                             style={{
                                                 backgroundColor:
-                                                    LEVEL_COLORS[
-                                                        levelLabel(
+                                                    levelColor(levelLabel(
                                                             s.final_average,
-                                                        )
-                                                    ] ?? '#ccc',
+                                                        )) ?? '#ccc',
                                             }}
                                         />
                                         #{i + 1} {s.student_name} —{' '}
@@ -596,18 +578,14 @@ function ByStudentTab({
                                                 className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-transform hover:scale-110 ${String(s.enrollment_id) === selectedId ? 'ring-2 ring-primary ring-offset-1' : ''}`}
                                                 style={{
                                                     backgroundColor:
-                                                        (LEVEL_COLORS[
-                                                            levelLabel(
+                                                        (levelColor(levelLabel(
                                                                 s.final_average,
-                                                            )
-                                                        ] ?? '#ccc') + '22',
+                                                            )) ?? '#ccc') + '22',
                                                     color:
-                                                        LEVEL_COLORS[
-                                                            levelLabel(
+                                                        levelColor(levelLabel(
                                                                 s.final_average,
-                                                            )
-                                                        ] ?? '#ccc',
-                                                    border: `1px solid ${LEVEL_COLORS[levelLabel(s.final_average)] ?? '#ccc'}`,
+                                                            )) ?? '#ccc',
+                                                    border: `1px solid ${levelColor(levelLabel(s.final_average)) ?? '#ccc'}`,
                                                 }}
                                             >
                                                 {i + 1}
@@ -1035,9 +1013,7 @@ function ByOutcomeTab({
                                     <p
                                         className="text-xs font-medium"
                                         style={{
-                                            color: LEVEL_COLORS[
-                                                levelLabel(Number(m.value))
-                                            ],
+                                            color: levelColor(levelLabel(Number(m.value))),
                                         }}
                                     >
                                         {levelLabel(Number(m.value))}
@@ -1099,11 +1075,9 @@ function ByOutcomeTab({
                                                         style={{
                                                             width: `${((s.grade - 1.3) / 3.7) * 100}%`,
                                                             backgroundColor:
-                                                                LEVEL_COLORS[
-                                                                    levelLabel(
+                                                                levelColor(levelLabel(
                                                                         s.grade,
-                                                                    )
-                                                                ] ?? '#ccc',
+                                                                    )) ?? '#ccc',
                                                         }}
                                                     />
                                                 </div>
@@ -1620,6 +1594,10 @@ function ByCriterionTab({ byCriterion }: { byCriterion: CriterionStats[] }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function StatisticsShow({ programming, statistics }: Props) {
+    // Set before the tree renders, so the nested components that label grades
+    // read the scale the backend sent rather than a stale one.
+    setActiveScale(statistics.scale);
+
     const [activeTab, setActiveTab] = useState('summary');
     const [highlightedEnrollmentId, setHighlightedEnrollmentId] = useState<
         number | undefined

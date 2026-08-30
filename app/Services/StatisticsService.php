@@ -9,7 +9,13 @@ use Illuminate\Support\Collection;
 
 class StatisticsService
 {
-    private function orderToGrade(int $order): float
+    /**
+     * Institutional grade for a performance level order.
+     *
+     * Returns null when the level carries no value, so `avg()` skips it instead
+     * of averaging in a zero that would drag the result down.
+     */
+    private function orderToGrade(int $order): ?float
     {
         return PerformanceLevel::gradeForOrder($order);
     }
@@ -21,7 +27,8 @@ class StatisticsService
      *   byStudent: list<array<string,mixed>>,
      *   byOutcome: list<array<string,mixed>>,
      *   byCriterion: list<array<string,mixed>>,
-     *   summary: array<string,mixed>
+     *   summary: array<string,mixed>,
+     *   scale: list<array<string,mixed>>
      * }
      */
     public function calculate(Programming $programming): array
@@ -52,13 +59,14 @@ class StatisticsService
         $byOutcome = $this->byOutcome($grades, $performanceLevels);
         $byCriterion = $this->byCriterion($grades);
         $summary = $this->summary($byStudent, $performanceLevels, $grades);
+        $scale = PerformanceLevel::scaleForDisplay();
 
-        return compact('byStudent', 'byOutcome', 'byCriterion', 'summary');
+        return compact('byStudent', 'byOutcome', 'byCriterion', 'summary', 'scale');
     }
 
     /**
      * Statistics grouped by student.
-     * Each criterion average is the real institutional grade (1.3/2.5/3.8/5.0).
+     * Each criterion average uses the institutional grade configured for its level.
      * Each outcome average is the avg of its criteria grades.
      * Final average is the avg of outcome averages.
      */
@@ -75,10 +83,15 @@ class StatisticsService
                     ->groupBy('microcurricular_learning_outcome_id')
                     ->map(function ($outcomeGrades) {
                         $outcome = $outcomeGrades->first()->microcurricularLearningOutcome;
-                        $avgGrade = round(
-                            $outcomeGrades->avg(fn ($g) => $this->orderToGrade($g->performanceLevel->order)),
-                            2
+
+                        // avg() skips levels with no value; when every level of
+                        // the outcome lacks one it returns null, and rounding
+                        // that would turn "no grade" into a zero that drags the
+                        // student's final average down.
+                        $rawAverage = $outcomeGrades->avg(
+                            fn ($g) => $this->orderToGrade($g->performanceLevel->order)
                         );
+                        $avgGrade = $rawAverage === null ? null : round($rawAverage, 2);
 
                         // Per-criterion breakdown within this outcome for this student
                         $byCriterion = $outcomeGrades->map(fn ($g) => [
@@ -100,9 +113,11 @@ class StatisticsService
                     })
                     ->values();
 
-                $finalAverage = $gradesByOutcome->isNotEmpty()
-                    ? round($gradesByOutcome->avg('grade'), 2)
-                    : 0.0;
+                // Null when no outcome of this student carries a usable grade,
+                // so the summary can leave the student out of the overall
+                // average instead of counting them as a zero.
+                $rawFinal = $gradesByOutcome->avg('grade');
+                $finalAverage = $rawFinal === null ? null : round($rawFinal, 2);
 
                 return [
                     'enrollment_id' => $enrollment->id,
@@ -241,11 +256,13 @@ class StatisticsService
      * Global summary.
      * overall_average = avg of student final averages (real scale).
      * distribution = count of students per level based on their dominant final level.
-     * below_basic = students under PerformanceLevel::BELOW_BASIC_THRESHOLD.
+     * below_basic = students under PerformanceLevel::belowBasicThreshold().
      */
     private function summary(array $byStudent, Collection $performanceLevels, Collection $grades): array
     {
-        $averages = collect($byStudent)->pluck('final_average');
+        // Students whose levels carry no grade value have a null final average
+        // and stay out of the overall figure, instead of counting as zeros.
+        $averages = collect($byStudent)->pluck('final_average')->filter(fn ($a) => $a !== null);
 
         $overallAverage = $averages->isNotEmpty()
             ? round($averages->avg(), 2)
@@ -278,8 +295,11 @@ class StatisticsService
             ->values()
             ->toArray();
 
+        // A null average means "not gradeable", not "failing": comparing it
+        // against the threshold would flag those students as at risk.
+        $threshold = PerformanceLevel::belowBasicThreshold();
         $belowBasic = collect($byStudent)
-            ->filter(fn ($s) => $s['final_average'] < PerformanceLevel::BELOW_BASIC_THRESHOLD)
+            ->filter(fn ($s) => $s['final_average'] !== null && $s['final_average'] < $threshold)
             ->values()
             ->toArray();
 

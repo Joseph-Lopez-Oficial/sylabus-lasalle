@@ -390,6 +390,14 @@ export type CriterionStats = {
     by_outcome: CriterionOutcome[];
 };
 
+/** A performance level as configured in the database. */
+export type ScaleLevel = {
+    name: string;
+    order: number;
+    grade_value: number | null;
+    is_below_basic_threshold: boolean;
+};
+
 export type ProgrammingStats = {
     byStudent: StudentStats[];
     byOutcome: OutcomeStats[];
@@ -400,4 +408,6 @@ export type ProgrammingStats = {
         top_students: StudentStats[];
         below_basic: StudentStats[];
     };
+    /** Configured scale, so labels follow the database and not fixed thresholds. */
+    scale: ScaleLevel[];
 };
