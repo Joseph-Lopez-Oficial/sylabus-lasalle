@@ -68,7 +68,7 @@ test('saveGrades creates new grade records', function () {
             'performance_level_id' => $this->performanceLevel->id,
             'observations' => 'Observación de prueba',
         ],
-    ], $this->gradedByUser->id);
+    ], $this->gradedByUser->id, $this->programming);
 
     expect(Grade::count())->toBe(1);
     expect(Grade::first()->observations)->toBe('Observación de prueba');
@@ -92,7 +92,7 @@ test('saveGrades updates existing grade instead of duplicating', function () {
             'evaluation_criterion_id' => $this->criterion->id,
             'performance_level_id' => $newLevel->id,
         ],
-    ], $this->gradedByUser->id);
+    ], $this->gradedByUser->id, $this->programming);
 
     expect(Grade::count())->toBe(1);
     expect(Grade::first()->performance_level_id)->toBe($newLevel->id);
@@ -106,7 +106,54 @@ test('saveGrades is atomic and rolls back on error', function () {
             'evaluation_criterion_id' => $this->criterion->id,
             'performance_level_id' => 99999, // ID inválido — forzará error
         ],
-    ], $this->gradedByUser->id))->toThrow(\Exception::class);
+    ], $this->gradedByUser->id, $this->programming))->toThrow(\Exception::class);
+
+    expect(Grade::count())->toBe(0);
+});
+
+test('saveGrades rejects an enrollment from another programming', function () {
+    $foreignEnrollment = Enrollment::factory()->create([
+        'programming_id' => Programming::factory()->create([
+            'academic_space_id' => $this->programming->academic_space_id,
+            'professor_id' => Professor::factory()->create()->id,
+            'modality_id' => $this->programming->modality_id,
+        ])->id,
+        'is_active' => true,
+    ]);
+
+    expect(fn () => $this->service->saveGrades([
+        [
+            'enrollment_id' => $foreignEnrollment->id,
+            'microcurricular_learning_outcome_id' => $this->outcome->id,
+            'evaluation_criterion_id' => $this->criterion->id,
+            'performance_level_id' => $this->performanceLevel->id,
+        ],
+    ], $this->gradedByUser->id, $this->programming))
+        ->toThrow(\Illuminate\Validation\ValidationException::class);
+
+    expect(Grade::count())->toBe(0);
+});
+
+test('saveGrades rejects a criterion whose type does not match the outcome', function () {
+    $foreignCriterion = EvaluationCriterion::factory()->create([
+        'microcurricular_learning_outcome_type_id' => MicrocurricularLearningOutcomeType::factory()->create()->id,
+    ]);
+
+    expect(fn () => $this->service->saveGrades([
+        [
+            'enrollment_id' => $this->enrollment->id,
+            'microcurricular_learning_outcome_id' => $this->outcome->id,
+            'evaluation_criterion_id' => $foreignCriterion->id,
+            'performance_level_id' => $this->performanceLevel->id,
+        ],
+    ], $this->gradedByUser->id, $this->programming))
+        ->toThrow(\Illuminate\Validation\ValidationException::class);
+
+    expect(Grade::count())->toBe(0);
+});
+
+test('saveGrades accepts an empty batch without touching the database', function () {
+    $this->service->saveGrades([], $this->gradedByUser->id, $this->programming);
 
     expect(Grade::count())->toBe(0);
 });

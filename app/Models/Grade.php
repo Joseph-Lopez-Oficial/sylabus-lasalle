@@ -20,11 +20,6 @@ class Grade extends Model
         'observations',
     ];
 
-    protected function casts(): array
-    {
-        return [];
-    }
-
     /**
      * @return BelongsTo<\App\Models\Enrollment, $this>
      */

@@ -24,34 +24,41 @@ class DashboardController extends Controller
                 'academicSpace',
                 'modality',
                 'academicPeriod',
-                'enrollments' => fn($q) => $q->where('is_active', true),
+                'enrollments' => fn ($q) => $q->where('is_active', true),
             ])
-            ->get()
-            ->map(function (Programming $programming) {
-                $enrollmentIds = $programming->enrollments->pluck('id');
+            ->get();
 
-                $outcomes = MicrocurricularLearningOutcome::query()
-                    ->where('academic_space_id', $programming->academic_space_id)
-                    ->where('is_active', true)
-                    ->get(['id', 'type_id']);
+        // Preload everything the progress calculation needs, so the map below
+        // runs entirely in memory instead of querying once per programming.
+        $outcomesBySpace = MicrocurricularLearningOutcome::query()
+            ->whereIn('academic_space_id', $programmings->pluck('academic_space_id')->unique())
+            ->where('is_active', true)
+            ->get(['id', 'academic_space_id', 'type_id'])
+            ->groupBy('academic_space_id');
+
+        $criteriaCountByType = EvaluationCriterion::query()
+            ->get(['id', 'microcurricular_learning_outcome_type_id'])
+            ->groupBy('microcurricular_learning_outcome_type_id')
+            ->map->count();
+
+        $gradeCountByEnrollment = Grade::query()
+            ->whereIn('enrollment_id', $programmings->pluck('enrollments')->flatten()->pluck('id'))
+            ->selectRaw('enrollment_id, count(*) as aggregate')
+            ->groupBy('enrollment_id')
+            ->pluck('aggregate', 'enrollment_id');
+
+        $programmings = $programmings
+            ->map(function (Programming $programming) use ($outcomesBySpace, $criteriaCountByType, $gradeCountByEnrollment) {
+                $enrollmentIds = $programming->enrollments->pluck('id');
+                $outcomes = $outcomesBySpace[$programming->academic_space_id] ?? collect();
 
                 // Total = sum of (criteria_count_for_type × enrollments) per outcome
-                $criteriaCountByType = EvaluationCriterion::whereIn(
-                    'microcurricular_learning_outcome_type_id',
-                    $outcomes->pluck('type_id')->unique()
-                )->get(['id', 'microcurricular_learning_outcome_type_id'])
-                    ->groupBy('microcurricular_learning_outcome_type_id')
-                    ->map->count();
-
                 $total = $enrollmentIds->count() * $outcomes->sum(
-                    fn($o) => $criteriaCountByType[$o->type_id] ?? 0
+                    fn ($o) => $criteriaCountByType[$o->type_id] ?? 0
                 );
 
-                $outcomeIds = $outcomes->pluck('id');
                 $completed = $total > 0
-                    ? Grade::whereIn('enrollment_id', $enrollmentIds)
-                    ->whereIn('microcurricular_learning_outcome_id', $outcomeIds)
-                    ->count()
+                    ? $enrollmentIds->sum(fn ($id) => $gradeCountByEnrollment[$id] ?? 0)
                     : 0;
 
                 $percentage = $total > 0 ? round(($completed / $total) * 100, 1) : 0.0;

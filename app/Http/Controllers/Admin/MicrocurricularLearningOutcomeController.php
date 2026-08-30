@@ -128,10 +128,10 @@ class MicrocurricularLearningOutcomeController extends Controller
     private function buildOutcomeStats(MicrocurricularLearningOutcome $microcurricularOutcome): array
     {
         $performanceLevels = PerformanceLevel::orderBy('order')->get(['id', 'name', 'order']);
-        $orderToGrade = [1 => 1.3, 2 => 2.5, 3 => 3.8, 4 => 5.0];
 
         $grades = Grade::query()
             ->where('microcurricular_learning_outcome_id', $microcurricularOutcome->id)
+            ->whereHas('enrollment', fn ($q) => $q->where('is_active', true))
             ->with([
                 'enrollment.programming.academicPeriod',
                 'enrollment.programming.professor',
@@ -141,13 +141,13 @@ class MicrocurricularLearningOutcomeController extends Controller
             ->get();
 
         $byProgramming = $grades->groupBy(fn ($g) => $g->enrollment->programming_id)
-            ->map(function ($progGrades) use ($performanceLevels, $orderToGrade) {
+            ->map(function ($progGrades) use ($performanceLevels) {
                 $programming = $progGrades->first()->enrollment->programming;
 
                 $gradesByStudent = $progGrades
                     ->groupBy('enrollment_id')
                     ->map(fn ($sg) => round(
-                        $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? $g->performanceLevel->order),
+                        $sg->avg(fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)),
                         2
                     ))
                     ->values();
@@ -187,9 +187,16 @@ class MicrocurricularLearningOutcomeController extends Controller
             ->sortByDesc('group_average')
             ->values();
 
-        $allStudentAverages = $byProgramming->pluck('group_average');
-        $globalAverage = $allStudentAverages->isNotEmpty()
-            ? round($allStudentAverages->avg(), 2) : 0.0;
+        // Averaged per student, not per programming: a mean of group means
+        // would weight a two-student group the same as a forty-student one.
+        $studentAverages = $grades
+            ->groupBy('enrollment_id')
+            ->map(fn ($studentGrades) => $studentGrades->avg(
+                fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)
+            ));
+
+        $globalAverage = $studentAverages->isNotEmpty()
+            ? round($studentAverages->avg(), 2) : 0.0;
 
         $totalGrades = $grades->count();
         $globalDistribution = $performanceLevels->map(function ($level) use ($grades, $totalGrades) {

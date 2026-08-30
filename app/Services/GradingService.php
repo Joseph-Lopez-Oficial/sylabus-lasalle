@@ -7,11 +7,17 @@ use App\Models\Grade;
 use App\Models\MicrocurricularLearningOutcome;
 use App\Models\Programming;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class GradingService
 {
     /**
      * Save or update a batch of grades atomically.
+     *
+     * Every entry is validated against the programming before being written:
+     * the enrollment must belong to it, the outcome must belong to its academic
+     * space, and the criterion must match the outcome's type. This is the single
+     * choke point for both manual grading and Excel import.
      *
      * Each entry in $grades must contain:
      *   - enrollment_id
@@ -21,9 +27,13 @@ class GradingService
      *   - observations (optional)
      *
      * @param  array<int, array{enrollment_id: int, microcurricular_learning_outcome_id: int, evaluation_criterion_id: int, performance_level_id: int, observations?: string|null}>  $grades
+     *
+     * @throws ValidationException When any entry does not belong to the programming.
      */
-    public function saveGrades(array $grades, int $gradedByUserId): void
+    public function saveGrades(array $grades, int $gradedByUserId, Programming $programming): void
     {
+        $this->assertGradesBelongToProgramming($grades, $programming);
+
         DB::transaction(function () use ($grades, $gradedByUserId) {
             foreach ($grades as $gradeData) {
                 Grade::updateOrCreate(
@@ -40,6 +50,67 @@ class GradingService
                 );
             }
         });
+    }
+
+    /**
+     * Reject any grade whose enrollment, outcome or criterion does not belong
+     * to the given programming.
+     *
+     * Without this guard a professor could post another programming's
+     * enrollment id and overwrite grades they do not own, or pair an outcome
+     * with a criterion of a foreign type and corrupt every statistic derived
+     * from it.
+     *
+     * @param  array<int, array<string, mixed>>  $grades
+     *
+     * @throws ValidationException
+     */
+    private function assertGradesBelongToProgramming(array $grades, Programming $programming): void
+    {
+        if ($grades === []) {
+            return;
+        }
+
+        $validEnrollmentIds = $programming->enrollments()
+            ->where('is_active', true)
+            ->pluck('id')
+            ->flip();
+
+        $outcomeTypeById = MicrocurricularLearningOutcome::query()
+            ->where('academic_space_id', $programming->academic_space_id)
+            ->where('is_active', true)
+            ->pluck('type_id', 'id');
+
+        $criterionTypeById = EvaluationCriterion::query()
+            ->pluck('microcurricular_learning_outcome_type_id', 'id');
+
+        $errors = [];
+
+        foreach ($grades as $index => $gradeData) {
+            $enrollmentId = (int) ($gradeData['enrollment_id'] ?? 0);
+            $outcomeId = (int) ($gradeData['microcurricular_learning_outcome_id'] ?? 0);
+            $criterionId = (int) ($gradeData['evaluation_criterion_id'] ?? 0);
+
+            if (! $validEnrollmentIds->has($enrollmentId)) {
+                $errors["grades.{$index}.enrollment_id"] = 'La inscripción no pertenece a esta programación.';
+
+                continue;
+            }
+
+            if (! $outcomeTypeById->has($outcomeId)) {
+                $errors["grades.{$index}.microcurricular_learning_outcome_id"] = 'El resultado microcurricular no pertenece a esta programación.';
+
+                continue;
+            }
+
+            if ($criterionTypeById->get($criterionId) !== $outcomeTypeById->get($outcomeId)) {
+                $errors["grades.{$index}.evaluation_criterion_id"] = 'El criterio de evaluación no corresponde al tipo del resultado microcurricular.';
+            }
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
     }
 
     /**

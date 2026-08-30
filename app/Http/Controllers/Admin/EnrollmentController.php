@@ -27,6 +27,10 @@ class EnrollmentController extends Controller
         return back()->with('success', 'Estudiante inscrito exitosamente.');
     }
 
+    /**
+     * The route uses scoped bindings, so $enrollment is resolved within
+     * $programming and a mismatched pair 404s before reaching this method.
+     */
     public function toggleStatus(Programming $programming, Enrollment $enrollment): RedirectResponse
     {
         $enrollment->update(['is_active' => ! $enrollment->is_active]);

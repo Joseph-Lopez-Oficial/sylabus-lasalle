@@ -17,8 +17,10 @@ class ProgramController extends Controller
     {
         $programs = Program::query()
             ->with('faculty')
-            ->when(request('search'), fn ($q, $search) => $q->where('name', 'like', "%{$search}%")
-                ->orWhere('code', 'like', "%{$search}%"))
+            ->when(request('search'), fn ($q, $search) => $q->where(
+                fn ($sub) => $sub->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+            ))
             ->when(request('faculty_id'), fn ($q, $facultyId) => $q->where('faculty_id', $facultyId))
             ->orderBy('name')
             ->paginate(15)

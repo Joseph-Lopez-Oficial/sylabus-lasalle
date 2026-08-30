@@ -30,8 +30,10 @@ class AcademicSpaceController extends Controller
 
         $academicSpaces = AcademicSpace::query()
             ->with('competency.problematicNucleus.program.faculty')
-            ->when(request('search'), fn ($q, $search) => $q->where('name', 'like', "%{$search}%")
-                ->orWhere('code', 'like', "%{$search}%"))
+            ->when(request('search'), fn ($q, $search) => $q->where(
+                fn ($sub) => $sub->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+            ))
             ->when($competencyId, fn ($q) => $q->where('competency_id', $competencyId))
             ->when($nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency', fn ($cq) => $cq->where('problematic_nucleus_id', $nucleusId)))
             ->when($programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
@@ -95,7 +97,6 @@ class AcademicSpaceController extends Controller
         ]);
 
         // ── Statistics ────────────────────────────────────────────────────────
-        $orderToGrade = [1 => 1.3, 2 => 2.5, 3 => 3.8, 4 => 5.0];
         $performanceLevels = PerformanceLevel::orderBy('order')->get(['id', 'name', 'order']);
 
         $programmingIds = $academicSpace->programmings->pluck('id');
@@ -104,7 +105,7 @@ class AcademicSpaceController extends Controller
 
         if ($programmingIds->isNotEmpty()) {
             $grades = Grade::query()
-                ->whereHas('enrollment', fn ($q) => $q->whereIn('programming_id', $programmingIds))
+                ->whereHas('enrollment', fn ($q) => $q->whereIn('programming_id', $programmingIds)->where('is_active', true))
                 ->with([
                     'enrollment.programming.academicPeriod',
                     'enrollment.programming.professor',
@@ -118,12 +119,12 @@ class AcademicSpaceController extends Controller
                 // ── By programming ────────────────────────────────────────────
                 $byProgramming = $grades
                     ->groupBy(fn ($g) => $g->enrollment->programming_id)
-                    ->map(function ($pg) use ($performanceLevels, $orderToGrade) {
+                    ->map(function ($pg) use ($performanceLevels) {
                         $prog = $pg->first()->enrollment->programming;
 
                         $gradesByStudent = $pg->groupBy('enrollment_id')
                             ->map(fn ($sg) => round(
-                                $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                                $sg->avg(fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)),
                                 2
                             ))->values();
 
@@ -160,12 +161,12 @@ class AcademicSpaceController extends Controller
                 // ── By outcome ────────────────────────────────────────────────
                 $byOutcome = $grades
                     ->groupBy('microcurricular_learning_outcome_id')
-                    ->map(function ($og) use ($performanceLevels, $orderToGrade) {
+                    ->map(function ($og) use ($performanceLevels) {
                         $outcome = $og->first()->microcurricularLearningOutcome;
 
                         $gradesByStudent = $og->groupBy('enrollment_id')
                             ->map(fn ($sg) => round(
-                                $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                                $sg->avg(fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)),
                                 2
                             ))->values();
 
@@ -201,7 +202,7 @@ class AcademicSpaceController extends Controller
                 // ── By criterion ──────────────────────────────────────────────
                 $byCriterion = $grades
                     ->groupBy('evaluation_criterion_id')
-                    ->map(function ($cg) use ($orderToGrade) {
+                    ->map(function ($cg) {
                         $criterion = $cg->first()->evaluationCriterion;
 
                         return [
@@ -210,7 +211,7 @@ class AcademicSpaceController extends Controller
                             'type_id' => $criterion->microcurricular_learning_outcome_type_id,
                             'type_name' => $criterion->outcomeType?->name,
                             'group_average' => round(
-                                $cg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                                $cg->avg(fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)),
                                 2
                             ),
                         ];
@@ -219,9 +220,15 @@ class AcademicSpaceController extends Controller
                     ->values();
 
                 // ── Summary ───────────────────────────────────────────────────
-                $allStudentAverages = $byProgramming->pluck('group_average');
-                $globalAverage = $allStudentAverages->isNotEmpty()
-                    ? round($allStudentAverages->avg(), 2) : 0.0;
+                // Averaged per student, not per programming: a mean of group
+                // means weights a small group the same as a large one.
+                $studentAverages = $grades
+                    ->groupBy('enrollment_id')
+                    ->map(fn ($sg) => $sg->avg(
+                        fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)
+                    ));
+                $globalAverage = $studentAverages->isNotEmpty()
+                    ? round($studentAverages->avg(), 2) : 0.0;
 
                 $totalGrades = $grades->count();
                 $globalDistribution = $performanceLevels->map(function ($l) use ($grades, $totalGrades) {
@@ -268,14 +275,13 @@ class AcademicSpaceController extends Controller
     {
         $academicSpace->load(['competency']);
 
-        $orderToGrade = [1 => 1.3, 2 => 2.5, 3 => 3.8, 4 => 5.0];
         $performanceLevels = PerformanceLevel::orderBy('order')->get(['id', 'name', 'order']);
         $programmingIds = $academicSpace->programmings()->pluck('id');
 
         abort_if($programmingIds->isEmpty(), 422, 'Este espacio académico no tiene programaciones con datos.');
 
-        $grades = \App\Models\Grade::query()
-            ->whereHas('enrollment', fn ($q) => $q->whereIn('programming_id', $programmingIds))
+        $grades = Grade::query()
+            ->whereHas('enrollment', fn ($q) => $q->whereIn('programming_id', $programmingIds)->where('is_active', true))
             ->with([
                 'enrollment.programming.academicPeriod',
                 'enrollment.programming.professor',
@@ -289,12 +295,12 @@ class AcademicSpaceController extends Controller
 
         $byProgramming = $grades
             ->groupBy(fn ($g) => $g->enrollment->programming_id)
-            ->map(function ($pg) use ($performanceLevels, $orderToGrade) {
+            ->map(function ($pg) use ($performanceLevels) {
                 $prog = $pg->first()->enrollment->programming;
 
                 $gradesByStudent = $pg->groupBy('enrollment_id')
                     ->map(fn ($sg) => round(
-                        $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                        $sg->avg(fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)),
                         2
                     ))->values();
 
@@ -330,12 +336,12 @@ class AcademicSpaceController extends Controller
 
         $byOutcome = $grades
             ->groupBy('microcurricular_learning_outcome_id')
-            ->map(function ($og) use ($performanceLevels, $orderToGrade) {
+            ->map(function ($og) use ($performanceLevels) {
                 $outcome = $og->first()->microcurricularLearningOutcome;
 
                 $gradesByStudent = $og->groupBy('enrollment_id')
                     ->map(fn ($sg) => round(
-                        $sg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                        $sg->avg(fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)),
                         2
                     ))->values();
 
@@ -370,7 +376,7 @@ class AcademicSpaceController extends Controller
 
         $byCriterion = $grades
             ->groupBy('evaluation_criterion_id')
-            ->map(function ($cg) use ($orderToGrade) {
+            ->map(function ($cg) {
                 $criterion = $cg->first()->evaluationCriterion;
 
                 return [
@@ -379,7 +385,7 @@ class AcademicSpaceController extends Controller
                     'type_id' => $criterion->microcurricular_learning_outcome_type_id,
                     'type_name' => $criterion->outcomeType?->name,
                     'group_average' => round(
-                        $cg->avg(fn ($g) => $orderToGrade[$g->performanceLevel->order] ?? 0),
+                        $cg->avg(fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)),
                         2
                     ),
                 ];
@@ -387,9 +393,14 @@ class AcademicSpaceController extends Controller
             ->sortByDesc('group_average')
             ->values();
 
-        $allStudentAverages = $byProgramming->pluck('group_average');
-        $globalAverage = $allStudentAverages->isNotEmpty()
-            ? round($allStudentAverages->avg(), 2) : 0.0;
+        // Averaged per student, not per programming — see show().
+        $studentAverages = $grades
+            ->groupBy('enrollment_id')
+            ->map(fn ($sg) => $sg->avg(
+                fn ($g) => PerformanceLevel::gradeForOrder($g->performanceLevel->order)
+            ));
+        $globalAverage = $studentAverages->isNotEmpty()
+            ? round($studentAverages->avg(), 2) : 0.0;
 
         $totalGrades = $grades->count();
         $globalDistribution = $performanceLevels->map(function ($l) use ($grades, $totalGrades) {

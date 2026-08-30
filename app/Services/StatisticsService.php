@@ -3,22 +3,15 @@
 namespace App\Services;
 
 use App\Models\Grade;
+use App\Models\PerformanceLevel;
 use App\Models\Programming;
 use Illuminate\Support\Collection;
 
 class StatisticsService
 {
-    // Maps performance level order to institutional grade
-    private const ORDER_TO_GRADE = [
-        1 => 1.3,
-        2 => 2.5,
-        3 => 3.8,
-        4 => 5.0,
-    ];
-
     private function orderToGrade(int $order): float
     {
-        return self::ORDER_TO_GRADE[$order] ?? (float) $order;
+        return PerformanceLevel::gradeForOrder($order);
     }
 
     /**
@@ -44,7 +37,11 @@ class StatisticsService
                 'evaluationCriterion.outcomeType',
                 'performanceLevel',
             ])
-            ->get();
+            ->get()
+            // Guards against legacy rows whose student was soft-deleted before
+            // the cascade in Student::booted() existed.
+            ->filter(fn (Grade $grade) => $grade->enrollment?->student !== null)
+            ->values();
 
         $performanceLevels = $grades->pluck('performanceLevel')
             ->unique('id')
@@ -244,7 +241,7 @@ class StatisticsService
      * Global summary.
      * overall_average = avg of student final averages (real scale).
      * distribution = count of students per level based on their dominant final level.
-     * below_basic = students with final_average < 2.5 (nivel Básico).
+     * below_basic = students under PerformanceLevel::BELOW_BASIC_THRESHOLD.
      */
     private function summary(array $byStudent, Collection $performanceLevels, Collection $grades): array
     {
@@ -281,9 +278,8 @@ class StatisticsService
             ->values()
             ->toArray();
 
-        // below_basic = final_average < 2.5 (the real grade for Básico)
         $belowBasic = collect($byStudent)
-            ->filter(fn ($s) => $s['final_average'] < 2.5)
+            ->filter(fn ($s) => $s['final_average'] < PerformanceLevel::BELOW_BASIC_THRESHOLD)
             ->values()
             ->toArray();
 

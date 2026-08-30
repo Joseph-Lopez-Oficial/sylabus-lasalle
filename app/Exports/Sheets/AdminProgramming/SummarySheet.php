@@ -2,6 +2,7 @@
 
 namespace App\Exports\Sheets\AdminProgramming;
 
+use App\Models\PerformanceLevel;
 use App\Models\Programming;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -62,7 +63,7 @@ class SummarySheet implements FromArray, ShouldAutoSize, WithStyles, WithTitle
 
         if (! empty($this->summary['below_basic'])) {
             $rows[] = [];
-            $rows[] = ['Estudiantes por debajo de Básico (< 2.5)'];
+            $rows[] = ['Estudiantes por debajo de Básico (< '.PerformanceLevel::BELOW_BASIC_THRESHOLD.')'];
             $rows[] = ['Estudiante', 'Promedio Final'];
 
             foreach ($this->summary['below_basic'] as $student) {

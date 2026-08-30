@@ -177,7 +177,7 @@ class GradesImport implements ToCollection, WithHeadingRow
             }
 
             try {
-                $this->gradingService->saveGrades($gradesToSave, $this->gradedByUserId);
+                $this->gradingService->saveGrades($gradesToSave, $this->gradedByUserId, $this->programming);
                 $this->results[] = [
                     'row' => $rowNumber,
                     'status' => 'success',

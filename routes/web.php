@@ -177,7 +177,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Inscripciones (anidadas bajo programaciones)
     Route::post('programmings/{programming}/enrollments', [EnrollmentController::class, 'store'])->name('programmings.enrollments.store');
-    Route::patch('programmings/{programming}/enrollments/{enrollment}/toggle-status', [EnrollmentController::class, 'toggleStatus'])->name('programmings.enrollments.toggle-status');
+    Route::patch('programmings/{programming}/enrollments/{enrollment}/toggle-status', [EnrollmentController::class, 'toggleStatus'])
+        ->scopeBindings()
+        ->name('programmings.enrollments.toggle-status');
     Route::post('programmings/{programming}/enrollments/import', [EnrollmentController::class, 'import'])->name('programmings.enrollments.import');
     Route::get('programmings/{programming}/enrollments/template', [EnrollmentController::class, 'downloadTemplate'])->name('programmings.enrollments.template');
 });

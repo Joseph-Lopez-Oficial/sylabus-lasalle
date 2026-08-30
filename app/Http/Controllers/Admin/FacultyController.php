@@ -15,8 +15,10 @@ class FacultyController extends Controller
     public function index(): Response
     {
         $faculties = Faculty::query()
-            ->when(request('search'), fn ($q, $search) => $q->where('name', 'like', "%{$search}%")
-                ->orWhere('code', 'like', "%{$search}%"))
+            ->when(request('search'), fn ($q, $search) => $q->where(
+                fn ($sub) => $sub->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+            ))
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();

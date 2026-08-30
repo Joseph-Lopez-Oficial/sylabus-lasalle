@@ -50,6 +50,29 @@ import type {
     PerformanceLevel,
 } from '@/types';
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Pulls a human-readable message out of an axios error, preferring the first
+ * field-level validation message the backend returned.
+ */
+function extractErrorMessage(err: unknown, fallback: string): string {
+    const response = (
+        err as {
+            response?: {
+                data?: {
+                    message?: string;
+                    errors?: Record<string, string[]>;
+                };
+            };
+        }
+    )?.response;
+
+    const firstFieldError = Object.values(response?.data?.errors ?? {})[0]?.[0];
+
+    return firstFieldError ?? response?.data?.message ?? fallback;
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Enrollment = {
@@ -424,6 +447,7 @@ export default function GradingShow({
     const [savedGrades, setSavedGrades] =
         useState<Record<string, number>>(initialGrades);
     const [savingOutcome, setSavingOutcome] = useState<number | null>(null);
+    const [gradingError, setGradingError] = useState('');
     const [completeness, setCompleteness] = useState(initialCompleteness);
     const [showConfirmConsolidate, setShowConfirmConsolidate] = useState(false);
     const [consolidating, setConsolidating] = useState(false);
@@ -525,6 +549,7 @@ export default function GradingShow({
         );
 
         setSavingOutcome(outcomeId);
+        setGradingError('');
 
         axios
             .post(GradingController.saveGrades.url(programming), {
@@ -566,7 +591,14 @@ export default function GradingShow({
                     total: totalCells,
                 }));
             })
-            .catch(console.error)
+            .catch((err: unknown) =>
+                setGradingError(
+                    extractErrorMessage(
+                        err,
+                        'No se pudieron guardar las calificaciones. Intenta nuevamente.',
+                    ),
+                ),
+            )
             .finally(() => setSavingOutcome(null));
     }
 
@@ -616,6 +648,7 @@ export default function GradingShow({
 
     function handleConsolidate() {
         setConsolidating(true);
+        setGradingError('');
         axios
             .post(GradingController.confirmConsolidation.url(programming))
             .then(() =>
@@ -623,7 +656,14 @@ export default function GradingShow({
                     `/professor/programmings/${programming.id}/statistics`,
                 ),
             )
-            .catch(console.error)
+            .catch((err: unknown) =>
+                setGradingError(
+                    extractErrorMessage(
+                        err,
+                        'No se pudo confirmar el consolidado. Intenta nuevamente.',
+                    ),
+                ),
+            )
             .finally(() => {
                 setConsolidating(false);
                 setShowConfirmConsolidate(false);
@@ -692,6 +732,13 @@ export default function GradingShow({
                         </Button>
                     </div>
                 </PageHeader>
+
+                {gradingError && (
+                    <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>{gradingError}</AlertDescription>
+                    </Alert>
+                )}
 
                 {/* Progreso global */}
                 <div className="rounded-lg border p-4">

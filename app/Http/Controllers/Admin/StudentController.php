@@ -20,9 +20,11 @@ class StudentController extends Controller
     public function index(): Response
     {
         $students = Student::query()
-            ->when(request('search'), fn ($q, $search) => $q->where('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%")
-                ->orWhere('document_number', 'like', "%{$search}%"))
+            ->when(request('search'), fn ($q, $search) => $q->where(
+                fn ($sub) => $sub->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('document_number', 'like', "%{$search}%")
+            ))
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->paginate(15)

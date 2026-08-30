@@ -3,6 +3,7 @@
 namespace App\Exports\Sheets;
 
 use App\Models\Grade;
+use App\Models\PerformanceLevel;
 use App\Models\Programming;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -16,8 +17,6 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class RawGradesSheet implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
 {
-    private const ORDER_TO_GRADE = [1 => 1.3, 2 => 2.5, 3 => 3.8, 4 => 5.0];
-
     public function __construct(private readonly Programming $programming) {}
 
     public function title(): string
@@ -52,7 +51,7 @@ class RawGradesSheet implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
             $grade->microcurricularLearningOutcome->description ?? '',
             $grade->evaluationCriterion->name ?? '',
             $grade->performanceLevel->name ?? '',
-            self::ORDER_TO_GRADE[$grade->performanceLevel->order] ?? $grade->performanceLevel->order,
+            PerformanceLevel::gradeForOrder($grade->performanceLevel->order),
         ];
     }
 

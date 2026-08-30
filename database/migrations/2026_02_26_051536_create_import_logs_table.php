@@ -33,7 +33,8 @@ return new class extends Migration
      * - successful_rows: Number of rows that were imported without errors.
      * - failed_rows:     Number of rows that failed to import.
      * - errors:          JSON array with details of each failed row and its error message.
-     * - status:          Overall import status: 'pending', 'processing', 'completed', 'failed'.
+     * - status:          Overall import status: 'pending', 'processing', 'completed',
+     *                    'partial' (finished with row-level errors), 'failed'.
      * - imported_at:     Timestamp when the import was completed.
      * - timestamps:      Laravel standard created_at / updated_at.
      */

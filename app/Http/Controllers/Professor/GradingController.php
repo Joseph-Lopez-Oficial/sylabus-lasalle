@@ -94,7 +94,8 @@ class GradingController extends Controller
 
         $this->gradingService->saveGrades(
             $request->validated('grades'),
-            $request->user()->id
+            $request->user()->id,
+            $programming
         );
 
         return response()->json(['message' => 'Calificaciones guardadas exitosamente.']);
@@ -161,7 +162,7 @@ class GradingController extends Controller
             'successful_rows' => $successCount,
             'failed_rows' => $errorCount,
             'errors' => $errors ?: null,
-            'status' => $errorCount === 0 ? 'completed' : 'completed',
+            'status' => $errorCount === 0 ? 'completed' : 'partial',
             'imported_at' => now(),
         ]);
 
