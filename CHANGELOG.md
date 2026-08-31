@@ -1,3 +1,16 @@
+# [2.2.0](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v2.1.0...v2.2.0) (2026-08-31)
+
+
+### Features
+
+* **analysis:** let professors record the academic space analysis ([9d7e38d](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/9d7e38d8284c4362265e0ded07b930f1c6be6c3b)), closes [#39](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/39)
+* **identity:** dress the system in the university colours and name it ([038d0dc](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/038d0dc737d7dd6c3e35eeec565398007b2281f5)), closes [#43](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/43)
+* **import:** seed the programme catalogue and load the measurement history ([ad312df](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/ad312dfa342d0078e8b6b26cac64d82adcca046e)), closes [#40](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/40)
+* **pagination:** show the controls and let the user steer the listings ([c2e1080](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/c2e1080b658e0d2bde6672d6411df05c50a7ca8b)), closes [#42](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/42)
+* **reports:** generate the institutional measurement report ([e85a073](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/e85a073022782ef289d05d34ee3a88229e017563)), closes [#41](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/41)
+* **reports:** receive the filled institutional report from professors ([2e6688b](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/2e6688b4bfbe779cdc66eafe624f014c000cd997)), closes [#44](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/44)
+* **ui:** show progress while an Excel file is being generated ([6e43752](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/6e43752f1a3da7c8c58b54c9a0da94e85dcaf028)), closes [#45](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/45)
+
 # [2.1.0](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v2.0.1...v2.1.0) (2026-08-30)
 
 
