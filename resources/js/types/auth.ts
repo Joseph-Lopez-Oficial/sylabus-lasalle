@@ -6,11 +6,10 @@ export type Auth = {
     user: User;
 };
 
-export type TwoFactorSetupData = {
-    svg: string;
-    url: string;
-};
-
-export type TwoFactorSecretKey = {
-    secretKey: string;
+/** What every page receives, whatever it renders. */
+export type SharedData = {
+    name: string;
+    version: string;
+    auth: Auth;
+    sidebarOpen: boolean;
 };

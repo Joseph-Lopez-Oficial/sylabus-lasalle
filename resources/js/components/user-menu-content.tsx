@@ -1,5 +1,7 @@
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { Info, LogOut, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { AboutDialog } from '@/components/about-dialog';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -18,6 +20,7 @@ type Props = {
 
 export function UserMenuContent({ user }: Props) {
     const cleanup = useMobileNavigation();
+    const [aboutOpen, setAboutOpen] = useState(false);
 
     const handleLogout = () => {
         cleanup();
@@ -44,6 +47,18 @@ export function UserMenuContent({ user }: Props) {
                         Configuración
                     </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                    className="cursor-pointer"
+                    // The dialog outlives the menu, so closing one must not
+                    // take the other with it.
+                    onSelect={(event) => {
+                        event.preventDefault();
+                        setAboutOpen(true);
+                    }}
+                >
+                    <Info className="mr-2" />
+                    Acerca del sistema
+                </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
@@ -58,6 +73,8 @@ export function UserMenuContent({ user }: Props) {
                     Cerrar sesión
                 </Link>
             </DropdownMenuItem>
+
+            <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
         </>
     );
 }

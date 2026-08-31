@@ -38,10 +38,34 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'version' => $this->releasedVersion(),
             'auth' => [
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    /**
+     * The released version of the system, as package.json records it.
+     *
+     * That file is what semantic-release bumps, so reading it keeps the number
+     * shown to the user from drifting away from the one that was published.
+     */
+    private function releasedVersion(): string
+    {
+        static $version = null;
+
+        if ($version !== null) {
+            return $version;
+        }
+
+        $manifest = base_path('package.json');
+
+        $version = is_file($manifest)
+            ? (json_decode((string) file_get_contents($manifest), true)['version'] ?? '—')
+            : '—';
+
+        return $version;
     }
 }

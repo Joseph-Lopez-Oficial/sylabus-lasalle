@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -7,19 +7,18 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
-import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
-import type { NavItem } from '@/types';
+import type { NavItem, SharedData } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     { title: 'Perfil', href: edit(), icon: null },
     { title: 'Contraseña', href: editPassword(), icon: null },
-    { title: 'Autenticación de dos factores', href: show(), icon: null },
     { title: 'Apariencia', href: editAppearance(), icon: null },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentUrl } = useCurrentUrl();
+    const { name, version } = usePage<SharedData>().props;
 
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {
@@ -66,6 +65,14 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     <section className="max-w-xl space-y-12">
                         {children}
                     </section>
+
+                    <footer className="mt-16 max-w-xl border-t pt-4 text-xs text-muted-foreground">
+                        {name} · Universidad de La Salle · v{version}
+                        <span className="mt-0.5 block">
+                            Desarrollado por Joseph López — Desarrollador full
+                            stack, estudiante de la Universidad de La Salle
+                        </span>
+                    </footer>
                 </div>
             </div>
         </div>

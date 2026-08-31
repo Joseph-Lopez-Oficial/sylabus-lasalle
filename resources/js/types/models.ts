@@ -224,7 +224,6 @@ export type User = {
     avatar?: string;
     email_verified_at: string | null;
     role: 'admin' | 'professor';
-    two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
     professor?: Professor;
