@@ -16,6 +16,10 @@ import { useRef, useState } from 'react';
 import * as AdminAnalysisController from '@/actions/App/Http/Controllers/Admin/AcademicSpaceAnalysisController';
 import * as EnrollmentController from '@/actions/App/Http/Controllers/Admin/EnrollmentController';
 import * as ProgrammingController from '@/actions/App/Http/Controllers/Admin/ProgrammingController';
+import {
+    ClientPagination,
+    useClientPagination,
+} from '@/components/client-pagination';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { DownloadButton } from '@/components/download-button';
 import { EmptyState } from '@/components/empty-state';
@@ -52,6 +56,10 @@ export default function ProgrammingsShow({
     students,
     import_results,
 }: Props) {
+    // Paged in the browser: the whole programming arrives with the screen, so
+    // there is nothing to ask the server for.
+    const enrolledPage = useClientPagination(programming.enrollments);
+
     const [search, setSearch] = useState('');
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [enrolling, setEnrolling] = useState(false);
@@ -611,7 +619,7 @@ export default function ProgrammingsShow({
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {programming.enrollments.map(
+                                        {enrolledPage.visible.map(
                                             (enrollment) => (
                                                 <tr
                                                     key={enrollment.id}
@@ -661,6 +669,10 @@ export default function ProgrammingsShow({
                                     </tbody>
                                 </table>
                             </div>
+                        )}
+
+                        {programming.enrollments.length > 0 && (
+                            <ClientPagination state={enrolledPage} />
                         )}
                     </TabsContent>
                 </Tabs>

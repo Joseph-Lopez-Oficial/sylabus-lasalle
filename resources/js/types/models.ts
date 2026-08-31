@@ -1,23 +1,25 @@
 // ── Pagination ────────────────────────────────────────────────────────────────
 
+/**
+ * A Laravel paginator as Inertia sends it.
+ *
+ * The fields sit at the root, not under `meta`: that nesting is what an API
+ * Resource produces, and these listings return the paginator itself.
+ */
 export type PaginatedResponse<T> = {
     data: T[];
-    links: {
-        first: string | null;
-        last: string | null;
-        prev: string | null;
-        next: string | null;
-    };
-    meta: {
-        current_page: number;
-        from: number | null;
-        last_page: number;
-        links: { url: string | null; label: string; active: boolean }[];
-        path: string;
-        per_page: number;
-        to: number | null;
-        total: number;
-    };
+    current_page: number;
+    first_page_url: string | null;
+    from: number | null;
+    last_page: number;
+    last_page_url: string | null;
+    links: { url: string | null; label: string; active: boolean }[];
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number | null;
+    total: number;
 };
 
 // ── Catalog models ────────────────────────────────────────────────────────────

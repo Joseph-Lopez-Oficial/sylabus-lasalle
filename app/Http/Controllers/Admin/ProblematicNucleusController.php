@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProblematicNucleusRequest;
 use App\Http\Requests\Admin\UpdateProblematicNucleusRequest;
@@ -14,6 +15,8 @@ use Inertia\Response;
 
 class ProblematicNucleusController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $facultyId = request('faculty_id');
@@ -25,7 +28,7 @@ class ProblematicNucleusController extends Controller
             ->when($programId, fn ($q) => $q->where('program_id', $programId))
             ->when($facultyId && ! $programId, fn ($q) => $q->whereHas('program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
@@ -39,7 +42,7 @@ class ProblematicNucleusController extends Controller
             'nuclei' => $nuclei,
             'faculties' => $faculties,
             'programs' => $programs,
-            'filters' => request()->only('search', 'faculty_id', 'program_id'),
+            'filters' => request()->only('search', 'faculty_id', 'program_id', 'per_page'),
         ]);
     }
 

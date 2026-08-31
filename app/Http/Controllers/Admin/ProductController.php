@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
@@ -19,6 +20,8 @@ use Inertia\Response;
 
 class ProductController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $facultyId = request('faculty_id');
@@ -41,7 +44,7 @@ class ProductController extends Controller
             ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId && ! $spaceId && ! $topicId && ! $activityId, fn ($q) => $q->whereHas('activity.topic.academicSpace.competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('activity_id')
             ->orderBy('order')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
@@ -100,7 +103,7 @@ class ProductController extends Controller
             'academicSpaces' => $academicSpaces,
             'topics' => $topics,
             'activities' => $activities,
-            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id', 'topic_id', 'activity_id']),
+            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id', 'topic_id', 'activity_id', 'per_page']),
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProgramRequest;
 use App\Http\Requests\Admin\UpdateProgramRequest;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class ProgramController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $programs = Program::query()
@@ -23,7 +26,7 @@ class ProgramController extends Controller
             ))
             ->when(request('faculty_id'), fn ($q, $facultyId) => $q->where('faculty_id', $facultyId))
             ->orderBy('name')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
@@ -31,7 +34,7 @@ class ProgramController extends Controller
         return Inertia::render('admin/programs/index', [
             'programs' => $programs,
             'faculties' => $faculties,
-            'filters' => request()->only('search', 'faculty_id'),
+            'filters' => request()->only('search', 'faculty_id', 'per_page'),
         ]);
     }
 

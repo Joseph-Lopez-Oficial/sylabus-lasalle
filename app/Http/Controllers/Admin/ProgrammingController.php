@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Exports\AdminProgrammingStatisticsExport;
 use App\Exports\InstitutionalReportExport;
 use App\Http\Controllers\Controller;
@@ -24,6 +25,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProgrammingController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $programmings = Programming::query()
@@ -33,7 +36,7 @@ class ProgrammingController extends Controller
             ->when(request('academic_space_id'), fn ($q, $id) => $q->where('academic_space_id', $id))
             ->when(request('academic_period_id'), fn ($q, $id) => $q->where('academic_period_id', $id))
             ->orderByDesc('id')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         return Inertia::render('admin/programmings/index', [
@@ -41,7 +44,7 @@ class ProgrammingController extends Controller
             'professors' => Professor::query()->active()->orderBy('last_name')->get(['id', 'first_name', 'last_name']),
             'academicSpaces' => AcademicSpace::query()->active()->orderBy('name')->get(['id', 'name']),
             'academicPeriods' => AcademicPeriod::query()->orderByDesc('name')->get(['id', 'name']),
-            'filters' => request()->only('search', 'professor_id', 'academic_space_id', 'academic_period_id'),
+            'filters' => request()->only('search', 'professor_id', 'academic_space_id', 'academic_period_id', 'per_page'),
         ]);
     }
 

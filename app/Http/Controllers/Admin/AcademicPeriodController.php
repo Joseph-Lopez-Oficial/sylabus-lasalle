@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAcademicPeriodRequest;
 use App\Http\Requests\Admin\UpdateAcademicPeriodRequest;
@@ -12,17 +13,19 @@ use Inertia\Response;
 
 class AcademicPeriodController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $periods = AcademicPeriod::query()
-            ->when(request('search'), fn($q, $search) => $q->where('name', 'like', "%{$search}%"))
+            ->when(request('search'), fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
             ->orderByDesc('name')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         return Inertia::render('admin/academic-periods/index', [
             'periods' => $periods,
-            'filters' => request()->only('search'),
+            'filters' => request()->only('search', 'per_page'),
         ]);
     }
 

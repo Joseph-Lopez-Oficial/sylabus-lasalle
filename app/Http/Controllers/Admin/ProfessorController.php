@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ImportStudentsRequest;
 use App\Http\Requests\Admin\StoreProfessorRequest;
@@ -18,6 +19,8 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProfessorController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $professors = Professor::query()
@@ -29,12 +32,12 @@ class ProfessorController extends Controller
             ))
             ->orderBy('last_name')
             ->orderBy('first_name')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         return Inertia::render('admin/professors/index', [
             'professors' => $professors,
-            'filters' => request()->only('search'),
+            'filters' => request()->only('search', 'per_page'),
         ]);
     }
 

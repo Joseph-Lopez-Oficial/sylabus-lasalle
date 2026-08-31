@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Exports\StudentTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ImportEnrollmentsRequest;
@@ -17,6 +18,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class StudentController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $students = Student::query()
@@ -27,12 +30,12 @@ class StudentController extends Controller
             ))
             ->orderBy('last_name')
             ->orderBy('first_name')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         return Inertia::render('admin/students/index', [
             'students' => $students,
-            'filters' => request()->only('search'),
+            'filters' => request()->only('search', 'per_page'),
             'import_results' => session('import_results'),
         ]);
     }

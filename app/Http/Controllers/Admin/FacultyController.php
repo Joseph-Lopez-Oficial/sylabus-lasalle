@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreFacultyRequest;
 use App\Http\Requests\Admin\UpdateFacultyRequest;
@@ -12,6 +13,8 @@ use Inertia\Response;
 
 class FacultyController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $faculties = Faculty::query()
@@ -20,12 +23,12 @@ class FacultyController extends Controller
                     ->orWhere('code', 'like', "%{$search}%")
             ))
             ->orderBy('name')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         return Inertia::render('admin/faculties/index', [
             'faculties' => $faculties,
-            'filters' => request()->only('search'),
+            'filters' => request()->only('search', 'per_page'),
         ]);
     }
 

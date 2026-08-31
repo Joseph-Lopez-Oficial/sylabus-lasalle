@@ -5,9 +5,12 @@ import {
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+    PaginationControls,
+    storedPageSize,
+} from '@/components/pagination-controls';
 import { Input } from '@/components/ui/input';
 import {
     Table,
@@ -41,8 +44,25 @@ export function DataTable<TData>({
     const [search, setSearch] = useState(filters[searchKey] ?? '');
 
     const rows = data?.data ?? [];
-    const meta = data?.meta;
-    const links = data?.links;
+
+    // A listing opened without a size of its own takes the one the user chose
+    // elsewhere, so the preference does not have to be repeated on every screen.
+    useEffect(() => {
+        const remembered = storedPageSize();
+
+        if (
+            remembered &&
+            !filters.per_page &&
+            data?.per_page &&
+            data.per_page !== remembered
+        ) {
+            router.get(
+                window.location.pathname,
+                { ...filters, per_page: remembered },
+                { preserveState: true, preserveScroll: true, replace: true },
+            );
+        }
+    }, [filters, data]);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -67,13 +87,8 @@ export function DataTable<TData>({
         columns,
         getCoreRowModel: getCoreRowModel(),
         manualPagination: true,
-        pageCount: meta?.last_page ?? 1,
+        pageCount: data?.last_page ?? 1,
     });
-
-    const navigate = useCallback((url: string | null) => {
-        if (!url) return;
-        router.get(url, {}, { preserveState: true });
-    }, []);
 
     return (
         <div className={cn('space-y-4', className)}>
@@ -136,38 +151,7 @@ export function DataTable<TData>({
                 </Table>
             </div>
 
-            {/* Pagination */}
-            {meta && (
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>
-                        {meta.from ?? 0}–{meta.to ?? 0} de {meta.total}{' '}
-                        registros
-                    </span>
-                    <div className="flex items-center gap-1">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => navigate(links?.prev ?? null)}
-                            disabled={!links?.prev}
-                            aria-label="Página anterior"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <span className="px-2">
-                            {meta.current_page} / {meta.last_page}
-                        </span>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => navigate(links?.next ?? null)}
-                            disabled={!links?.next}
-                            aria-label="Página siguiente"
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-            )}
+            <PaginationControls data={data} filters={filters} />
         </div>
     );
 }

@@ -19,6 +19,10 @@ import { useCallback } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as AnalysisController from '@/actions/App/Http/Controllers/Professor/AcademicSpaceAnalysisController';
 import * as GradingController from '@/actions/App/Http/Controllers/Professor/GradingController';
+import {
+    ClientPagination,
+    useClientPagination,
+} from '@/components/client-pagination';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { DownloadButton } from '@/components/download-button';
 import { EmptyState } from '@/components/empty-state';
@@ -431,6 +435,10 @@ export default function GradingShow({
     pendingAnalysisCount,
     enrollment_import_results,
 }: Props) {
+    // The enrolled list is paged in the browser: asking the server for a page
+    // would reload the screen and lose whatever marks are still unsaved.
+    const enrolledPage = useClientPagination(enrollments);
+
     // Build initial grade map from server data
     const initialGrades = useMemo(() => {
         const map: Record<string, number> = {};
@@ -1117,7 +1125,7 @@ export default function GradingShow({
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {enrollments.map((e) => (
+                                            {enrolledPage.visible.map((e) => (
                                                 <tr
                                                     key={e.id}
                                                     className="border-b last:border-0"
@@ -1137,6 +1145,10 @@ export default function GradingShow({
                                         </tbody>
                                     </table>
                                 </div>
+                            )}
+
+                            {enrollments.length > 0 && (
+                                <ClientPagination state={enrolledPage} />
                             )}
                         </CardContent>
                     )}

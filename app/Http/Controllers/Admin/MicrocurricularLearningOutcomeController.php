@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Exports\AdminMicrocurricularOutcomeExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreMicrocurricularLearningOutcomeRequest;
@@ -24,6 +25,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MicrocurricularLearningOutcomeController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $facultyId = request('faculty_id');
@@ -41,7 +44,7 @@ class MicrocurricularLearningOutcomeController extends Controller
             ->when($programId && ! $nucleusId && ! $competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace.competency.problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
             ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace.competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('id')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
@@ -79,7 +82,7 @@ class MicrocurricularLearningOutcomeController extends Controller
             'nuclei' => $nuclei,
             'competencies' => $competencies,
             'academicSpaces' => $academicSpaces,
-            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id']),
+            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id', 'per_page']),
         ]);
     }
 

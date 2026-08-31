@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCompetencyRequest;
 use App\Http\Requests\Admin\UpdateCompetencyRequest;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class CompetencyController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $facultyId = request('faculty_id');
@@ -28,7 +31,7 @@ class CompetencyController extends Controller
             ->when($programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
             ->when($facultyId && ! $programId && ! $nucleusId, fn ($q) => $q->whereHas('problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
@@ -49,7 +52,7 @@ class CompetencyController extends Controller
             'faculties' => $faculties,
             'programs' => $programs,
             'nuclei' => $nuclei,
-            'filters' => request()->only('search', 'faculty_id', 'program_id', 'problematic_nucleus_id'),
+            'filters' => request()->only('search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'per_page'),
         ]);
     }
 

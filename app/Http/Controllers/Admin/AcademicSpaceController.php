@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Exports\AdminAcademicSpaceStatisticsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAcademicSpaceRequest;
@@ -21,6 +22,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AcademicSpaceController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $facultyId = request('faculty_id');
@@ -39,7 +42,7 @@ class AcademicSpaceController extends Controller
             ->when($programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus', fn ($nq) => $nq->where('program_id', $programId)))
             ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId, fn ($q) => $q->whereHas('competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('name')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
@@ -68,7 +71,7 @@ class AcademicSpaceController extends Controller
             'programs' => $programs,
             'nuclei' => $nuclei,
             'competencies' => $competencies,
-            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id']),
+            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'per_page']),
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Concerns\PaginatesListings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreTopicRequest;
 use App\Http\Requests\Admin\UpdateTopicRequest;
@@ -17,6 +18,8 @@ use Inertia\Response;
 
 class TopicController extends Controller
 {
+    use PaginatesListings;
+
     public function index(): Response
     {
         $facultyId = request('faculty_id');
@@ -35,7 +38,7 @@ class TopicController extends Controller
             ->when($facultyId && ! $programId && ! $nucleusId && ! $competencyId && ! $spaceId, fn ($q) => $q->whereHas('academicSpace.competency.problematicNucleus.program', fn ($pq) => $pq->where('faculty_id', $facultyId)))
             ->orderBy('academic_space_id')
             ->orderBy('order')
-            ->paginate(15)
+            ->paginate($this->perPage())
             ->withQueryString();
 
         $faculties = Faculty::query()->active()->orderBy('name')->get(['id', 'name']);
@@ -73,7 +76,7 @@ class TopicController extends Controller
             'nuclei' => $nuclei,
             'competencies' => $competencies,
             'academicSpaces' => $academicSpaces,
-            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id']),
+            'filters' => request()->only(['search', 'faculty_id', 'program_id', 'problematic_nucleus_id', 'competency_id', 'academic_space_id', 'per_page']),
         ]);
     }
 
