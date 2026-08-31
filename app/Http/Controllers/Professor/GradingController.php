@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Professor;
 
 use App\Exports\GradingTemplateExport;
+use App\Exports\InstitutionalReportExport;
 use App\Exports\ProfessorEnrollmentTemplateExport;
 use App\Exports\StatisticsReportExport;
 use App\Http\Controllers\Controller;
@@ -21,6 +22,7 @@ use App\Models\Programming;
 use App\Models\Student;
 use App\Services\AcademicSpaceAnalysisService;
 use App\Services\GradingService;
+use App\Services\InstitutionalReportBuilder;
 use App\Services\StatisticsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -302,6 +304,26 @@ class GradingController extends Controller
             'success' => "Importación completada: {$created} creados e inscritos, {$enrolled} inscritos, {$skipped} ya existían, {$errors} errores.",
             'enrollment_import_results' => $import->results,
         ]);
+    }
+
+    /**
+     * The report in the coordination's own format.
+     *
+     * Unlike the statistics report, this one does not require grading to be
+     * complete: it is meant to be downloaded, filled in by hand and uploaded
+     * back, so an empty group must be able to get its file.
+     */
+    public function downloadInstitutionalReport(
+        Request $request,
+        Programming $programming,
+        InstitutionalReportBuilder $builder
+    ): BinaryFileResponse {
+        $this->authorizeOwnership($request, $programming);
+
+        return Excel::download(
+            new InstitutionalReportExport($programming, $builder),
+            $builder->fileName($programming)
+        );
     }
 
     private function authorizeOwnership(Request $request, Programming $programming): void

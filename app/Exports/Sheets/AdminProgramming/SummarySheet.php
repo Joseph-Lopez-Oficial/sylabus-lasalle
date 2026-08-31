@@ -2,87 +2,51 @@
 
 namespace App\Exports\Sheets\AdminProgramming;
 
-use App\Models\PerformanceLevel;
-use App\Models\Programming;
-use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class SummarySheet implements FromArray, ShouldAutoSize, WithStyles, WithTitle
+/**
+ * The administration's view of a programming.
+ *
+ * It is the professor's summary with two more columns in the distribution: how
+ * many students reached each level, which is what the coordination looks at
+ * when comparing groups.
+ */
+class SummarySheet extends \App\Exports\Sheets\SummarySheet
 {
-    /** @param array<string,mixed> $summary */
-    public function __construct(
-        private readonly array $summary,
-        private readonly Programming $programming,
-    ) {}
-
     public function title(): string
     {
         return 'Resumen Global';
     }
 
-    public function array(): array
+    protected function reportSubtitle(): string
     {
-        $rows = [
-            ['Reporte de Estadísticas de Programación'],
-            [],
-            ['Espacio Académico', $this->programming->academicSpace->name ?? ''],
-            ['Código', $this->programming->academicSpace->code ?? ''],
-            ['Período', $this->programming->academicPeriod?->name ?? '—'],
-            ['Grupo', $this->programming->group ?? 'N/A'],
-            ['Profesor', $this->programming->professor
-                ? $this->programming->professor->first_name.' '.$this->programming->professor->last_name
-                : '—'],
-            ['Promedio General', $this->summary['overall_average']],
-            [],
-            ['Distribución de Niveles de Desempeño'],
-            ['Nivel', 'Calificaciones', '% del Total', 'Estudiantes con ese nivel', '% Estudiantes'],
-        ];
-
-        foreach ($this->summary['distribution'] as $dist) {
-            $rows[] = [
-                $dist['level_name'],
-                $dist['count'],
-                $dist['percentage'],
-                $dist['student_count'],
-                $dist['student_percentage'],
-            ];
-        }
-
-        $rows[] = [];
-        $rows[] = ['Top 5 Estudiantes'];
-        $rows[] = ['Estudiante', 'Promedio Final'];
-
-        foreach ($this->summary['top_students'] as $student) {
-            $rows[] = [$student['student_name'], $student['final_average']];
-        }
-
-        if (! empty($this->summary['below_basic'])) {
-            $rows[] = [];
-            $rows[] = ['Estudiantes por debajo de '.PerformanceLevel::belowBasicLevelName().' (< '.PerformanceLevel::belowBasicThreshold().')'];
-            $rows[] = ['Estudiante', 'Promedio Final'];
-
-            foreach ($this->summary['below_basic'] as $student) {
-                $rows[] = [$student['student_name'], $student['final_average']];
-            }
-        }
-
-        return $rows;
+        return 'Reporte de estadísticas de programación';
     }
 
-    public function styles(Worksheet $sheet): array
+    protected function distributionHeader(): array
+    {
+        return ['', 'Nivel', 'Calificaciones', '% del total', 'Estudiantes', '% estudiantes', 'Representación'];
+    }
+
+    protected function distributionRow(array $distribution): array
     {
         return [
-            1 => [
-                'font' => ['bold' => true, 'size' => 14, 'color' => ['rgb' => 'FFFFFF']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1E3A5F']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-            ],
-            'A' => ['font' => ['bold' => true]],
+            '',
+            $distribution['level_name'],
+            $distribution['count'],
+            $distribution['percentage'],
+            $distribution['student_count'] ?? '',
+            $distribution['student_percentage'] ?? '',
         ];
+    }
+
+    protected function styleDistributionRow(Worksheet $sheet, int $row): void
+    {
+        parent::styleDistributionRow($sheet, $row);
+
+        $sheet->getStyle('E'.$row.':F'.$row)->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('F'.$row)->getNumberFormat()->setFormatCode('0.0"%"');
     }
 }

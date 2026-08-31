@@ -323,6 +323,46 @@ class MeasurementFileReader
     }
 
     /**
+     * Analysis laid out as one block per outcome, the shape the system writes.
+     *
+     * Each block states its outcome code beside the heading, so the answers are
+     * tied to their outcome without depending on the order of the sheet.
+     *
+     * @param  list<array{code: string}>  $outcomes
+     * @return list<array{outcome_code: string, answers: array<int, string>}>
+     */
+    private function generatedAnalyses(Worksheet $sheet, array $outcomes): array
+    {
+        $codes = array_column($outcomes, 'code');
+        $analyses = [];
+        $lastRow = $sheet->getHighestDataRow();
+
+        for ($row = 6; $row <= $lastRow; $row++) {
+            $code = trim($this->cell($sheet, 3, $row));
+
+            if ($code === '' || ! in_array($code, $codes, true)) {
+                continue;
+            }
+
+            // Answers sit two rows apart, each under its question.
+            $answers = [];
+            foreach ([4, 6, 8] as $index => $offset) {
+                $text = $this->cell($sheet, 2, $row + $offset);
+
+                if ($text !== '' && $this->normalizer->key($text) !== 'no aplica') {
+                    $answers[$index] = $text;
+                }
+            }
+
+            if ($answers !== []) {
+                $analyses[] = ['outcome_code' => $code, 'answers' => $answers];
+            }
+        }
+
+        return $analyses;
+    }
+
+    /**
      * Columns the sheet actually uses for criteria.
      *
      * The header labels them "Criterio 1", "Criterio 2"...; anything past the
@@ -366,6 +406,17 @@ class MeasurementFileReader
 
         if (! $sheet) {
             return [];
+        }
+
+        // Reports the system generates lay the analysis out as one block per
+        // outcome down column B; the coordination's own files use a column per
+        // type with fixed rows. Both are read.
+        if ($this->normalizer->key($this->cell($sheet, 2, 6)) !== '') {
+            $generated = $this->generatedAnalyses($sheet, $outcomes);
+
+            if ($generated !== []) {
+                return $generated;
+            }
         }
 
         $analyses = [];

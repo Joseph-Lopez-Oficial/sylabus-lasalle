@@ -2,17 +2,33 @@
 
 namespace App\Exports\Sheets;
 
+use App\Exports\Concerns\InstitutionalStyling;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ByStudentSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStyles, WithTitle
+/**
+ * Each student's standing, outcome by outcome.
+ *
+ * A student occupies a block: their name and final average on top, and beneath
+ * it one line per assessed outcome. Repeating the name on every line, as a flat
+ * table would, makes it hard to see where one student ends and the next begins.
+ */
+class ByStudentSheet implements FromArray, WithColumnWidths, WithStyles, WithTitle
 {
+    use InstitutionalStyling;
+
+    /** @var list<array{row: int, kind: string, average?: float|string|null}> */
+    private array $marks = [];
+
+    private int $headerRow = 0;
+
+    private int $lastRow = 0;
+
     /** @param list<array<string,mixed>> $byStudent */
     public function __construct(private readonly array $byStudent) {}
 
@@ -21,62 +37,85 @@ class ByStudentSheet implements FromArray, ShouldAutoSize, WithHeadings, WithSty
         return 'Por Estudiante';
     }
 
-    public function headings(): array
-    {
-        return ['Estudiante', 'Promedio Final', 'Tipo de RA', 'Resultado Microcurricular', 'Promedio RA'];
-    }
-
     public function array(): array
     {
-        $rows = [];
+        $rows = [
+            [''],
+            ['', 'DESEMPEÑO POR ESTUDIANTE'],
+            [''],
+        ];
+
+        $this->headerRow = count($rows) + 1;
+        $rows[] = ['', 'Estudiante / Resultado de aprendizaje', 'Tipo', 'Promedio'];
 
         foreach ($this->byStudent as $student) {
-            $outcomes = $student['by_outcome'] ?? [];
+            $rows[] = ['', $student['student_name'], '', $student['final_average']];
+            $this->marks[] = [
+                'row' => count($rows),
+                'kind' => 'student',
+                'average' => $student['final_average'],
+            ];
 
-            if (empty($outcomes)) {
-                $rows[] = [$student['student_name'], $student['final_average'], '', '', ''];
-
-                continue;
-            }
-
-            foreach ($outcomes as $i => $outcome) {
+            foreach ($student['by_outcome'] ?? [] as $outcome) {
                 $rows[] = [
-                    $i === 0 ? $student['student_name'] : '',
-                    $i === 0 ? $student['final_average'] : '',
+                    '',
+                    '   '.($outcome['outcome_desc'] ?? ''),
                     $outcome['type_name'] ?? '—',
-                    $outcome['outcome_desc'] ?? '',
-                    $outcome['grade'] ?? '',
+                    $outcome['grade'] ?? null,
+                ];
+
+                $this->marks[] = [
+                    'row' => count($rows),
+                    'kind' => 'outcome',
+                    'average' => $outcome['grade'] ?? null,
                 ];
             }
         }
+
+        $this->lastRow = count($rows);
 
         return $rows;
     }
 
+    public function columnWidths(): array
+    {
+        return ['A' => 3, 'B' => 70, 'C' => 18, 'D' => 14];
+    }
+
     public function styles(Worksheet $sheet): array
     {
-        $styles = [
-            1 => [
-                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-            ],
-        ];
+        $this->styleSectionTitle($sheet, 2, 'D');
+        $sheet->getStyle('B2')->getFont()->setSize(13);
 
-        $currentRow = 2;
-        $studentIndex = 0;
-        foreach ($this->byStudent as $student) {
-            $outcomeCount = max(1, count($student['by_outcome'] ?? []));
-            $fillColor = $studentIndex % 2 === 0 ? 'EFF6FF' : 'DBEAFE';
-            for ($r = $currentRow; $r < $currentRow + $outcomeCount; $r++) {
-                $styles[$r] = [
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $fillColor]],
-                ];
+        $this->styleTable($sheet, $this->headerRow, $this->lastRow, 'D');
+        $sheet->getStyle('B'.$this->headerRow)->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+        foreach ($this->marks as $mark) {
+            $row = $mark['row'];
+
+            if ($mark['kind'] === 'student') {
+                // The student's line is the one that anchors the block.
+                $sheet->getStyle('B'.$row.':D'.$row)->getFill()->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFE7EEF7');
+                $sheet->getStyle('B'.$row)->getFont()->setBold(true);
+                $sheet->getStyle('D'.$row)->getFont()->setBold(true);
+            } else {
+                $sheet->getStyle('B'.$row)->getAlignment()
+                    ->setWrapText(true)->setVertical(Alignment::VERTICAL_CENTER);
+                $sheet->getRowDimension($row)->setRowHeight(28);
             }
-            $currentRow += $outcomeCount;
-            $studentIndex++;
+
+            $sheet->getStyle('C'.$row.':D'.$row)->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                ->setVertical(Alignment::VERTICAL_CENTER);
+
+            $this->styleGradeCell($sheet, 'D'.$row, $mark['average'] ?? null);
         }
 
-        return $styles;
+        $sheet->freezePane('B'.($this->headerRow + 1));
+        $this->resetView($sheet);
+
+        return [];
     }
 }

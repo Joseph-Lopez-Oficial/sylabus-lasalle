@@ -735,6 +735,17 @@ export default function GradingShow({
                             </Link>
                         </Button>
                         <Button variant="outline" size="sm" asChild>
+                            <a
+                                href={GradingController.downloadInstitutionalReport.url(
+                                    programming,
+                                )}
+                                download
+                            >
+                                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                                Reporte institucional
+                            </a>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
                             <Link
                                 href={AnalysisController.show.url(programming)}
                             >

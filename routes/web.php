@@ -192,6 +192,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('programmings/{programming}/statistics', [ProgrammingController::class, 'statistics'])->name('programmings.statistics');
     Route::get('programmings/{programming}/statistics/export', [ProgrammingController::class, 'downloadStatistics'])->name('programmings.statistics.export');
     Route::get('programmings/{programming}/analysis', [AdminAnalysisController::class, 'show'])->name('programmings.analysis');
+    Route::get('programmings/{programming}/institutional-report', [ProgrammingController::class, 'downloadInstitutionalReport'])->name('programmings.institutional-report');
     Route::get('programmings/{programming}/edit', [ProgrammingController::class, 'edit'])->name('programmings.edit');
     Route::put('programmings/{programming}', [ProgrammingController::class, 'update'])->name('programmings.update');
     Route::patch('programmings/{programming}/toggle-status', [ProgrammingController::class, 'toggleStatus'])->name('programmings.toggle-status');
@@ -216,6 +217,7 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     Route::get('programmings/{programming}/grading/import', [GradingController::class, 'importPage'])->name('programmings.grading.import-page');
     Route::post('programmings/{programming}/grading/import', [GradingController::class, 'importGrades'])->name('programmings.grading.import');
     Route::get('programmings/{programming}/grading/report', [GradingController::class, 'downloadReport'])->name('programmings.grading.report');
+    Route::get('programmings/{programming}/grading/institutional-report', [GradingController::class, 'downloadInstitutionalReport'])->name('programmings.grading.institutional-report');
 
     // Inscripciones del profesor en su programación
     Route::get('programmings/{programming}/enrollments/search', [GradingController::class, 'searchStudents'])->name('programmings.enrollments.search');

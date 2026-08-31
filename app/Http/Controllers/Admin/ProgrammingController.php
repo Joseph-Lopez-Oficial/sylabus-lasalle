@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Exports\AdminProgrammingStatisticsExport;
+use App\Exports\InstitutionalReportExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProgrammingRequest;
 use App\Http\Requests\Admin\UpdateProgrammingRequest;
@@ -13,6 +14,7 @@ use App\Models\Professor;
 use App\Models\Programming;
 use App\Models\Student;
 use App\Services\GradingService;
+use App\Services\InstitutionalReportBuilder;
 use App\Services\StatisticsService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -138,6 +140,19 @@ class ProgrammingController extends Controller
         return Excel::download(
             new AdminProgrammingStatisticsExport($programming, $statisticsService),
             $fileName
+        );
+    }
+
+    /**
+     * The report in the coordination's own format, for any programming.
+     */
+    public function downloadInstitutionalReport(
+        Programming $programming,
+        InstitutionalReportBuilder $builder
+    ): BinaryFileResponse {
+        return Excel::download(
+            new InstitutionalReportExport($programming, $builder),
+            $builder->fileName($programming)
         );
     }
 }
