@@ -715,35 +715,14 @@ export default function GradingShow({
                 >
                     <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" asChild>
-                            <a
-                                href={GradingController.downloadTemplate.url(
-                                    programming,
-                                )}
-                                download
-                            >
-                                <Download className="mr-2 h-4 w-4" />
-                                Plantilla
-                            </a>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
                             <Link
                                 href={GradingController.importPage.url(
                                     programming,
                                 )}
                             >
-                                ↑ Importar Excel
-                            </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                            <a
-                                href={GradingController.downloadInstitutionalReport.url(
-                                    programming,
-                                )}
-                                download
-                            >
                                 <FileSpreadsheet className="mr-2 h-4 w-4" />
-                                Reporte institucional
-                            </a>
+                                Archivos Excel
+                            </Link>
                         </Button>
                         <Button variant="outline" size="sm" asChild>
                             <Link

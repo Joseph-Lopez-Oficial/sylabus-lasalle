@@ -9,6 +9,7 @@ use App\Models\Enrollment;
 use App\Models\EvaluationCriterion;
 use App\Models\Faculty;
 use App\Models\Grade;
+use App\Models\ImportLog;
 use App\Models\MicrocurricularLearningOutcome;
 use App\Models\MicrocurricularLearningOutcomeType;
 use App\Models\Modality;
@@ -85,13 +86,26 @@ beforeEach(function () {
 
     $this->folder = sys_get_temp_dir().'/institutional-'.uniqid();
     mkdir($this->folder);
+
+    // Uploads waiting for confirmation must not pile up in the project's own
+    // storage while the suite runs.
+    $this->uploads = $this->folder.'/uploads';
+    config(['filesystems.disks.local.root' => $this->uploads]);
 });
 
 afterEach(function () {
     PerformanceLevel::forgetScaleCache();
 
     if (is_dir($this->folder)) {
-        array_map('unlink', glob($this->folder.'/*') ?: []);
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->folder, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+
+        foreach ($files as $file) {
+            $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
+        }
+
         rmdir($this->folder);
     }
 });
@@ -122,10 +136,9 @@ function storeReport(): string
     (new InstitutionalReportExport($test->programming, app(InstitutionalReportBuilder::class)))
         ->store('reporte.xlsx', 'local');
 
-    $stored = storage_path('app/private/reporte.xlsx');
-    if (! is_file($stored)) {
-        $stored = storage_path('app/reporte.xlsx');
-    }
+    // The disk is redirected in beforeEach, so its own path is the only one
+    // that finds the file.
+    $stored = \Illuminate\Support\Facades\Storage::disk('local')->path('reporte.xlsx');
 
     copy($stored, $path);
     @unlink($stored);
@@ -518,4 +531,238 @@ test('an analysis written in the file and absent in the system is not a conflict
     // apply, but with no stored text behind it.
     expect($result['analysis_conflicts'])->toHaveCount(1)
         ->and($result['analysis_conflicts'][0]['stored'])->toBeNull();
+});
+
+// ── Subida desde la interfaz ──────────────────────────────────────────────────
+
+/** The stored report as the upload the professor would send. */
+function uploadedReport(string $path): \Illuminate\Http\UploadedFile
+{
+    return new \Illuminate\Http\UploadedFile(
+        $path,
+        'IAP_SOF_BasesDeDatosI_Grupo1_2025-2.xlsx',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        null,
+        true
+    );
+}
+
+test('the professor uploads the filled report and the marks are recorded', function () {
+    gradeEveryCriterion(3);
+    $expected = Grade::orderBy('evaluation_criterion_id')->pluck('performance_level_id')->all();
+
+    $path = storeReport();
+    Grade::query()->delete();
+
+    $response = $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.import', $this->programming),
+            ['file' => uploadedReport($path)]
+        );
+
+    $response->assertOk()
+        ->assertJsonPath('saved', count($expected))
+        ->assertJsonPath('skipped', 0);
+
+    expect(Grade::orderBy('evaluation_criterion_id')->pluck('performance_level_id')->all())
+        ->toBe($expected);
+});
+
+test('the upload is written down in the import history', function () {
+    gradeEveryCriterion(4);
+    $path = storeReport();
+
+    $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.import', $this->programming),
+            ['file' => uploadedReport($path)]
+        )->assertOk();
+
+    $log = ImportLog::first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->programming_id)->toBe($this->programming->id)
+        ->and($log->imported_by)->toBe($this->professorUser->id)
+        ->and($log->successful_rows)->toBe(4)
+        ->and($log->status)->toBe('completed');
+});
+
+test('a report of another programming is refused by the route', function () {
+    $path = storeReport();
+
+    $otherSpace = AcademicSpace::factory()->create([
+        'competency_id' => $this->space->competency_id,
+        'name' => 'Redes Y Comunicacion De Datos',
+    ]);
+    $other = Programming::factory()->create([
+        'academic_space_id' => $otherSpace->id,
+        'professor_id' => $this->professor->id,
+        'modality_id' => $this->programming->modality_id,
+        'academic_period_id' => $this->programming->academic_period_id,
+    ]);
+
+    $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.import', $other),
+            ['file' => uploadedReport($path)]
+        )
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'El archivo no corresponde a esta programación: revise el espacio académico y el período.');
+
+    expect(Grade::count())->toBe(0)
+        ->and(ImportLog::count())->toBe(0);
+});
+
+test('a professor cannot upload the report of another professor', function () {
+    $path = storeReport();
+
+    $other = Programming::factory()->create([
+        'academic_space_id' => $this->space->id,
+        'professor_id' => Professor::factory()->create()->id,
+        'modality_id' => $this->programming->modality_id,
+        'academic_period_id' => $this->programming->academic_period_id,
+    ]);
+
+    $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.import', $other),
+            ['file' => uploadedReport($path)]
+        )
+        ->assertForbidden();
+});
+
+test('the upload rejects a file that is not a spreadsheet', function () {
+    $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.import', $this->programming),
+            ['file' => \Illuminate\Http\UploadedFile::fake()->create('notas.pdf', 20, 'application/pdf')]
+        )
+        ->assertSessionHasErrors('file');
+});
+
+// ── Confirmación del análisis ─────────────────────────────────────────────────
+
+/** Stores the report with a differing analysis and returns its path. */
+function reportWithDifferingAnalysis(): string
+{
+    $test = test();
+
+    AcademicSpaceAnalysis::factory()->create([
+        'programming_id' => $test->programming->id,
+        'microcurricular_learning_outcome_id' => $test->outcome->id,
+        'outcome_performance' => 'Texto guardado en el sistema.',
+        'written_by' => $test->professorUser->id,
+    ]);
+
+    $path = storeReport();
+    $spreadsheet = IOFactory::load($path);
+    $spreadsheet->getSheetByName('Analisis del EA')->setCellValue('B10', 'Texto distinto en el archivo.');
+    (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet))->save($path);
+    $spreadsheet->disconnectWorksheets();
+
+    return $path;
+}
+
+test('a differing analysis comes back as a conflict with a token to confirm', function () {
+    $path = reportWithDifferingAnalysis();
+
+    $response = $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.import', $this->programming),
+            ['file' => uploadedReport($path)]
+        )->assertOk();
+
+    $response->assertJsonCount(1, 'analysis_conflicts')
+        ->assertJsonPath('analysis_conflicts.0.stored', 'Texto guardado en el sistema.');
+
+    expect($response->json('token'))->not->toBeNull()
+        // Nothing replaced until the professor says so.
+        ->and(AcademicSpaceAnalysis::first()->outcome_performance)->toBe('Texto guardado en el sistema.');
+
+    $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.analysis', $this->programming),
+            ['token' => $response->json('token')]
+        )
+        ->assertOk()
+        ->assertJsonPath('applied', 1);
+
+    expect(AcademicSpaceAnalysis::first()->outcome_performance)
+        ->toBe('Texto distinto en el archivo.');
+});
+
+test('an import without conflicts keeps no file and issues no token', function () {
+    gradeEveryCriterion(4);
+    $path = storeReport();
+
+    $response = $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.import', $this->programming),
+            ['file' => uploadedReport($path)]
+        )->assertOk();
+
+    expect($response->json('token'))->toBeNull()
+        ->and($response->json('analysis_conflicts'))->toBeEmpty()
+        ->and(\Illuminate\Support\Facades\Storage::disk('local')->allFiles('institutional-imports'))->toBeEmpty();
+});
+
+test('the confirmation refuses a token of another programming', function () {
+    $path = reportWithDifferingAnalysis();
+
+    $token = $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.import', $this->programming),
+            ['file' => uploadedReport($path)]
+        )->json('token');
+
+    // The token was issued for this group, so replaying it on another one must
+    // not reach the file kept aside.
+    $other = Programming::factory()->create([
+        'academic_space_id' => $this->space->id,
+        'professor_id' => $this->professor->id,
+        'modality_id' => $this->programming->modality_id,
+        'academic_period_id' => $this->programming->academic_period_id,
+        'group' => '77',
+    ]);
+
+    $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.analysis', $other),
+            ['token' => $token]
+        )
+        ->assertStatus(422);
+
+    expect(AcademicSpaceAnalysis::first()->outcome_performance)
+        ->toBe('Texto guardado en el sistema.');
+});
+
+test('the confirmation refuses a token that was already used', function () {
+    $path = reportWithDifferingAnalysis();
+
+    $token = $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.import', $this->programming),
+            ['file' => uploadedReport($path)]
+        )->json('token');
+
+    $route = route('professor.programmings.grading.institutional-report.analysis', $this->programming);
+
+    $this->actingAs($this->professorUser)->post($route, ['token' => $token])->assertOk();
+    $this->actingAs($this->professorUser)->post($route, ['token' => $token])->assertStatus(422);
+});
+
+test('a professor cannot confirm the analysis of another professor', function () {
+    $other = Programming::factory()->create([
+        'academic_space_id' => $this->space->id,
+        'professor_id' => Professor::factory()->create()->id,
+        'modality_id' => $this->programming->modality_id,
+        'academic_period_id' => $this->programming->academic_period_id,
+    ]);
+
+    $this->actingAs($this->professorUser)
+        ->post(
+            route('professor.programmings.grading.institutional-report.analysis', $other),
+            ['token' => (string) \Illuminate\Support\Str::uuid()]
+        )
+        ->assertForbidden();
 });

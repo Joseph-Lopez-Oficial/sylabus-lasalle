@@ -218,6 +218,8 @@ Route::middleware(['auth', 'professor'])->prefix('professor')->name('professor.'
     Route::post('programmings/{programming}/grading/import', [GradingController::class, 'importGrades'])->name('programmings.grading.import');
     Route::get('programmings/{programming}/grading/report', [GradingController::class, 'downloadReport'])->name('programmings.grading.report');
     Route::get('programmings/{programming}/grading/institutional-report', [GradingController::class, 'downloadInstitutionalReport'])->name('programmings.grading.institutional-report');
+    Route::post('programmings/{programming}/grading/institutional-report', [GradingController::class, 'importInstitutionalReport'])->name('programmings.grading.institutional-report.import');
+    Route::post('programmings/{programming}/grading/institutional-report/analysis', [GradingController::class, 'applyInstitutionalAnalysis'])->name('programmings.grading.institutional-report.analysis');
 
     // Inscripciones del profesor en su programación
     Route::get('programmings/{programming}/enrollments/search', [GradingController::class, 'searchStudents'])->name('programmings.enrollments.search');

@@ -8,7 +8,9 @@ use App\Exports\ProfessorEnrollmentTemplateExport;
 use App\Exports\StatisticsReportExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ImportEnrollmentsRequest;
+use App\Http\Requests\Professor\ApplyInstitutionalAnalysisRequest;
 use App\Http\Requests\Professor\ImportGradesRequest;
+use App\Http\Requests\Professor\ImportInstitutionalReportRequest;
 use App\Http\Requests\Professor\SaveGradesRequest;
 use App\Imports\GradesImport;
 use App\Imports\ProfessorEnrollmentsImport;
@@ -23,13 +25,17 @@ use App\Models\Student;
 use App\Services\AcademicSpaceAnalysisService;
 use App\Services\GradingService;
 use App\Services\InstitutionalReportBuilder;
+use App\Services\InstitutionalReportImporter;
 use App\Services\StatisticsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
@@ -324,6 +330,126 @@ class GradingController extends Controller
             new InstitutionalReportExport($programming, $builder),
             $builder->fileName($programming)
         );
+    }
+
+    /**
+     * Reads back the institutional report the professor filled in by hand.
+     *
+     * The upload is kept aside under a token because the analysis it carries is
+     * not applied here: the professor is shown the differences first, and only
+     * confirms afterwards, by which point the original upload is long gone.
+     */
+    public function importInstitutionalReport(
+        ImportInstitutionalReportRequest $request,
+        Programming $programming,
+        InstitutionalReportImporter $importer
+    ): JsonResponse {
+        $this->authorizeOwnership($request, $programming);
+
+        $this->purgeStaleInstitutionalUploads($programming);
+
+        $file = $request->file('file');
+        $token = (string) Str::uuid();
+        $path = $this->institutionalUploadPath($programming, $token);
+
+        Storage::disk('local')->put($path, file_get_contents($file->getRealPath()));
+
+        try {
+            $result = $importer->import(
+                Storage::disk('local')->path($path),
+                $programming,
+                $request->user()->id
+            );
+        } catch (RuntimeException $e) {
+            Storage::disk('local')->delete($path);
+
+            return response()->json(['message' => $e->getMessage()], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        ImportLog::create([
+            'imported_by' => $request->user()->id,
+            'programming_id' => $programming->id,
+            'file_name' => $file->getClientOriginalName(),
+            'total_rows' => $result['saved'] + $result['skipped'],
+            'successful_rows' => $result['saved'],
+            'failed_rows' => $result['skipped'],
+            'errors' => $result['errors'] ?: null,
+            'status' => $result['skipped'] === 0 ? 'completed' : 'partial',
+            'imported_at' => now(),
+        ]);
+
+        // The file is only worth keeping while there is something to confirm.
+        if ($result['analysis_conflicts'] === []) {
+            Storage::disk('local')->delete($path);
+            $token = null;
+        }
+
+        return response()->json([
+            'message' => "Importación completada: {$result['saved']} calificaciones registradas, {$result['skipped']} omitidas.",
+            'saved' => $result['saved'],
+            'skipped' => $result['skipped'],
+            'errors' => $result['errors'],
+            'analysis_conflicts' => $result['analysis_conflicts'],
+            'token' => $token,
+        ]);
+    }
+
+    /**
+     * Replaces the stored analysis with the one the uploaded report carried.
+     */
+    public function applyInstitutionalAnalysis(
+        ApplyInstitutionalAnalysisRequest $request,
+        Programming $programming,
+        InstitutionalReportImporter $importer
+    ): JsonResponse {
+        $this->authorizeOwnership($request, $programming);
+
+        $path = $this->institutionalUploadPath($programming, $request->validated('token'));
+
+        if (! Storage::disk('local')->exists($path)) {
+            return response()->json([
+                'message' => 'El archivo importado ya no está disponible. Vuelve a subirlo.',
+            ], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        try {
+            $applied = $importer->applyAnalysis(
+                Storage::disk('local')->path($path),
+                $programming,
+                $request->user()->id
+            );
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } finally {
+            Storage::disk('local')->delete($path);
+        }
+
+        return response()->json([
+            'message' => "Análisis reemplazado en {$applied} resultado(s) de aprendizaje.",
+            'applied' => $applied,
+        ]);
+    }
+
+    /**
+     * Where an upload waits between the import and the professor's confirmation.
+     *
+     * The programming is part of the path, so a token issued for one group
+     * cannot be replayed against another.
+     */
+    private function institutionalUploadPath(Programming $programming, string $token): string
+    {
+        return "institutional-imports/{$programming->id}/{$token}.xlsx";
+    }
+
+    /**
+     * Drops uploads left behind by an import whose analysis was never confirmed.
+     *
+     * A professor who walks away from the differences leaves the file sitting
+     * there, so each new upload for the group clears what came before it.
+     */
+    private function purgeStaleInstitutionalUploads(Programming $programming): void
+    {
+        Storage::disk('local')->deleteDirectory("institutional-imports/{$programming->id}");
     }
 
     private function authorizeOwnership(Request $request, Programming $programming): void
