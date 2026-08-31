@@ -6,7 +6,6 @@ import {
     CheckCircle2,
     ChevronDown,
     ChevronUp,
-    Download,
     FileSpreadsheet,
     FileText,
     Plus,
@@ -21,6 +20,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as AnalysisController from '@/actions/App/Http/Controllers/Professor/AcademicSpaceAnalysisController';
 import * as GradingController from '@/actions/App/Http/Controllers/Professor/GradingController';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { DownloadButton } from '@/components/download-button';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import {
@@ -905,16 +905,14 @@ export default function GradingShow({
                                     nombres, apellidos, correo). Si ya existe
                                     solo lo inscribe.
                                 </p>
-                                <Button variant="outline" size="sm" asChild>
-                                    <a
-                                        href={GradingController.downloadEnrollmentTemplate.url(
-                                            programming,
-                                        )}
-                                    >
-                                        <Download className="mr-2 h-4 w-4" />
-                                        Descargar plantilla
-                                    </a>
-                                </Button>
+                                <DownloadButton
+                                    size="sm"
+                                    href={GradingController.downloadEnrollmentTemplate.url(
+                                        programming,
+                                    )}
+                                >
+                                    Descargar plantilla
+                                </DownloadButton>
 
                                 {!enrollment_import_results?.length ? (
                                     <Form

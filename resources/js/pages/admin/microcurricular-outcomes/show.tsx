@@ -4,7 +4,6 @@ import {
     BarChart2,
     ChevronDown,
     ChevronRight,
-    Download,
     TrendingDown,
     TrendingUp,
 } from 'lucide-react';
@@ -23,6 +22,7 @@ import {
     Legend,
 } from 'recharts';
 import * as OutcomeController from '@/actions/App/Http/Controllers/Admin/MicrocurricularLearningOutcomeController';
+import { DownloadButton } from '@/components/download-button';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -179,15 +179,11 @@ export default function MicrocurricularOutcomeShow({
                     description={outcome.academic_space?.name ?? ''}
                 >
                     {summary.total_grade_records > 0 && (
-                        <Button variant="outline" asChild>
-                            <a
-                                href={`/admin/microcurricular-outcomes/${outcome.id}/export`}
-                                download
-                            >
-                                <Download className="mr-2 h-4 w-4" />
-                                Exportar Excel
-                            </a>
-                        </Button>
+                        <DownloadButton
+                            href={OutcomeController.downloadReport.url(outcome)}
+                        >
+                            Exportar Excel
+                        </DownloadButton>
                     )}
                     <Button variant="outline" asChild>
                         <Link href={OutcomeController.index.url()}>

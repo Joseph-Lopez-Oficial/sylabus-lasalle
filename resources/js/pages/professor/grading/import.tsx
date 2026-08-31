@@ -4,13 +4,13 @@ import {
     AlertCircle,
     ArrowLeft,
     CheckCircle2,
-    Download,
     FileSpreadsheet,
     Upload,
     XCircle,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import * as GradingController from '@/actions/App/Http/Controllers/Professor/GradingController';
+import { DownloadButton } from '@/components/download-button';
 import { PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -377,17 +377,13 @@ export default function GradingImport({ programming, academicSpace }: Props) {
                                             tienen validación con lista
                                             desplegable.
                                         </p>
-                                        <Button asChild variant="outline">
-                                            <a
-                                                href={GradingController.downloadTemplate.url(
-                                                    programming,
-                                                )}
-                                                download
-                                            >
-                                                <Download className="mr-2 h-4 w-4" />
-                                                Descargar plantilla Excel
-                                            </a>
-                                        </Button>
+                                        <DownloadButton
+                                            href={GradingController.downloadTemplate.url(
+                                                programming,
+                                            )}
+                                        >
+                                            Descargar plantilla Excel
+                                        </DownloadButton>
                                     </CardContent>
                                 </Card>
 
@@ -606,17 +602,13 @@ export default function GradingImport({ programming, academicSpace }: Props) {
                                             diligenciarlo y volver a subirlo
                                             aquí.
                                         </p>
-                                        <Button asChild variant="outline">
-                                            <a
-                                                href={GradingController.downloadInstitutionalReport.url(
-                                                    programming,
-                                                )}
-                                                download
-                                            >
-                                                <Download className="mr-2 h-4 w-4" />
-                                                Descargar reporte institucional
-                                            </a>
-                                        </Button>
+                                        <DownloadButton
+                                            href={GradingController.downloadInstitutionalReport.url(
+                                                programming,
+                                            )}
+                                        >
+                                            Descargar reporte institucional
+                                        </DownloadButton>
                                     </CardContent>
                                 </Card>
 

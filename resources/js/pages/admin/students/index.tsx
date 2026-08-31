@@ -1,7 +1,6 @@
 import { Form, Head, Link, router } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';
 import {
-    Download,
     FileSpreadsheet,
     Pencil,
     Plus,
@@ -13,6 +12,7 @@ import { useRef, useState } from 'react';
 import * as StudentController from '@/actions/App/Http/Controllers/Admin/StudentController';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { DataTable } from '@/components/data-table';
+import { DownloadButton } from '@/components/download-button';
 import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
@@ -114,12 +114,11 @@ export default function StudentsIndex({
                     title="Estudiantes"
                     description="Gestión de estudiantes registrados en el sistema"
                 >
-                    <Button variant="outline" asChild>
-                        <a href={StudentController.downloadTemplate.url()}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Plantilla
-                        </a>
-                    </Button>
+                    <DownloadButton
+                        href={StudentController.downloadTemplate.url()}
+                    >
+                        Plantilla
+                    </DownloadButton>
                     <Button
                         variant="outline"
                         onClick={() => setShowImport((v) => !v)}

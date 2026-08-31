@@ -20,9 +20,9 @@ import {
 } from 'recharts';
 import * as GradingController from '@/actions/App/Http/Controllers/Professor/GradingController';
 import * as StatisticsController from '@/actions/App/Http/Controllers/Professor/StatisticsController';
+import { DownloadButton } from '@/components/download-button';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Select,
@@ -1631,16 +1631,11 @@ export default function StatisticsShow({ programming, statistics }: Props) {
                     title={`Estadísticas: ${programming.academic_space?.name ?? ''}`}
                     description={`${programming.academic_period?.name ?? ''}${programming.group ? ` · Grupo ${programming.group}` : ''} · ${programming.modality?.name ?? ''}`}
                 >
-                    <Button variant="outline" asChild>
-                        <a
-                            href={GradingController.downloadReport.url(
-                                programming,
-                            )}
-                            download
-                        >
-                            ↓ Exportar reporte Excel
-                        </a>
-                    </Button>
+                    <DownloadButton
+                        href={GradingController.downloadReport.url(programming)}
+                    >
+                        Exportar reporte Excel
+                    </DownloadButton>
                 </PageHeader>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>

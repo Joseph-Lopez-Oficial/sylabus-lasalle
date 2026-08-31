@@ -2,7 +2,6 @@ import { Form, Head, Link, router } from '@inertiajs/react';
 import {
     ChevronDown,
     ChevronUp,
-    Download,
     FileSpreadsheet,
     FileText,
     Pencil,
@@ -18,6 +17,7 @@ import * as AdminAnalysisController from '@/actions/App/Http/Controllers/Admin/A
 import * as EnrollmentController from '@/actions/App/Http/Controllers/Admin/EnrollmentController';
 import * as ProgrammingController from '@/actions/App/Http/Controllers/Admin/ProgrammingController';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { DownloadButton } from '@/components/download-button';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
@@ -135,17 +135,14 @@ export default function ProgrammingsShow({
                     description={`${programming.academic_period?.name ?? ''}${programming.group ? ' · Grupo ' + programming.group : ''} · ${programming.modality.name}`}
                 >
                     <StatusBadge isActive={programming.is_active} />
-                    <Button variant="outline" asChild>
-                        <a
-                            href={ProgrammingController.downloadInstitutionalReport.url(
-                                programming,
-                            )}
-                            download
-                        >
-                            <FileSpreadsheet className="mr-2 h-4 w-4" />
-                            Reporte institucional
-                        </a>
-                    </Button>
+                    <DownloadButton
+                        href={ProgrammingController.downloadInstitutionalReport.url(
+                            programming,
+                        )}
+                        icon={<FileSpreadsheet className="mr-2 h-4 w-4" />}
+                    >
+                        Reporte institucional
+                    </DownloadButton>
                     <Button variant="outline" asChild>
                         <Link
                             href={ProgrammingController.edit.url(programming)}
@@ -371,20 +368,14 @@ export default function ProgrammingsShow({
                                             </code>
                                             .
                                         </p>
-                                        <Button
-                                            variant="outline"
+                                        <DownloadButton
                                             size="sm"
-                                            asChild
+                                            href={EnrollmentController.downloadTemplate.url(
+                                                programming,
+                                            )}
                                         >
-                                            <a
-                                                href={EnrollmentController.downloadTemplate.url(
-                                                    programming,
-                                                )}
-                                            >
-                                                <Download className="mr-2 h-4 w-4" />
-                                                Descargar plantilla
-                                            </a>
-                                        </Button>
+                                            Descargar plantilla
+                                        </DownloadButton>
 
                                         {!import_results?.length ? (
                                             <Form

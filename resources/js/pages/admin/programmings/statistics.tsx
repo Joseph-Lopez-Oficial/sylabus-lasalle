@@ -4,7 +4,6 @@ import {
     ChevronDown,
     ChevronUp,
     CheckCircle2,
-    Download,
     Trophy,
     Zap,
 } from 'lucide-react';
@@ -20,6 +19,7 @@ import {
     YAxis,
 } from 'recharts';
 import * as ProgrammingController from '@/actions/App/Http/Controllers/Admin/ProgrammingController';
+import { DownloadButton } from '@/components/download-button';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -1437,15 +1437,13 @@ export default function ProgrammingStatistics({
                     title={`Estadísticas: ${programming.academic_space?.name ?? ''}`}
                     description={`${programming.academic_period?.name ?? ''}${programming.group ? ` · Grupo ${programming.group}` : ''} · ${programming.modality?.name ?? ''} · Prof. ${programming.professor?.first_name ?? ''} ${programming.professor?.last_name ?? ''}`}
                 >
-                    <Button variant="outline" asChild>
-                        <a
-                            href={`/admin/programmings/${programming.id}/statistics/export`}
-                            download
-                        >
-                            <Download className="mr-2 h-4 w-4" />
-                            Exportar Excel
-                        </a>
-                    </Button>
+                    <DownloadButton
+                        href={ProgrammingController.downloadStatistics.url(
+                            programming,
+                        )}
+                    >
+                        Exportar Excel
+                    </DownloadButton>
                     <Button variant="outline" asChild>
                         <Link
                             href={ProgrammingController.show.url(programming)}

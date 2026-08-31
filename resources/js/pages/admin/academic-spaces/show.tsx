@@ -6,7 +6,6 @@ import {
     ChevronDown,
     ChevronRight,
     ChevronUp,
-    Download,
     Pencil,
     Plus,
     TrendingDown,
@@ -28,6 +27,7 @@ import {
     YAxis,
 } from 'recharts';
 import * as SpaceController from '@/actions/App/Http/Controllers/Admin/AcademicSpaceController';
+import { DownloadButton } from '@/components/download-button';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
@@ -206,15 +206,13 @@ export default function AcademicSpacesShow({
                 >
                     <StatusBadge isActive={academicSpace.is_active} />
                     {statistics && (
-                        <Button variant="outline" asChild>
-                            <a
-                                href={`/admin/academic-spaces/${academicSpace.id}/statistics/export`}
-                                download
-                            >
-                                <Download className="mr-2 h-4 w-4" />
-                                Exportar Estadísticas
-                            </a>
-                        </Button>
+                        <DownloadButton
+                            href={SpaceController.downloadStatistics.url(
+                                academicSpace,
+                            )}
+                        >
+                            Exportar Estadísticas
+                        </DownloadButton>
                     )}
                     <Button variant="outline" asChild>
                         <Link href={SpaceController.edit.url(academicSpace)}>
