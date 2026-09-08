@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v2.2.1...v2.2.2) (2026-09-08)
+
+
+### Bug Fixes
+
+* **access:** send each role to its own panel and show the version ([bb5b7e9](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/bb5b7e9029dfbed402a22a414fd6d5ba552fec6a)), closes [#46](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/46)
+
 ## [2.2.1](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v2.2.0...v2.2.1) (2026-09-08)
 
 
