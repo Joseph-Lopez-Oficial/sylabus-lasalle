@@ -5,6 +5,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    {{-- Prefijo de la aplicación cuando se sirve bajo un subdirectorio.
+         Lo lee app.tsx para que las rutas relativas de Inertia y Axios
+         («/login») salgan con el prefijo y no invadan la raíz del dominio. --}}
+    <meta name="app-base" content="{{ rtrim(parse_url((string) config('app.url'), PHP_URL_PATH) ?? '', '/') }}">
+
     {{-- Inline script to detect system dark mode preference and apply it immediately --}}
     <script>
         (function() {
