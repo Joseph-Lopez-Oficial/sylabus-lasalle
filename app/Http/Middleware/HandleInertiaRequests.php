@@ -38,7 +38,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            'version' => $this->releasedVersion(),
+            'version' => config('app.version'),
             'auth' => [
                 'user' => $request->user(),
             ],
@@ -52,20 +52,4 @@ class HandleInertiaRequests extends Middleware
      * That file is what semantic-release bumps, so reading it keeps the number
      * shown to the user from drifting away from the one that was published.
      */
-    private function releasedVersion(): string
-    {
-        static $version = null;
-
-        if ($version !== null) {
-            return $version;
-        }
-
-        $manifest = base_path('package.json');
-
-        $version = is_file($manifest)
-            ? (json_decode((string) file_get_contents($manifest), true)['version'] ?? '—')
-            : '—';
-
-        return $version;
-    }
 }

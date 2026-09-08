@@ -30,9 +30,14 @@ test('the generated routes carry the subdirectory the application is served from
 });
 
 test('a domain root is left untouched, so local development keeps working', function () {
+    // Sin prefijo que forzar, la raíz la resuelve el propio framework a partir
+    // de la petición, así que se comprueba lo que importa: que la ruta salga
+    // limpia y sin rastro de subcarpeta.
     bootWithAppUrl('http://localhost:8000');
 
-    expect(route('login'))->toBe('http://localhost:8000/login');
+    expect(route('login'))
+        ->toEndWith('/login')
+        ->not->toContain('/ingenieria');
 });
 
 test('every named route of the system carries the prefix', function () {

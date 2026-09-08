@@ -1,6 +1,7 @@
 <?php
 
 use App\Exports\InstitutionalReportExport;
+use App\Exports\Sheets\Institutional\AnalysisSheet;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicSpace;
 use App\Models\AcademicSpaceAnalysis;
@@ -656,7 +657,13 @@ function reportWithDifferingAnalysis(): string
 
     $path = storeReport();
     $spreadsheet = IOFactory::load($path);
-    $spreadsheet->getSheetByName('Analisis del EA')->setCellValue('B10', 'Texto distinto en el archivo.');
+
+    // La primera respuesta del primer bloque, deducida de la hoja en lugar de
+    // escrita a mano: si la maquetación cambia, el test la sigue.
+    $answerCell = 'B'.(AnalysisSheet::FIRST_BLOCK_ROW + 4);
+
+    $spreadsheet->getSheetByName('Analisis del EA')
+        ->setCellValue($answerCell, 'Texto distinto en el archivo.');
     (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet))->save($path);
     $spreadsheet->disconnectWorksheets();
 
@@ -714,6 +721,10 @@ test('the confirmation refuses a token of another programming', function () {
             route('professor.programmings.grading.institutional-report.import', $this->programming),
             ['file' => uploadedReport($path)]
         )->json('token');
+
+    // Sin token no hay nada que replicar, y el fallo diría «falta el token»
+    // en lugar de señalar que la importación no vio el conflicto.
+    expect($token)->not->toBeNull();
 
     // The token was issued for this group, so replaying it on another one must
     // not reach the file kept aside.

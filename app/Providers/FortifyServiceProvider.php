@@ -23,14 +23,19 @@ class FortifyServiceProvider extends ServiceProvider
     {
         $this->app->instance(LoginResponse::class, new class implements LoginResponse
         {
+            /**
+             * Cada rol entra por su propio panel, sin atender la dirección que
+             * la sesión anterior dejó pendiente: un profesor que sucede a un
+             * administrador en el mismo navegador acabaría en el panel de
+             * administración —con el 403 correspondiente— y al revés vería el
+             * módulo del profesor.
+             */
             public function toResponse($request): mixed
             {
-                $role = $request->user()->role;
-
-                return redirect()->intended(match ($role) {
-                    'admin' => route('admin.dashboard'),
-                    'professor' => route('professor.dashboard'),
-                    default => route('dashboard'),
+                return redirect()->route(match ($request->user()->role) {
+                    'admin' => 'admin.dashboard',
+                    'professor' => 'professor.dashboard',
+                    default => 'dashboard',
                 });
             }
         });

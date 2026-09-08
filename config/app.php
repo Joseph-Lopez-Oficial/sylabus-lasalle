@@ -17,6 +17,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | The version shown in the «about the system» dialog. In development it is
+    | read from package.json, which is the file the release process bumps; that
+    | file does not travel to the server, so the deployed value comes from the
+    | environment instead. Falls back to a dash when neither is available.
+    |
+    */
+
+    'version' => env('APP_VERSION') ?: (
+        is_file($packageManifest = base_path('package.json'))
+            ? (json_decode((string) file_get_contents($packageManifest), true)['version'] ?? '—')
+            : '—'
+    ),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
