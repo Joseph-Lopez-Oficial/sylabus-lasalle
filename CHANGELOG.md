@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v2.2.0...v2.2.1) (2026-09-08)
+
+
+### Bug Fixes
+
+* **deployment:** serve the system from a subfolder of a shared domain ([eddb994](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/commit/eddb9947f7a3fc252ec4ae9320aad0a5714aa4fd)), closes [#16](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/issues/16)
+
 # [2.2.0](https://github.com/Joseph-Lopez-Oficial/sylabus-lasalle/compare/v2.1.0...v2.2.0) (2026-08-31)
 
 
